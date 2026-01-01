@@ -1,0 +1,261 @@
+extends Node
+class_name SimulationEngine
+
+## Manages code execution and simulation playback.
+## Coordinates between CodeParser and Vehicle entities.
+
+signal simulation_started()
+signal simulation_paused()
+signal simulation_ended(success: bool)
+signal code_executed(commands: Array)
+signal car_reached_destination(car_id: String)
+signal car_crashed(car_id: String)
+signal level_completed(stars: int)
+signal level_failed(reason: String)
+
+# Simulation state
+enum State { IDLE, RUNNING, PAUSED }
+var current_state: State = State.IDLE
+
+# Playback speed
+var speed_multiplier: float = 1.0
+const SPEED_NORMAL: float = 1.0
+const SPEED_FAST: float = 2.0
+const SPEED_FASTER: float = 4.0
+const SPEED_SLOW: float = 0.5
+
+# References
+var _parser: CodeParser
+var _vehicles: Dictionary = {}  # vehicle_id -> Vehicle node
+var _stoplights: Dictionary = {}  # stoplight_id -> Stoplight node
+var _command_queue: Array = []
+var _current_command_index: int = 0
+
+# Level tracking
+var _vehicles_at_destination: int = 0
+var _total_vehicles: int = 0
+
+
+func _ready() -> void:
+	_parser = CodeParser.new()
+	process_mode = Node.PROCESS_MODE_PAUSABLE
+
+
+func _process(delta: float) -> void:
+	if current_state == State.RUNNING:
+		# Engine.time_scale handles speed, no additional logic needed here
+		pass
+
+
+# ============================================
+# Vehicle Registration
+# ============================================
+
+## Register a vehicle with the simulation
+func register_vehicle(vehicle: Vehicle) -> void:
+	_vehicles[vehicle.vehicle_id] = vehicle
+	_total_vehicles += 1
+
+	# Connect signals
+	vehicle.reached_destination.connect(_on_vehicle_reached_destination)
+	vehicle.crashed.connect(_on_vehicle_crashed)
+
+
+## Unregister a vehicle
+func unregister_vehicle(vehicle_id: String) -> void:
+	if vehicle_id in _vehicles:
+		_vehicles.erase(vehicle_id)
+		_total_vehicles -= 1
+
+
+## Get all registered vehicle IDs
+func get_vehicle_ids() -> Array:
+	return _vehicles.keys()
+
+
+# ============================================
+# Code Execution
+# ============================================
+
+## Parse and execute code
+func execute_code(code: String) -> void:
+	# Get available objects based on registered entities
+	var available_objects: Array = []
+	for vehicle_id in _vehicles:
+		available_objects.append("car")  # All vehicles respond to "car" for now
+		break  # Only need to add "car" once
+
+	# Parse the code
+	var result = _parser.parse(code, available_objects)
+
+	if not result.valid:
+		# Emit errors but don't start simulation
+		for error in result.errors:
+			push_error("Line %s: %s" % [error["line"], error["message"]])
+		return
+
+	# Queue commands and start simulation
+	_command_queue = result.commands
+	_current_command_index = 0
+
+	# Execute all commands immediately (they queue actions on vehicles)
+	_execute_all_commands()
+
+	# Start the simulation
+	start()
+
+
+## Execute all queued commands
+func _execute_all_commands() -> void:
+	for command in _command_queue:
+		_execute_command(command)
+
+	code_executed.emit(_command_queue)
+
+
+## Execute a single command
+func _execute_command(command: Dictionary) -> void:
+	var obj_type = command["object"]
+	var func_name = command["function"]
+	var params = command["params"]
+
+	# For now, all "car" commands go to all vehicles
+	# In the future, we can have car1, car2, etc.
+	if obj_type == "car":
+		for vehicle_id in _vehicles:
+			var vehicle = _vehicles[vehicle_id]
+			_call_vehicle_function(vehicle, func_name, params)
+
+
+## Call a function on a vehicle
+func _call_vehicle_function(vehicle: Vehicle, func_name: String, params: Array) -> void:
+	match func_name:
+		"go":
+			vehicle.go()
+		"stop":
+			vehicle.stop()
+		"turn_left":
+			vehicle.turn_left()
+		"turn_right":
+			vehicle.turn_right()
+		"wait":
+			if params.size() > 0:
+				vehicle.wait(params[0])
+		"speed":
+			if params.size() > 0:
+				vehicle.set_speed(params[0])
+
+
+# ============================================
+# Playback Controls
+# ============================================
+
+## Start or resume simulation
+func start() -> void:
+	if current_state == State.IDLE or current_state == State.PAUSED:
+		current_state = State.RUNNING
+		Engine.time_scale = speed_multiplier
+		get_tree().paused = false
+		simulation_started.emit()
+
+
+## Pause simulation
+func pause() -> void:
+	if current_state == State.RUNNING:
+		current_state = State.PAUSED
+		get_tree().paused = true
+		simulation_paused.emit()
+
+
+## Toggle pause state
+func toggle_pause() -> void:
+	if current_state == State.RUNNING:
+		pause()
+	elif current_state == State.PAUSED:
+		start()
+
+
+## Stop and reset simulation
+func stop() -> void:
+	current_state = State.IDLE
+	Engine.time_scale = 1.0
+	get_tree().paused = false
+	_command_queue.clear()
+	_current_command_index = 0
+	_vehicles_at_destination = 0
+
+
+## Reset all vehicles to starting positions
+func reset() -> void:
+	stop()
+	# Note: Level manager should handle resetting vehicle positions
+
+
+## Set playback speed
+func set_speed(multiplier: float) -> void:
+	speed_multiplier = clamp(multiplier, SPEED_SLOW, SPEED_FASTER)
+	if current_state == State.RUNNING:
+		Engine.time_scale = speed_multiplier
+
+
+## Increase speed
+func speed_up() -> void:
+	if speed_multiplier < SPEED_FAST:
+		set_speed(SPEED_FAST)
+	else:
+		set_speed(SPEED_FASTER)
+
+
+## Decrease speed
+func slow_down() -> void:
+	if speed_multiplier > SPEED_NORMAL:
+		set_speed(SPEED_NORMAL)
+	else:
+		set_speed(SPEED_SLOW)
+
+
+# ============================================
+# Event Handlers
+# ============================================
+
+func _on_vehicle_reached_destination(vehicle_id: String) -> void:
+	_vehicles_at_destination += 1
+	car_reached_destination.emit(vehicle_id)
+
+	# Check win condition
+	if _vehicles_at_destination >= _total_vehicles and _total_vehicles > 0:
+		_on_level_complete()
+
+
+func _on_vehicle_crashed(vehicle_id: String) -> void:
+	car_crashed.emit(vehicle_id)
+	_on_level_failed("Car crashed: %s" % vehicle_id)
+
+
+func _on_level_complete() -> void:
+	stop()
+	level_completed.emit(3)  # TODO: Calculate actual stars
+	simulation_ended.emit(true)
+
+
+func _on_level_failed(reason: String) -> void:
+	stop()
+	level_failed.emit(reason)
+	simulation_ended.emit(false)
+
+
+# ============================================
+# Input Handling (can be connected from UI)
+# ============================================
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed:
+		match event.keycode:
+			KEY_SPACE:
+				toggle_pause()
+			KEY_R:
+				reset()
+			KEY_EQUAL, KEY_KP_ADD:  # + key
+				speed_up()
+			KEY_MINUS, KEY_KP_SUBTRACT:  # - key
+				slow_down()
