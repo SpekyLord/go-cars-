@@ -425,7 +425,36 @@ Check off items as they are completed.
 | Phase 2: Core Mechanics | Complete | 100% |
 | Phase 3: Content Creation | Not Started | 0% |
 | Phase 4: Polish & UI | Not Started | 0% |
-| Phase 5: Testing & Submission | Not Started | 0% |
+| Phase 5: Testing & Submission | In Progress | 10% |
+
+---
+
+## Bug Fixes Log
+
+### January 2, 2026 - Type Casting Fix in Stoplight
+
+**Issue:** `stoplight.gd` had type errors preventing the game from running
+- Line 30-32: Variables `_red_light`, `_yellow_light`, `_green_light` were typed as `Node2D`
+- Line 176: Function parameter `light_node` was typed as `Node2D`
+- Problem: `ColorRect` extends `Control`, not `Node2D`, causing type mismatch errors
+
+**Error Messages:**
+```
+SCRIPT ERROR: Parse Error: Expression is of type "Node2D" so it can't be of type "ColorRect".
+SCRIPT ERROR: Invalid cast. Cannot convert from "Node2D" to "ColorRect".
+```
+
+**Fix Applied:**
+- Changed variable types from `Node2D` to `Node` (lines 30-32)
+- Changed function parameter from `Node2D` to `Node` (line 176)
+
+**Files Modified:**
+- `scripts/entities/stoplight.gd`
+
+**Verification:**
+- All 24 tests pass (17 code_parser tests + 7 stoplight tests)
+- Game runs without errors in headless mode
+- Game launches successfully with window
 
 ---
 

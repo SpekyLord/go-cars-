@@ -27,9 +27,9 @@ const COLOR_GREEN: Color = Color(0.2, 1.0, 0.3)   # Bright green
 const COLOR_OFF: Color = Color(0.2, 0.2, 0.2)     # Dark gray (off)
 
 # References to light sprites (set in _ready or via scene)
-var _red_light: Node2D = null
-var _yellow_light: Node2D = null
-var _green_light: Node2D = null
+var _red_light: Node = null
+var _yellow_light: Node = null
+var _green_light: Node = null
 
 
 func _ready() -> void:
@@ -173,7 +173,7 @@ func _update_directional_lights() -> void:
 
 
 ## Set the color of a light node
-func _set_light_color(light_node: Node2D, color: Color) -> void:
+func _set_light_color(light_node: Node, color: Color) -> void:
 	# Works with Sprite2D nodes
 	if light_node is Sprite2D:
 		light_node.modulate = color
