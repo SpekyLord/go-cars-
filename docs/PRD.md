@@ -3,7 +3,7 @@
 
 ---
 
-**Document Version:** 1.0  
+**Document Version:** 2.0  
 **Date:** January 2026  
 **Team Name:** [Team Name]  
 **Event:** TrackTech: CSS Hackathon 2026  
@@ -32,18 +32,20 @@
 
 ### Product Vision
 
-GoCars is an innovative educational coding-puzzle game that transforms the intimidating world of programming into an engaging traffic management adventure. By combining the strategic depth of Mini Motorways with the programming-based gameplay of The Farmer Was Replaced, GoCars creates a unique learning environment where players write simplified code to control vehicles, traffic lights, and other traffic elements.
+GoCars is an innovative educational coding-puzzle game that transforms the intimidating world of programming into an engaging traffic management adventure. By combining the strategic depth of Mini Motorways with the programming-based gameplay of The Farmer Was Replaced, GoCars creates a unique learning environment where players write **real Python code** to control vehicles, traffic lights, and other traffic elements.
 
 ### Problem Statement
 
-Traditional programming education often fails to engage beginners, presenting coding concepts in abstract, text-heavy formats that feel disconnected from real-world applications. Many students abandon their coding journey before grasping fundamental concepts like functions, conditionals, and loops. There exists a significant gap between "learn to code" games that oversimplify concepts and actual programming environments that overwhelm newcomers.
+Traditional programming education often fails to engage beginners, presenting coding concepts in abstract, text-heavy formats that feel disconnected from real-world applications. Many students abandon their coding journey before grasping fundamental concepts like functions, conditionals, loops, and variables. There exists a significant gap between "learn to code" games that oversimplify concepts and actual programming environments that overwhelm newcomers.
 
 ### Solution Overview
 
-GoCars bridges this gap by providing a VS Code-inspired interface where players write intuitive Python-like commands to solve traffic puzzles. The game progressively introduces programming concepts through carefully designed levels, allowing players to see immediate visual feedback as their code controls vehicles navigating through realistic traffic scenarios inspired by Iloilo City, Philippines.
+GoCars bridges this gap by providing a VS Code-inspired interface where players write **actual Python syntax** to solve traffic puzzles. The game progressively introduces programming concepts—from basic function calls to conditionals (`if/else`), loops (`while/for`), and variables—through carefully designed levels, allowing players to see immediate visual feedback as their code controls vehicles navigating through realistic traffic scenarios inspired by Iloilo City, Philippines.
 
 ### Key Differentiators
 
+- **Real Python Syntax:** Players write actual Python code, not simplified pseudo-code
+- **Progressive Concept Introduction:** Functions → Variables → Conditionals → Loops
 - **Authentic Coding Experience:** VS Code-inspired interface familiarizes players with real development environments
 - **Local Cultural Integration:** Features actual Iloilo landmarks, creating cultural relevance and pride
 - **Dual Learning Paths:** Campaign mode for structured learning; Infinite mode for skill mastery
@@ -70,24 +72,27 @@ GoCars bridges this gap by providing a VS Code-inspired interface where players 
 | **Genre** | Educational Coding-Puzzle / Traffic Simulation |
 | **Platform** | PC (Windows executable) |
 | **Target Audience** | Students (high school to undergraduate), beginner programmers, puzzle game enthusiasts |
+| **Code Language** | Python (subset) |
 
 ### 2.2 Core Concept
 
-GoCars teaches fundamental programming concepts through intuitive traffic control mechanics. Players interact with a simplified coding interface to control vehicles, manage traffic lights, and coordinate multi-vehicle scenarios across increasingly complex urban environments.
+GoCars teaches fundamental programming concepts through intuitive traffic control mechanics. Players interact with a **Python code editor** to control vehicles, manage traffic lights, and coordinate multi-vehicle scenarios across increasingly complex urban environments. The game teaches real programming skills that transfer directly to actual Python development.
 
 ### 2.3 Primary Goals
 
-1. **Educational Excellence:** Teach fundamental programming concepts (functions, conditionals, loops) through engaging gameplay
-2. **Traffic Management Awareness:** Demonstrate real-world traffic management and urban planning principles
-3. **Accessibility:** Create an approachable entry point to coding for non-programmers
-4. **Cultural Showcase:** Feature Iloilo's landmarks and celebrate local heritage
+1. **Educational Excellence:** Teach fundamental programming concepts (functions, variables, conditionals, loops) through engaging gameplay
+2. **Real Python Skills:** Use actual Python syntax so skills transfer to real programming
+3. **Traffic Management Awareness:** Demonstrate real-world traffic management and urban planning principles
+4. **Accessibility:** Create an approachable entry point to coding for non-programmers
+5. **Cultural Showcase:** Feature Iloilo's landmarks and celebrate local heritage
 
 ### 2.4 SMART Objectives
 
 | Objective | Measurement |
 |-----------|-------------|
-| Players complete tutorial understanding 5+ basic coding functions | Post-tutorial assessment or level completion rate |
+| Players complete tutorial understanding 8+ Python concepts | Post-tutorial assessment or level completion rate |
 | Campaign mode teaches progressive difficulty across 15 levels | Level completion analytics |
+| Players can write conditionals and loops by level 10 | Code analysis in later levels |
 | Infinite mode provides replayability with score-based challenges | Session replay rate and high score distribution |
 | All core features functional and bug-free by Demo Day | QA testing pass rate of 100% for critical paths |
 
@@ -102,10 +107,10 @@ GoCars teaches fundamental programming concepts through intuitive traffic contro
 | **Name** | Maria Santos |
 | **Age** | 14-18 |
 | **Background** | High school student with no coding experience |
-| **Goals** | Learn programming basics in a fun, non-intimidating way |
+| **Goals** | Learn Python programming basics in a fun, non-intimidating way |
 | **Pain Points** | Traditional coding tutorials feel boring and overwhelming |
 | **Motivations** | Enjoys puzzle games; curious about technology careers |
-| **Success Criteria** | Completes tutorial levels; understands basic function syntax |
+| **Success Criteria** | Completes tutorial levels; understands functions, variables, and conditionals |
 
 ### Persona 2: The Aspiring Developer
 
@@ -113,11 +118,11 @@ GoCars teaches fundamental programming concepts through intuitive traffic contro
 |-----------|---------|
 | **Name** | Juan Dela Cruz |
 | **Age** | 18-22 |
-| **Background** | College student learning to code in formal education |
+| **Background** | College student learning Python in formal education |
 | **Goals** | Practice algorithmic thinking in creative contexts |
 | **Pain Points** | Wants to apply coding skills beyond homework assignments |
 | **Motivations** | Seeks engaging ways to reinforce classroom learning |
-| **Success Criteria** | Achieves 3-star ratings; optimizes solutions for efficiency |
+| **Success Criteria** | Achieves 3-star ratings using optimal algorithms; uses loops effectively |
 
 ### Persona 3: The Puzzle Enthusiast
 
@@ -129,7 +134,7 @@ GoCars teaches fundamental programming concepts through intuitive traffic contro
 | **Goals** | Find challenging gameplay with satisfying "eureka" moments |
 | **Pain Points** | Many puzzle games lack depth or become repetitive |
 | **Motivations** | Enjoys optimization challenges and competing with self |
-| **Success Criteria** | Masters Infinite mode; achieves top leaderboard scores |
+| **Success Criteria** | Masters Infinite mode; achieves top leaderboard scores with efficient code |
 
 ### Persona 4: The Educator
 
@@ -138,10 +143,10 @@ GoCars teaches fundamental programming concepts through intuitive traffic contro
 | **Name** | Prof. Elena Villanueva |
 | **Age** | 25-45 |
 | **Background** | Teacher or instructor seeking educational tools |
-| **Goals** | Find engaging, age-appropriate ways to introduce programming |
+| **Goals** | Find engaging, age-appropriate ways to introduce Python programming |
 | **Pain Points** | Existing tools are either too simple or too complex |
 | **Motivations** | Wants students to develop computational thinking skills |
-| **Success Criteria** | Can use game as supplementary teaching material |
+| **Success Criteria** | Can use game as supplementary teaching material for Python classes |
 
 ---
 
@@ -154,7 +159,7 @@ GoCars teaches fundamental programming concepts through intuitive traffic contro
 | Attribute | Details |
 |-----------|---------|
 | **Priority** | P0 (Critical) |
-| **Description** | VS Code-inspired interface for writing vehicle control code |
+| **Description** | VS Code-inspired interface for writing Python vehicle control code |
 
 **Components:**
 
@@ -165,11 +170,12 @@ GoCars teaches fundamental programming concepts through intuitive traffic contro
 - Hierarchical display for multiple entities of same type
 
 **Bottom Panel (Code Editor):**
-- Text input area for writing commands
+- Text input area for writing **Python code**
 - Collapsible/expandable panel (toggle with keyboard shortcut)
-- Syntax highlighting for recognized functions
+- **Full Python syntax highlighting** (keywords, strings, numbers, comments)
 - Real-time error feedback for invalid commands
 - Line numbers for reference
+- **Indentation guides** for blocks (if/else, while, for)
 
 **Main View (Game World):**
 - 2D cartoon-style map visualization
@@ -179,67 +185,247 @@ GoCars teaches fundamental programming concepts through intuitive traffic contro
 
 **Acceptance Criteria:**
 - [ ] File explorer displays all controllable entities for current level
-- [ ] Code editor accepts and parses player input
+- [ ] Code editor accepts and parses Python syntax
+- [ ] Python keywords highlighted correctly (if, else, while, for, def, etc.)
 - [ ] Code execution reflects immediately in game world
 - [ ] Panel can be toggled open/closed via UI button or keyboard
 - [ ] Syntax errors display clear, actionable error messages
+- [ ] Indentation is enforced for block structures
 
 ---
 
-#### CORE-002: Vehicle Control Functions
+#### CORE-002: Python Vehicle Control API
 
 | Attribute | Details |
 |-----------|---------|
 | **Priority** | P0 (Critical) |
-| **Description** | Complete API reference for player-accessible functions |
+| **Description** | Complete Python API reference for player-accessible functions |
 
 **Basic Movement Functions:**
 
 ```python
-car.go()          # Moves car forward continuously until stopped or destination
-car.stop()        # Stops car movement immediately
-car.turn_left()   # Turns car 90° left at next intersection
-car.turn_right()  # Turns car 90° right at next intersection
-car.wait(seconds) # Pauses car for specified duration (integer seconds)
+# Movement
+car.go()              # Moves car forward continuously until stopped
+car.stop()            # Stops car movement immediately
+car.turn_left()       # Turns car 90° left at next intersection
+car.turn_right()      # Turns car 90° right at next intersection
+car.wait(seconds)     # Pauses car for specified duration (float)
+
+# Example
+car.go()
+car.wait(2.5)
+car.turn_left()
+car.go()
 ```
 
 **Traffic Light Functions:**
 
 ```python
-stoplight.set_red()    # Sets traffic light to red
-stoplight.set_green()  # Sets traffic light to green
-stoplight.set_yellow() # Sets traffic light to yellow (optional)
-stoplight.get_state()  # Returns current light state as string
+# Traffic Light Control
+stoplight.set_red()       # Sets traffic light to red
+stoplight.set_green()     # Sets traffic light to green
+stoplight.set_yellow()    # Sets traffic light to yellow
+
+# Traffic Light State (returns string)
+state = stoplight.get_state()    # Returns "red", "green", or "yellow"
+
+# Example
+stoplight.set_green()
+car.go()
+car.wait(3)
+stoplight.set_red()
+```
+
+**Conditional Helper Functions (Return Boolean):**
+
+```python
+# Car State Queries
+car.is_at_intersection()    # Returns True if car is at intersection
+car.is_at_destination()     # Returns True if car reached destination
+car.is_blocked()            # Returns True if path is obstructed
+car.is_moving()             # Returns True if car is currently moving
+
+# Traffic Light State Queries
+stoplight.is_red()          # Returns True if light is red
+stoplight.is_green()        # Returns True if light is green
+stoplight.is_yellow()       # Returns True if light is yellow
+
+# Distance (returns float)
+car.distance_to_destination()   # Returns distance to destination
+car.distance_to_intersection()  # Returns distance to next intersection
 ```
 
 **Advanced Functions (Later Levels):**
 
 ```python
-car.speed(value)        # Adjusts car speed (0.5 to 2.0 multiplier)
-car.follow(target_car)  # Follow another car maintaining safe distance
-boat.depart()           # Force boat departure regardless of capacity
-boat.get_capacity()     # Returns current passenger count (integer)
+# Speed Control
+car.set_speed(value)     # Sets speed multiplier (0.5 to 2.0)
+speed = car.get_speed()  # Returns current speed multiplier
+
+# Following
+car.follow(other_car)    # Follow another car maintaining safe distance
+
+# Boat Functions
+boat.depart()            # Force boat departure regardless of capacity
+count = boat.get_passenger_count()  # Returns number of cars on boat
+boat.is_full()           # Returns True if boat is at capacity
 ```
-
-**Conditional Helper Functions:**
-
-```python
-car.at_intersection()      # Returns True if car is at intersection
-car.distance_to(dest)      # Returns distance to destination (float)
-car.is_blocked()           # Returns True if path is obstructed
-stoplight.is_red()         # Returns True if light is red
-stoplight.is_green()       # Returns True if light is green
-```
-
-**Acceptance Criteria:**
-- [ ] All basic functions execute correctly when called
-- [ ] Functions return appropriate values/types
-- [ ] Invalid function calls produce clear error messages
-- [ ] Function parameters are validated before execution
 
 ---
 
-#### CORE-003: Simulation Controls
+#### CORE-003: Python Language Features
+
+| Attribute | Details |
+|-----------|---------|
+| **Priority** | P0 (Critical) |
+| **Description** | Supported Python language constructs |
+
+**Variables:**
+
+```python
+# Variable assignment
+speed = 1.5
+wait_time = 3
+is_ready = True
+light_state = stoplight.get_state()
+
+# Using variables
+car.set_speed(speed)
+car.wait(wait_time)
+```
+
+**Conditionals (if/elif/else):**
+
+```python
+# Basic if statement
+if stoplight.is_red():
+    car.stop()
+
+# If-else
+if car.is_at_intersection():
+    car.turn_left()
+else:
+    car.go()
+
+# If-elif-else
+if stoplight.is_red():
+    car.stop()
+elif stoplight.is_yellow():
+    car.stop()
+else:
+    car.go()
+
+# Nested conditions
+if car.is_at_intersection():
+    if stoplight.is_green():
+        car.go()
+    else:
+        car.stop()
+```
+
+**Comparison Operators:**
+
+```python
+# Supported operators
+==    # Equal to
+!=    # Not equal to
+<     # Less than
+>     # Greater than
+<=    # Less than or equal
+>=    # Greater than or equal
+
+# Examples
+if car.distance_to_destination() < 5:
+    car.stop()
+
+if car.get_speed() >= 1.5:
+    car.set_speed(1.0)
+```
+
+**Logical Operators:**
+
+```python
+# Supported operators
+and   # Both conditions must be True
+or    # At least one condition must be True
+not   # Inverts the condition
+
+# Examples
+if stoplight.is_green() and not car.is_blocked():
+    car.go()
+
+if car.is_at_destination() or car.is_blocked():
+    car.stop()
+```
+
+**While Loops:**
+
+```python
+# Basic while loop
+while not car.is_at_destination():
+    car.go()
+
+# While with condition
+while car.distance_to_destination() > 10:
+    car.go()
+    car.wait(0.5)
+
+# While with break
+while True:
+    car.go()
+    if car.is_at_intersection():
+        break
+car.turn_left()
+```
+
+**For Loops (with range):**
+
+```python
+# Repeat action N times
+for i in range(3):
+    car.go()
+    car.wait(1)
+    car.stop()
+
+# Using loop variable
+for i in range(5):
+    car.wait(i)  # Waits 0, 1, 2, 3, 4 seconds
+
+# Nested loops
+for i in range(2):
+    for j in range(3):
+        car.go()
+        car.wait(1)
+```
+
+**Comments:**
+
+```python
+# This is a single-line comment
+car.go()  # Inline comment
+
+# Multi-line comments use multiple #
+# Line 1
+# Line 2
+```
+
+**NOT Supported (to keep it simple):**
+
+```python
+# These are NOT supported:
+# - Function definitions (def)
+# - Classes
+# - Import statements
+# - List/dict comprehensions
+# - Try/except
+# - With statements
+# - Lambda functions
+# - Multiple assignment (a, b = 1, 2)
+```
+
+---
+
+#### CORE-004: Simulation Controls
 
 | Attribute | Details |
 |-----------|---------|
@@ -250,13 +436,14 @@ stoplight.is_green()       # Returns True if light is green
 
 | Control | Function | Keyboard Shortcut |
 |---------|----------|-------------------|
-| Play | Execute code and run simulation | Space |
-| Pause | Freeze simulation state | Space (toggle) |
+| Run | Execute Python code and run simulation | F5 or Ctrl+Enter |
+| Pause | Freeze simulation state | Space |
+| Resume | Continue simulation | Space (toggle) |
 | Fast-Forward (2x) | Double speed execution | + or = |
-| Fast-Forward (4x) | Quadruple speed execution | ++ (hold) |
+| Fast-Forward (4x) | Quadruple speed execution | Ctrl + + |
 | Slow-Motion (0.5x) | Half speed for debugging | - |
-| Fast Retry | Instant level restart | R |
-| Step-by-Step | Execute one command at a time (optional) | S |
+| Fast Retry | Instant level restart | R or Ctrl+R |
+| Step (optional) | Execute one line at a time | F10 |
 
 **UI Placement:** Top-center toolbar with icon buttons
 
@@ -264,6 +451,7 @@ stoplight.is_green()       # Returns True if light is green
 - [ ] All playback controls function as specified
 - [ ] Speed changes apply smoothly without stuttering
 - [ ] Fast Retry resets all entities to starting positions
+- [ ] Current executing line is highlighted in editor
 - [ ] Keyboard shortcuts work when code editor is not focused
 
 ---
@@ -275,7 +463,15 @@ stoplight.is_green()       # Returns True if light is green
 | Attribute | Details |
 |-----------|---------|
 | **Priority** | P0 (Critical) |
-| **Description** | Story-driven progression through structured puzzle levels |
+| **Description** | Story-driven progression teaching Python concepts |
+
+**Learning Progression:**
+
+| Level Set | Python Concepts Introduced |
+|-----------|---------------------------|
+| Tutorial (T1-T5) | Functions, basic sequencing |
+| Iloilo City (C1-C5) | Variables, conditionals (if/else) |
+| Water/Port (W1-W5) | Loops (while, for), complex logic |
 
 **Objectives:**
 - Navigate car(s) to designated destination(s)
@@ -287,28 +483,30 @@ stoplight.is_green()       # Returns True if light is green
 **Fail Conditions:**
 - Any car crashes into another vehicle or obstacle
 - Timer expires before all cars reach destinations
-- Car exits map boundaries
+- Car exits map boundary
+- Infinite loop detected (safety timeout)
 
 **Level Structure:**
 
 | Set | Levels | Focus |
 |-----|--------|-------|
-| Tutorial | T1-T5 (5 levels) | Core mechanics introduction |
-| Iloilo City | C1-C5 (5 levels) | Increasing complexity with landmarks |
-| Water/Port | W1-W5 (5 levels) | Boat mechanics and timing |
+| Tutorial | T1-T5 (5 levels) | Basic functions |
+| Iloilo City | C1-C5 (5 levels) | Variables & Conditionals |
+| Water/Port | W1-W5 (5 levels) | Loops & Advanced Logic |
 
 **Progression System:**
 - Levels unlock sequentially upon completion
 - Star rating system (1-3 stars) based on performance:
   - 1 Star: Level completed
-  - 2 Stars: Completed without crashes
-  - 3 Stars: Completed with optimal solution/time
+  - 2 Stars: Completed with efficient code (under line limit)
+  - 3 Stars: Completed with optimal solution
 
 **Acceptance Criteria:**
 - [ ] All 15 levels are playable from start to finish
 - [ ] Star ratings calculate correctly based on criteria
 - [ ] Level progression saves between sessions
 - [ ] Win/fail states trigger appropriate UI feedback
+- [ ] Infinite loop protection triggers after 10 seconds
 
 ---
 
@@ -317,7 +515,7 @@ stoplight.is_green()       # Returns True if light is green
 | Attribute | Details |
 |-----------|---------|
 | **Priority** | P1 (High) |
-| **Description** | Endless challenge mode with escalating difficulty |
+| **Description** | Endless challenge mode requiring efficient Python code |
 
 **Objective:** Survive escalating traffic challenges as long as possible
 
@@ -326,6 +524,7 @@ stoplight.is_green()       # Returns True if light is green
 - Life loss conditions:
   - Car crash: -1 life
   - Car fails to reach destination before timer: -1 life
+  - Code error/exception: -1 life
 - Game Over: All 3 lives lost
 
 **Scoring System:**
@@ -335,13 +534,14 @@ stoplight.is_green()       # Returns True if light is green
 | Successful delivery | +100 base |
 | Consecutive success bonus | +10 per streak |
 | Speed bonus (fast completion) | +50 max |
-| No-code-edit bonus | +25 |
+| Code efficiency bonus (fewer lines) | +25 |
+| Using loops effectively | +15 |
 
 **Difficulty Scaling (per wave):**
-- Wave 1-3: 1-2 vehicles, generous timers
-- Wave 4-6: 2-3 vehicles, moderate timers
-- Wave 7-10: 3-4 vehicles, tight timers
-- Wave 11+: 4+ vehicles, multiple intersections, shortest timers
+- Wave 1-3: 1-2 vehicles, generous timers, basic functions only
+- Wave 4-6: 2-3 vehicles, moderate timers, conditionals helpful
+- Wave 7-10: 3-4 vehicles, tight timers, loops recommended
+- Wave 11+: 4+ vehicles, shortest timers, complex logic required
 
 **Acceptance Criteria:**
 - [ ] Lives system functions correctly
@@ -354,127 +554,242 @@ stoplight.is_green()       # Returns True if light is green
 
 ### 4.3 Level Design Specifications
 
-#### LVL-001: Tutorial Map Set
+#### LVL-001: Tutorial Map Set (Functions)
 
 | Attribute | Details |
 |-----------|---------|
 | **Priority** | P0 (Critical) |
-| **Purpose** | Teach core mechanics progressively |
+| **Purpose** | Teach basic Python functions |
 
 **Level T1: "First Drive"**
-- Teaches: `car.go()`
-- Layout: Straight road, single car, one destination marker
-- Obstacles: None
-- Solution: Single function call
+- **Teaches:** `car.go()`, function calls
+- **Layout:** Straight road, single car, one destination marker
+- **Obstacles:** None
+- **Solution:**
+```python
+car.go()
+```
 
 **Level T2: "Stop Sign"**
-- Teaches: `car.stop()`
-- Layout: Road with marked stop point before destination
-- Challenge: Must stop at specific location before proceeding
-- Solution: Sequenced go() and stop() calls
+- **Teaches:** `car.stop()`, sequencing
+- **Layout:** Road with marked stop point before destination
+- **Challenge:** Must stop at specific location then proceed
+- **Solution:**
+```python
+car.go()
+car.wait(2)
+car.stop()
+car.wait(1)
+car.go()
+```
 
 **Level T3: "Turn Ahead"**
-- Teaches: `car.turn_left()`, `car.turn_right()`
-- Layout: L-shaped or T-intersection road
-- Challenge: Navigate corner to reach destination
-- Solution: Movement + turn combination
+- **Teaches:** `car.turn_left()`, `car.turn_right()`
+- **Layout:** L-shaped or T-intersection road
+- **Challenge:** Navigate corner to reach destination
+- **Solution:**
+```python
+car.go()
+car.wait(2)
+car.turn_left()
+car.go()
+```
 
 **Level T4: "Red Light, Green Light"**
-- Teaches: `stoplight.set_red()`, `stoplight.set_green()`
-- Layout: Intersection with controllable traffic light
-- Challenge: Coordinate car timing with light changes
-- Solution: Light control + car movement sequencing
+- **Teaches:** `stoplight.set_green()`, timing
+- **Layout:** Intersection with controllable traffic light
+- **Challenge:** Coordinate car timing with light changes
+- **Solution:**
+```python
+stoplight.set_green()
+car.go()
+car.wait(3)
+stoplight.set_red()
+```
 
 **Level T5: "Traffic Jam" (Tutorial Finale)**
-- Combines: All previous concepts
-- Layout: Multiple cars, intersection with stoplight
-- Challenge: Sequence multiple vehicles without collision
-- Solution: Multi-entity code coordination
+- **Combines:** All previous concepts
+- **Layout:** Multiple cars, intersection with stoplight
+- **Challenge:** Sequence multiple vehicles without collision
+- **Solution:**
+```python
+stoplight.set_green()
+car1.go()
+car1.wait(3)
+stoplight.set_red()
+car2.go()
+```
 
 ---
 
-#### LVL-002: Iloilo City Map Set
+#### LVL-002: Iloilo City Map Set (Variables & Conditionals)
 
 | Attribute | Details |
 |-----------|---------|
 | **Priority** | P0 (Critical) |
-| **Featured Locations** | Real Iloilo, Philippines landmarks |
+| **Purpose** | Teach variables and conditionals |
 
 **Level C1: "Jaro Cathedral Run"**
-- Location: Jaro Cathedral & Plaza
-- Complexity: Single car, simple intersection
-- New Mechanic: None (reinforcement)
+- **Teaches:** Variables
+- **Location:** Jaro Cathedral & Plaza
+- **Challenge:** Use variables for timing
+- **Example Solution:**
+```python
+wait_time = 2
+car.go()
+car.wait(wait_time)
+car.turn_right()
+car.go()
+```
 
 **Level C2: "Esplanade Evening"**
-- Location: Iloilo Esplanade
-- Complexity: Two cars requiring timing coordination
-- New Mechanic: Multiple entity management
+- **Teaches:** `if` statements, boolean queries
+- **Location:** Iloilo Esplanade
+- **Challenge:** React to traffic light state
+- **Example Solution:**
+```python
+if stoplight.is_green():
+    car.go()
+else:
+    car.stop()
+    stoplight.set_green()
+    car.go()
+```
 
 **Level C3: "SM Roundabout"**
-- Location: SM City Iloilo Area
-- Complexity: Roundabout navigation
-- New Mechanic: Circular intersection logic
+- **Teaches:** `if-elif-else`, multiple conditions
+- **Location:** SM City Iloilo Area
+- **Challenge:** Roundabout with multiple exits
+- **Example Solution:**
+```python
+car.go()
+if car.is_at_intersection():
+    if stoplight.is_red():
+        car.stop()
+    elif stoplight.is_yellow():
+        car.stop()
+    else:
+        car.turn_right()
+        car.go()
+```
 
 **Level C4: "Calle Real Rush Hour"**
-- Location: Calle Real Heritage District
-- Complexity: Multiple traffic lights, 3+ cars
-- New Mechanic: Multi-stoplight coordination
+- **Teaches:** Logical operators (`and`, `or`, `not`)
+- **Location:** Calle Real Heritage District
+- **Challenge:** Multiple traffic lights, complex conditions
+- **Example Solution:**
+```python
+if stoplight1.is_green() and not car.is_blocked():
+    car.go()
+elif stoplight2.is_green() or car.is_at_destination():
+    car.stop()
+```
 
 **Level C5: "Molo Church Challenge"**
-- Location: Molo Church & Plaza
-- Complexity: Complex intersection network
-- New Mechanic: All mechanics combined at scale
-
-**Traffic Elements Available:**
-- Roads (straight, curved, one-way)
-- Intersections (T, 4-way, 5-way)
-- Roundabouts
-- Traffic lights (2-way and 4-way)
-- Crosswalks (pedestrian timing considerations)
-- Visual landmarks (non-interactive scenery)
+- **Teaches:** Combined conditionals, comparison operators
+- **Location:** Molo Church & Plaza
+- **Challenge:** Distance-based decisions
+- **Example Solution:**
+```python
+if car.distance_to_destination() > 10:
+    car.set_speed(1.5)
+    car.go()
+elif car.distance_to_destination() > 5:
+    car.set_speed(1.0)
+    car.go()
+else:
+    car.stop()
+```
 
 ---
 
-#### LVL-003: Water/Port Map Set
+#### LVL-003: Water/Port Map Set (Loops)
 
 | Attribute | Details |
 |-----------|---------|
 | **Priority** | P1 (High) |
-| **Description** | Boat mechanics and water crossing challenges |
+| **Purpose** | Teach loops and advanced logic |
 
 **Unique Mechanics:**
 
 | Mechanic | Details |
 |----------|---------|
 | Boat Capacity | 2-3 cars per boat |
-| Auto-Departure | Boat departs when full OR after 5 seconds with any passengers |
+| Auto-Departure | Boat departs when full OR after 5 seconds |
 | Boat Respawn | New boat arrives 15 seconds after departure |
 | Queue System | Cars wait in line for boats (FIFO) |
 
 **Level W1: "River Crossing 101"**
-- Location: Iloilo River Wharf
-- Challenge: Single boat crossing, timing introduction
-- Complexity: 1 car, 1 boat
+- **Teaches:** `while` loops
+- **Location:** Iloilo River Wharf
+- **Challenge:** Wait for boat using loop
+- **Example Solution:**
+```python
+while not boat.is_ready():
+    car.wait(1)
+car.go()
+```
 
 **Level W2: "Ferry Queue"**
-- Location: Fort San Pedro Area
-- Challenge: Multiple cars, queue management
-- Complexity: 3 cars, 1 boat
+- **Teaches:** `while` with conditions
+- **Location:** Fort San Pedro Area
+- **Challenge:** Multiple cars, queue management
+- **Example Solution:**
+```python
+while not car.is_at_destination():
+    if boat.is_ready():
+        car.go()
+    else:
+        car.wait(1)
+```
 
 **Level W3: "Two-Way Traffic"**
-- Location: Iloilo Fishing Port
-- Challenge: Boats traveling in both directions
-- Complexity: 2 boats, 4 cars
+- **Teaches:** `for` loops with `range()`
+- **Location:** Iloilo Fishing Port
+- **Challenge:** Repeat actions multiple times
+- **Example Solution:**
+```python
+for i in range(3):
+    car.go()
+    car.wait(2)
+    car.stop()
+    car.wait(1)
+```
 
 **Level W4: "Land and Sea"**
-- Location: Parola Lighthouse Area
-- Challenge: Mixed land routes and water crossings
-- Complexity: Roads + boat integration
+- **Teaches:** Nested loops and conditions
+- **Location:** Parola Lighthouse Area
+- **Challenge:** Mixed land and water routes
+- **Example Solution:**
+```python
+for i in range(2):
+    while not car.is_at_intersection():
+        car.go()
+    if i == 0:
+        car.turn_left()
+    else:
+        car.turn_right()
+```
 
 **Level W5: "Port Master"**
-- Location: Combined River & Port
-- Challenge: Full port simulation
-- Complexity: Multiple boats, land intersections, 6+ cars
+- **Teaches:** Complex algorithms combining all concepts
+- **Location:** Combined River & Port
+- **Challenge:** Full port simulation
+- **Example Solution:**
+```python
+destination_reached = False
+while not destination_reached:
+    if car.is_blocked():
+        car.wait(1)
+    elif car.is_at_intersection():
+        if stoplight.is_green():
+            car.turn_right()
+        else:
+            car.stop()
+    else:
+        car.go()
+    destination_reached = car.is_at_destination()
+```
 
 ---
 
@@ -498,39 +813,18 @@ stoplight.is_green()       # Returns True if light is green
 | Truck/Van | 0.6x | 2.0 units | Longer stopping distance |
 | Tricycle | 0.7x | 0.7 units | Tight turn radius |
 
-**Random Generation Rules:**
-- Vehicle type randomly assigned per level/spawn point
-- Visual appearance randomized within type (color variations)
-- Passenger names generated from Filipino name database
+**Vehicle Properties Accessible via Code:**
 
-**Collections Menu Features:**
-- Gallery view of all vehicle types (unlocked/locked states)
-- Statistics display (speed, size, special abilities)
-- Unlock progress tracking
-- Vehicle lore/description text
+```python
+# Read-only properties
+car.speed           # Base speed multiplier
+car.size            # Vehicle size
+car.name            # Vehicle name/ID
 
----
-
-#### VEH-002: Vehicle Information Display
-
-| Attribute | Details |
-|-----------|---------|
-| **Priority** | P2 (Medium) |
-| **Description** | Interactive vehicle information cards |
-
-**Trigger:** Click/hover on any vehicle in game world
-
-**Display Information:**
-- Vehicle model name and thumbnail image
-- Current speed/status indicator
-- Passenger name (randomly generated Filipino name)
-- Assigned destination (if any)
-- Associated code file reference
-
-**Visual Design:**
-- Pop-up card with rounded corners
-- Semi-transparent background
-- Dismissible on click outside or ESC key
+# Methods
+car.get_speed()     # Returns current speed
+car.set_speed(1.5)  # Set speed (0.5 to 2.0)
+```
 
 ---
 
@@ -540,14 +834,11 @@ stoplight.is_green()       # Returns True if light is green
 
 #### TECH-001: Development Stack
 
-| Attribute | Details |
-|-----------|---------|
-| **Priority** | P0 (Critical) |
-
 | Component | Technology |
 |-----------|------------|
 | Game Engine | Godot 4.5.1 |
 | Programming Language | GDScript |
+| Player Code Language | Python (subset) |
 | Target Platform | Windows PC (.exe) |
 | Version Control | GitHub/GitLab (public repository) |
 | Documentation | In-repo README + inline code comments |
@@ -575,35 +866,45 @@ stoplight.is_green()       # Returns True if light is green
 
 **Core Systems:**
 
-**1. Code Parser**
-- Accepts simplified Python-like syntax
-- Tokenizes input by line, parentheses, dots
-- Validates commands against available function library
+**1. Python Parser**
+- Parses actual Python syntax (subset)
+- Tokenizes: keywords, identifiers, operators, literals
+- Builds Abstract Syntax Tree (AST)
+- Validates against game API
+- Handles indentation for blocks
 - Returns structured errors for invalid input
-- Queues valid commands for sequential execution
 
-**2. Simulation Engine**
-- Executes queued commands in order
+**2. Python Interpreter**
+- Executes AST nodes sequentially
+- Manages variable scope
+- Evaluates expressions and conditions
+- Executes loops with iteration limits
+- Handles control flow (if/else, while, for, break)
+- Infinite loop detection (10-second timeout)
+
+**3. Simulation Engine**
+- Executes commands from interpreter
 - Manages vehicle physics (position, velocity, rotation)
 - Handles collision detection (vehicle-vehicle, vehicle-boundary)
 - Controls traffic light state machines
 - Manages timing and synchronization
 
-**3. Level Manager**
+**4. Level Manager**
 - Loads level configurations from data files
 - Spawns vehicles and traffic elements at designated positions
 - Tracks win/lose condition states
 - Manages scoring and star rating calculations
 - Handles level transitions
 
-**4. UI Controller**
+**5. UI Controller**
 - Renders VS Code-style interface panels
 - Handles user input (keyboard, mouse)
 - Updates HUD elements (score, lives, timer)
 - Manages panel states (expanded/collapsed)
 - Displays notifications and feedback
+- **Syntax highlighting for Python code**
 
-**5. Save System**
+**6. Save System**
 - Stores level completion status and star ratings
 - Saves high scores for Infinite mode
 - Tracks vehicle collection unlocks
@@ -611,57 +912,107 @@ stoplight.is_green()       # Returns True if light is green
 
 ---
 
-### 5.3 Code Parser Specifications
+### 5.3 Python Parser Specifications
 
-#### TECH-003: Command Parser System
+#### TECH-003: Python Parser System
 
 | Attribute | Details |
 |-----------|---------|
 | **Priority** | P0 (Critical) |
 
-**Input Format:**
-- Simplified Python-like syntax
-- Line-by-line execution model
-- Case-sensitive function names
-- Whitespace tolerant (leading/trailing spaces ignored)
-
-**Parsing Pipeline:**
+**Supported Python Syntax:**
 
 ```
-Input Line → Tokenize → Identify Object → Identify Function → 
-Extract Parameters → Validate → Queue/Error
+program        → statement*
+statement      → simple_stmt | compound_stmt
+simple_stmt    → expression_stmt | assignment
+compound_stmt  → if_stmt | while_stmt | for_stmt
+
+expression_stmt → expression NEWLINE
+assignment      → IDENTIFIER '=' expression NEWLINE
+
+if_stmt    → 'if' expression ':' NEWLINE INDENT statement+ DEDENT
+             ('elif' expression ':' NEWLINE INDENT statement+ DEDENT)*
+             ('else' ':' NEWLINE INDENT statement+ DEDENT)?
+
+while_stmt → 'while' expression ':' NEWLINE INDENT statement+ DEDENT
+for_stmt   → 'for' IDENTIFIER 'in' 'range' '(' expression ')' ':' 
+             NEWLINE INDENT statement+ DEDENT
+
+expression → or_expr
+or_expr    → and_expr ('or' and_expr)*
+and_expr   → not_expr ('and' not_expr)*
+not_expr   → 'not' not_expr | comparison
+comparison → term (comp_op term)*
+comp_op    → '==' | '!=' | '<' | '>' | '<=' | '>='
+term       → factor (('+' | '-') factor)*
+factor     → unary (('*' | '/') unary)*
+unary      → '-' unary | call
+call       → primary ('.' IDENTIFIER '(' arguments? ')')*
+primary    → NUMBER | STRING | 'True' | 'False' | IDENTIFIER | '(' expression ')'
+arguments  → expression (',' expression)*
 ```
 
-**Parsing Steps:**
-1. Read input line, trim whitespace
-2. Split by dot (.) to separate object from method
-3. Extract function name and parameters from parentheses
-4. Validate object exists in current level context
-5. Validate function exists for object type
-6. Validate parameter types and ranges
-7. Queue valid command OR return specific error
+**Tokenization:**
+
+| Token Type | Examples |
+|------------|----------|
+| KEYWORD | if, elif, else, while, for, in, range, and, or, not, True, False, break |
+| IDENTIFIER | car, stoplight, boat, my_var, speed |
+| NUMBER | 0, 42, 3.14, 0.5 |
+| STRING | "red", 'green' |
+| OPERATOR | +, -, *, /, ==, !=, <, >, <=, >=, = |
+| DELIMITER | (, ), :, , |
+| NEWLINE | Line ending |
+| INDENT | Indentation increase |
+| DEDENT | Indentation decrease |
+| COMMENT | # This is a comment |
+
+**Indentation Rules:**
+- Each indentation level = 4 spaces (or 1 tab converted to 4 spaces)
+- INDENT token emitted when indentation increases
+- DEDENT token emitted when indentation decreases
+- Mismatched indentation produces clear error
 
 **Error Types and Messages:**
 
 | Error Type | Example Message |
 |------------|-----------------|
-| Unknown Command | "Unknown function: car.fly() is not available" |
-| Invalid Object | "Object 'truck' not found in this level" |
-| Missing Parameter | "car.wait() requires a number of seconds" |
-| Invalid Parameter | "car.speed(5) - value must be between 0.5 and 2.0" |
-| Syntax Error | "Syntax error: missing closing parenthesis" |
+| SyntaxError | "SyntaxError: expected ':' after if condition (line 3)" |
+| IndentationError | "IndentationError: expected an indented block (line 5)" |
+| NameError | "NameError: 'car2' is not defined (line 7)" |
+| TypeError | "TypeError: car.wait() requires a number, got string (line 2)" |
+| AttributeError | "AttributeError: 'car' has no method 'fly' (line 4)" |
+| RuntimeError | "RuntimeError: infinite loop detected (exceeded 10s)" |
 
-**Example Valid Inputs:**
+**Example Valid Code:**
 
 ```python
+# Variables and basic calls
+speed = 1.5
+car.set_speed(speed)
 car.go()
-car.stop()
-car.turn_left()
-car.turn_right()
-car.wait(3)
-stoplight.set_green()
-stoplight.set_red()
-boat.depart()
+
+# Conditionals
+if stoplight.is_red():
+    car.stop()
+elif stoplight.is_yellow():
+    car.stop()
+else:
+    car.go()
+
+# While loop
+while not car.is_at_destination():
+    if car.is_blocked():
+        car.wait(1)
+    else:
+        car.go()
+
+# For loop
+for i in range(3):
+    car.go()
+    car.wait(1)
+    car.turn_left()
 ```
 
 ---
@@ -707,19 +1058,6 @@ boat.depart()
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Visual Elements:**
-- Game logo centered at top with subtle animation
-- Menu buttons stacked vertically, centered
-- Animated background showing traffic scene or Iloilo landmark
-- Ambient audio: city sounds, light background music
-
-**Sub-Menu Navigation:**
-- Campaign → Level Select Grid
-- Infinite Mode → Mode Start Screen with High Scores
-- Collections → Vehicle Gallery Browser
-- Settings → Audio, Controls, Accessibility Options
-- Credits → Team and Attribution Information
-
 ---
 
 ### 6.2 Gameplay Interface
@@ -746,31 +1084,31 @@ boat.depart()
 │ 📄 boat.. │                                                         │
 │           │                                                         │
 │           ├─────────────────────────────────────────────────────────┤
-│           │  CODE EDITOR                              [▼ Collapse]  │
+│           │  CODE EDITOR (Python)                     [▼ Collapse]  │
 │           │  ┌─────────────────────────────────────────────────┐    │
-│           │  │ 1 │ car.go()                                    │    │
-│           │  │ 2 │ car.turn_left()                             │    │
-│           │  │ 3 │ _                                           │    │
+│           │  │ 1 │ # Control your car with Python!             │    │
+│           │  │ 2 │ if stoplight.is_green():                    │    │
+│           │  │ 3 │     car.go()                                │    │
+│           │  │ 4 │ else:                                       │    │
+│           │  │ 5 │     car.stop()                              │    │
 │           │  └─────────────────────────────────────────────────┘    │
 │           │                                                         │
-│           │  [▶ Run]  [⏸ Pause]  [⏩ 2x]  [⏩⏩ 4x]  [🔄 Retry]     │
+│           │  [▶ Run (F5)]  [⏸ Pause]  [⏩ 2x]  [🔄 Retry (R)]      │
 └───────────┴─────────────────────────────────────────────────────────┘
 ```
 
-**Panel Specifications:**
+**Syntax Highlighting Colors:**
 
-| Panel | Width | Function |
-|-------|-------|----------|
-| File Explorer | 120px fixed | Entity selection |
-| Game World | Flexible (remaining) | Main gameplay view |
-| Code Editor | 200px height (collapsible) | Code input area |
-
-**Color Scheme:**
-- Background: Dark gray (#1E1E1E) - VS Code dark theme
-- Panel borders: Subtle gray (#3C3C3C)
-- Text: Light gray (#D4D4D4)
-- Syntax highlighting: Function names in blue (#569CD6), strings in orange (#CE9178)
-- Interactive elements: Accent blue (#007ACC)
+| Element | Color | Example |
+|---------|-------|---------|
+| Keywords | Purple (#C586C0) | if, else, while, for, and, or, not |
+| Built-in Constants | Blue (#569CD6) | True, False |
+| Functions/Methods | Yellow (#DCDCAA) | go(), stop(), is_red() |
+| Strings | Orange (#CE9178) | "red", 'green' |
+| Numbers | Light Green (#B5CEA8) | 1, 2.5, 0.5 |
+| Comments | Green (#6A9955) | # This is a comment |
+| Variables | Light Blue (#9CDCFE) | speed, wait_time |
+| Operators | White (#D4D4D4) | =, ==, +, - |
 
 ---
 
@@ -789,78 +1127,29 @@ boat.depart()
 │  [← Back]              SELECT LEVEL                         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  TUTORIAL                                                   │
+│  TUTORIAL - Learn Python Basics                             │
 │  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                   │
 │  │ T1  │ │ T2  │ │ T3  │ │ T4  │ │ T5  │                   │
 │  │ ★★★ │ │ ★★☆ │ │ ★☆☆ │ │ 🔒  │ │ 🔒  │                   │
+│  │func │ │seq  │ │turn │ │light│ │combo│                   │
 │  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                   │
 │                                                             │
-│  ILOILO CITY                                                │
+│  ILOILO CITY - Variables & Conditionals                     │
 │  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                   │
 │  │ C1  │ │ C2  │ │ C3  │ │ C4  │ │ C5  │                   │
 │  │ 🔒  │ │ 🔒  │ │ 🔒  │ │ 🔒  │ │ 🔒  │                   │
+│  │vars │ │ if  │ │elif │ │logic│ │comp │                   │
 │  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                   │
 │                                                             │
-│  WATER & PORT                                               │
+│  WATER & PORT - Loops & Advanced                            │
 │  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                   │
 │  │ W1  │ │ W2  │ │ W3  │ │ W4  │ │ W5  │                   │
 │  │ 🔒  │ │ 🔒  │ │ 🔒  │ │ 🔒  │ │ 🔒  │                   │
+│  │while│ │cond │ │ for │ │nest │ │algo │                   │
 │  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                   │
 │                                                             │
-│  Total Stars: 6/45                                          │
+│  Total Stars: 6/45          Python Concepts: 3/8            │
 └─────────────────────────────────────────────────────────────┘
-```
-
-**Level Tile States:**
-- Unlocked (completed): Shows star rating (★★★, ★★☆, ★☆☆)
-- Unlocked (not completed): Shows level number, no stars
-- Locked: Shows lock icon (🔒), grayed out
-
----
-
-### 6.4 Victory/Defeat Screens
-
-#### UI-004: Result Screens
-
-| Attribute | Details |
-|-----------|---------|
-| **Priority** | P0 (Critical) |
-
-**Victory Screen:**
-
-```
-┌─────────────────────────────────────────┐
-│                                         │
-│           ✓ LEVEL COMPLETE!             │
-│                                         │
-│              ★ ★ ★                      │
-│           (3/3 Stars)                   │
-│                                         │
-│     Time: 0:32    Lines of Code: 4      │
-│                                         │
-│    ┌────────────┐  ┌────────────┐       │
-│    │   Retry    │  │    Next    │       │
-│    └────────────┘  └────────────┘       │
-│                                         │
-│         [🏠 Level Select]               │
-└─────────────────────────────────────────┘
-```
-
-**Defeat Screen:**
-
-```
-┌─────────────────────────────────────────┐
-│                                         │
-│            ✗ LEVEL FAILED               │
-│                                         │
-│         [Reason: Car crashed]           │
-│                                         │
-│    ┌────────────┐  ┌────────────┐       │
-│    │   Retry    │  │    Skip    │       │
-│    └────────────┘  └────────────┘       │
-│                                         │
-│         [🏠 Level Select]               │
-└─────────────────────────────────────────┘
 ```
 
 ---
@@ -869,42 +1158,32 @@ boat.depart()
 
 ### 7.1 Level Summary
 
-| Set | Count | Levels | Status |
-|-----|-------|--------|--------|
-| Tutorial | 5 | T1-T5 | P0 (Critical) |
-| Iloilo City | 5 | C1-C5 | P0 (Critical) |
-| Water/Port | 5 | W1-W5 | P1 (High) |
-| **Total** | **15** | — | — |
+| Set | Count | Levels | Python Concepts | Status |
+|-----|-------|--------|-----------------|--------|
+| Tutorial | 5 | T1-T5 | Functions, sequencing | P0 (Critical) |
+| Iloilo City | 5 | C1-C5 | Variables, conditionals | P0 (Critical) |
+| Water/Port | 5 | W1-W5 | Loops (while, for) | P1 (High) |
+| **Total** | **15** | — | **8+ concepts** | — |
 
-### 7.2 Vehicle Assets
+### 7.2 Python Concepts Progression
 
-| Vehicle | Priority | Variations Needed |
-|---------|----------|-------------------|
-| Sedan | P0 | 4 colors |
-| SUV | P1 | 3 colors |
-| Motorcycle | P1 | 3 colors |
-| Jeepney | P0 | 3 designs (cultural) |
-| Truck/Van | P2 | 2 colors |
-| Tricycle | P1 | 2 colors |
-
-### 7.3 Environment Assets
-
-| Category | Assets Needed |
-|----------|---------------|
-| Roads | Straight, curved, intersection tiles |
-| Traffic Lights | 2-way, 4-way variants |
-| Landmarks | 5 Iloilo locations (stylized) |
-| Water Elements | River, dock, boat |
-| UI Elements | Icons, buttons, panels |
-
-### 7.4 Audio Assets
-
-| Category | Assets |
-|----------|--------|
-| Music | Main menu theme, gameplay ambient |
-| SFX - Vehicles | Engine sounds, horn, crash |
-| SFX - UI | Button click, success, failure |
-| SFX - Environment | Traffic ambient, water sounds |
+| Level | New Concept | Builds On |
+|-------|-------------|-----------|
+| T1 | Function calls | — |
+| T2 | Sequencing, wait() | T1 |
+| T3 | Turns | T1, T2 |
+| T4 | Traffic light control | T1-T3 |
+| T5 | Multiple entities | T1-T4 |
+| C1 | Variables | T1-T5 |
+| C2 | if statements | C1 |
+| C3 | if-elif-else | C2 |
+| C4 | and, or, not | C3 |
+| C5 | Comparison operators | C4 |
+| W1 | while loops | C1-C5 |
+| W2 | while with conditions | W1 |
+| W3 | for loops with range() | W2 |
+| W4 | Nested loops | W3 |
+| W5 | Complex algorithms | All |
 
 ---
 
@@ -916,6 +1195,7 @@ boat.depart()
 |--------|--------|
 | Level Load Time | < 5 seconds |
 | Frame Rate | Stable 60 FPS on minimum spec |
+| Code Parse Time | < 100ms for typical solution |
 | Memory Usage | < 500MB RAM |
 | Executable Size | < 200MB |
 | Input Latency | < 100ms response |
@@ -924,143 +1204,108 @@ boat.depart()
 
 | Metric | Target |
 |--------|--------|
-| Tutorial Completion Time | < 15 minutes for new players |
+| Tutorial Completion Time | < 20 minutes for new players |
 | Average Level Playtime | 3-10 minutes |
 | Text Readability | Clear at 1080p resolution |
 | Color Accessibility | All information distinguishable without color alone |
-| Error Messages | Clear, actionable, non-technical language |
+| Error Messages | Clear, actionable, Python-style messages |
+| Syntax Highlighting | Consistent with VS Code Python theme |
 
 ### NFR-003: Reliability Requirements
 
 | Requirement | Description |
 |-------------|-------------|
 | Stability | No game-breaking bugs or crashes |
+| Infinite Loop Protection | 10-second timeout with clear message |
 | Save System | Auto-save on level completion |
-| Error Handling | Graceful recovery from invalid states |
+| Error Handling | Graceful recovery from invalid code |
 | Exit | Clean exit functionality (no orphan processes) |
-
-### NFR-004: Maintainability Requirements
-
-| Requirement | Description |
-|-------------|-------------|
-| Code Documentation | Inline comments for complex logic |
-| Project Structure | Organized folder hierarchy |
-| Version Control | Regular commits with descriptive messages |
-| README | Setup and build instructions included |
 
 ---
 
 ## 9. User Stories
 
-### US-001: Basic Movement
+### US-001: Write Python Code
 
 **As a** player  
-**I want to** write `car.go()` and see the car move forward  
-**So that** I can learn the basic coding mechanic
+**I want to** write Python code like `car.go()` and see immediate results  
+**So that** I learn real Python syntax while playing
 
 **Acceptance Criteria:**
-- [ ] Typing `car.go()` in editor is recognized as valid
-- [ ] Pressing Run executes the command
-- [ ] Car moves forward continuously in game world
-- [ ] Movement is visually smooth and clear
+- [ ] Python syntax is accepted (not pseudo-code)
+- [ ] Syntax highlighting matches Python conventions
+- [ ] Errors show Python-style messages (SyntaxError, NameError, etc.)
+- [ ] Code executes and affects game world
 
 ---
 
-### US-002: Level Completion
+### US-002: Use Conditionals
 
 **As a** player  
-**I want to** see a success screen when my car reaches the destination  
-**So that** I know I solved the puzzle correctly
+**I want to** write `if`, `elif`, and `else` statements  
+**So that** I can make decisions based on game state
 
 **Acceptance Criteria:**
-- [ ] Victory UI appears upon reaching destination
-- [ ] Star rating displays based on performance
-- [ ] Next level button unlocks and functions
-- [ ] Progress saves automatically
+- [ ] `if stoplight.is_red():` syntax works
+- [ ] `elif` and `else` blocks execute correctly
+- [ ] Indentation is required and enforced
+- [ ] Boolean expressions evaluate correctly
 
 ---
 
-### US-003: Code Editing and Retry
+### US-003: Use Loops
 
 **As a** player  
-**I want to** edit my code and retry the level quickly  
-**So that** I can iterate on my solution without frustration
+**I want to** write `while` and `for` loops  
+**So that** I can repeat actions without copying code
 
 **Acceptance Criteria:**
-- [ ] Code persists in editor after failure
-- [ ] Fast Retry (R key) resets level instantly
-- [ ] Previous code remains editable
-- [ ] No loading screen between retries
+- [ ] `while condition:` loops work correctly
+- [ ] `for i in range(n):` loops work correctly
+- [ ] Loop body must be indented
+- [ ] Infinite loops are detected and stopped
 
 ---
 
-### US-004: Error Feedback
+### US-004: Use Variables
+
+**As a** player  
+**I want to** create variables like `speed = 1.5`  
+**So that** I can store and reuse values
+
+**Acceptance Criteria:**
+- [ ] Variable assignment `x = value` works
+- [ ] Variables can store numbers, booleans, strings
+- [ ] Variables can be used in expressions
+- [ ] Undefined variables produce NameError
+
+---
+
+### US-005: See Helpful Errors
 
 **As a** beginner  
-**I want to** see clear error messages when my code is wrong  
+**I want to** see Python-style error messages with line numbers  
 **So that** I can understand and fix my mistakes
 
 **Acceptance Criteria:**
-- [ ] Invalid syntax shows specific error message
-- [ ] Error indicates line number or location
-- [ ] Message uses non-technical, helpful language
-- [ ] Error clears when code is corrected
+- [ ] Errors include line numbers
+- [ ] Errors use Python naming (SyntaxError, IndentationError, etc.)
+- [ ] Error messages explain what's wrong
+- [ ] Erroneous line is highlighted in editor
 
 ---
 
-### US-005: Infinite Mode Challenge
-
-**As a** player  
-**I want to** see my score increase as I successfully route cars  
-**So that** I feel rewarded for my traffic management skills
-
-**Acceptance Criteria:**
-- [ ] Score displays prominently during gameplay
-- [ ] Points awarded for successful deliveries
-- [ ] Combo/streak bonuses function correctly
-- [ ] High score persists between sessions
-
----
-
-### US-006: Vehicle Collection
-
-**As a** player  
-**I want to** view all the vehicles I've encountered in a gallery  
-**So that** I can appreciate the variety and track my progress
-
-**Acceptance Criteria:**
-- [ ] Collections menu accessible from main menu
-- [ ] Vehicles display with stats and descriptions
-- [ ] Locked/unlocked states clearly indicated
-- [ ] New unlock notifications appear in-game
-
----
-
-### US-007: Traffic Light Coordination
+### US-006: Learn Progressively
 
 **As a** student  
-**I want to** understand how traffic lights coordinate intersection flow  
-**So that** I learn real-world traffic management concepts
+**I want to** levels introduce one concept at a time  
+**So that** I'm not overwhelmed by too much at once
 
 **Acceptance Criteria:**
-- [ ] Tutorial explains traffic light timing concepts
-- [ ] Levels require proper light coordination to solve
-- [ ] Visual feedback shows light state changes
-- [ ] Connection between code and real-world traffic is clear
-
----
-
-### US-008: Pause and Resume
-
-**As a** player  
-**I want to** pause the simulation at any time  
-**So that** I can think through my next steps without pressure
-
-**Acceptance Criteria:**
-- [ ] Space bar pauses/resumes simulation
-- [ ] Pause state is clearly indicated visually
-- [ ] Code can be edited while paused
-- [ ] Game state preserved during pause
+- [ ] Tutorial levels teach only functions
+- [ ] Iloilo levels introduce conditionals gradually
+- [ ] Water levels introduce loops gradually
+- [ ] Each level has a hint showing the new concept
 
 ---
 
@@ -1081,116 +1326,87 @@ Dec 15 ────────────────────────�
 
 ### Phase 1: Foundation (December 15-22) — 7 Days
 
-**Objectives:**
-- Establish project infrastructure
-- Implement core architecture
-- Create basic prototype
+**Focus:** Python parser foundation
 
 **Deliverables:**
 
-| Task | Owner | Duration |
-|------|-------|----------|
-| Project setup and repository creation | — | Day 1 |
-| Core scene structure in Godot | — | Days 1-2 |
-| Basic code parser prototype | — | Days 2-4 |
-| Simple vehicle movement system | — | Days 4-6 |
-| Basic collision detection | — | Days 6-7 |
+| Task | Duration |
+|------|----------|
+| Project setup and repository creation | Day 1 |
+| Python tokenizer (keywords, operators, indentation) | Days 1-3 |
+| Basic AST builder (expressions, assignments) | Days 3-5 |
+| Simple command executor | Days 5-6 |
+| Basic vehicle movement system | Days 6-7 |
 
-**Milestone:** Car moves forward based on `car.go()` code input
+**Milestone:** Car moves based on `car.go()` Python code
 
 ---
 
 ### Phase 2: Core Mechanics (December 23-31) — 9 Days
 
-**Objectives:**
-- Complete function library
-- Implement traffic systems
-- Build playback controls
+**Focus:** Complete Python interpreter and game mechanics
 
 **Deliverables:**
 
-| Task | Owner | Duration |
-|------|-------|----------|
-| Complete basic function set | — | Days 1-3 |
-| Traffic light system | — | Days 3-5 |
-| Turn mechanics at intersections | — | Days 4-6 |
-| Playback controls (play/pause/speed) | — | Days 6-7 |
-| Win/lose condition detection | — | Days 7-9 |
+| Task | Duration |
+|------|----------|
+| Conditionals parser (if/elif/else) | Days 1-2 |
+| Loop parser (while, for) | Days 2-3 |
+| Variable system | Days 3-4 |
+| Traffic light system | Days 4-5 |
+| Turn mechanics at intersections | Days 5-6 |
+| Playback controls | Days 6-7 |
+| Win/lose conditions | Days 7-9 |
 
-**Milestone:** Full gameplay loop functional with all basic mechanics
+**Milestone:** Full gameplay with Python conditionals and loops
 
 ---
 
 ### Phase 3: Content Creation (January 1-10) — 10 Days
 
-**Objectives:**
-- Build all 15 campaign levels
-- Implement boat/water mechanics
-- Create vehicle variety
-
 **Deliverables:**
 
-| Task | Owner | Duration |
-|------|-------|----------|
-| Tutorial levels (T1-T5) | — | Days 1-3 |
-| Iloilo City levels (C1-C5) | — | Days 3-6 |
-| Boat mechanics implementation | — | Days 5-7 |
-| Water levels (W1-W5) | — | Days 7-9 |
-| Vehicle types and generation | — | Days 8-10 |
+| Task | Duration |
+|------|----------|
+| Tutorial levels T1-T5 (functions) | Days 1-3 |
+| Iloilo levels C1-C5 (conditionals) | Days 3-6 |
+| Boat mechanics implementation | Days 5-7 |
+| Water levels W1-W5 (loops) | Days 7-9 |
+| Vehicle types | Days 9-10 |
 
-**Milestone:** All 15 campaign levels playable
+**Milestone:** All 15 levels playable with Python code
 
 ---
 
 ### Phase 4: Polish & UI (January 11-18) — 8 Days
 
-**Objectives:**
-- Implement VS Code-style interface
-- Build all menu systems
-- Add Infinite mode
-
 **Deliverables:**
 
-| Task | Owner | Duration |
-|------|-------|----------|
-| VS Code-style interface implementation | — | Days 1-3 |
-| Main menu and navigation | — | Days 3-4 |
-| Level select and progression UI | — | Days 4-5 |
-| Collections system | — | Days 5-6 |
-| Infinite mode implementation | — | Days 6-8 |
+| Task | Duration |
+|------|----------|
+| VS Code-style interface with Python highlighting | Days 1-3 |
+| Main menu and navigation | Days 3-4 |
+| Level select with concept indicators | Days 4-5 |
+| Collections system | Days 5-6 |
+| Infinite mode | Days 6-8 |
 
-**Milestone:** Complete game with all modes and polished UI
+**Milestone:** Complete game with polished UI
 
 ---
 
 ### Phase 5: Testing & Submission (January 19-23) — 5 Days
 
-**Objectives:**
-- Fix all critical bugs
-- Optimize performance
-- Prepare submission
-
 **Deliverables:**
 
-| Task | Owner | Duration |
-|------|-------|----------|
-| Comprehensive bug testing | — | Days 1-2 |
-| Performance optimization | — | Days 2-3 |
-| Final polish and balance | — | Days 3-4 |
-| Build generation (.exe) | — | Day 4 |
-| Documentation and submission | — | Day 5 |
+| Task | Duration |
+|------|----------|
+| Python parser edge case testing | Days 1-2 |
+| Performance optimization | Days 2-3 |
+| Final polish | Days 3-4 |
+| Build generation (.exe) | Day 4 |
+| Documentation and submission | Day 5 |
 
-**Milestone:** Submission-ready build uploaded
-
----
-
-### Demo Day: January 24, 2026
-
-| Activity | Duration |
-|----------|----------|
-| Presentation | 10-15 minutes |
-| Live demonstration | (within presentation) |
-| Q&A | 2 minutes |
+**Milestone:** Submission-ready build
 
 ---
 
@@ -1198,370 +1414,139 @@ Dec 15 ────────────────────────�
 
 ### Risk Matrix
 
-| Risk | Probability | Impact | Risk Score |
+| Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
-| Code parser complexity | High | High | Critical |
-| Scope creep | Medium | High | High |
-| Art asset delays | Medium | Medium | Medium |
-| Integration issues | Medium | High | High |
-| Performance problems | Low | Medium | Low |
-| Team coordination | Medium | Medium | Medium |
+| Python parser complexity | High | High | Start with minimal syntax, expand gradually |
+| Indentation handling bugs | High | Medium | Thorough testing, clear error messages |
+| Scope creep | Medium | High | Strict MVP definition |
+| Infinite loop edge cases | Medium | High | Multiple detection methods, timeout |
+| Performance with loops | Low | Medium | Iteration limits, profiling |
 
----
+### MVP Definition (If Time Short)
 
-### Risk Details and Mitigation
+**Must Have:**
+- Basic function calls (go, stop, turn, wait)
+- `if/else` conditionals
+- `while` loops
+- 8 levels minimum (T1-T5, C1-C3)
 
-#### Risk 1: Code Parser Complexity
-
-| Attribute | Details |
-|-----------|---------|
-| **Description** | Building a robust code parser may be more complex than estimated |
-| **Probability** | High |
-| **Impact** | High |
-| **Mitigation** | Start with minimal function set (go, stop, turn); expand only after core works; use established parsing patterns |
-| **Contingency** | Simplify syntax further if needed; reduce function variety |
-
-#### Risk 2: Scope Creep
-
-| Attribute | Details |
-|-----------|---------|
-| **Description** | Adding features beyond original specification |
-| **Probability** | Medium |
-| **Impact** | High |
-| **Mitigation** | Strict adherence to MVP definition; feature freeze after Phase 3 |
-| **Contingency** | Cut non-essential features (see MVP Definition below) |
-
-#### Risk 3: Art Asset Delays
-
-| Attribute | Details |
-|-----------|---------|
-| **Description** | Visual assets not ready when needed for integration |
-| **Probability** | Medium |
-| **Impact** | Medium |
-| **Mitigation** | Use placeholder assets early; parallelize art and code work |
-| **Contingency** | Use simple geometric shapes; reduce visual complexity |
-
-#### Risk 4: Integration Issues
-
-| Attribute | Details |
-|-----------|---------|
-| **Description** | Systems don't work together as expected |
-| **Probability** | Medium |
-| **Impact** | High |
-| **Mitigation** | Daily builds; continuous integration testing; clear interfaces |
-| **Contingency** | Simplify system interactions; reduce feature interdependence |
-
-#### Risk 5: Performance Problems
-
-| Attribute | Details |
-|-----------|---------|
-| **Description** | Game runs poorly on target hardware |
-| **Probability** | Low |
-| **Impact** | Medium |
-| **Mitigation** | Test on minimum spec hardware early; profile regularly |
-| **Contingency** | Reduce visual effects; optimize critical paths |
-
-#### Risk 6: Team Coordination
-
-| Attribute | Details |
-|-----------|---------|
-| **Description** | Miscommunication or conflicting work |
-| **Probability** | Medium |
-| **Impact** | Medium |
-| **Mitigation** | Daily standups; clear task assignments; shared documentation |
-| **Contingency** | Pair programming for critical features; more frequent check-ins |
-
----
-
-### MVP Definition (Contingency Scope)
-
-**If time runs short, PRIORITIZE:**
-
-| Priority | Feature | Minimum Viable |
-|----------|---------|----------------|
-| 1 | Tutorial Levels | 3 levels minimum |
-| 2 | Campaign Mode | 5 total levels minimum |
-| 3 | Core Functions | go, stop, turn, stoplight basics only |
-| 4 | Vehicle Types | 3 types minimum |
-| 5 | Basic UI | Functional, not polished |
-
-**CUT if necessary:**
-
-| Feature | Reason |
-|---------|--------|
-| Infinite Mode | Can mention as "coming soon" |
-| Collections Gallery | Nice-to-have, not core |
-| Water Levels/Boat Mechanics | Complex, can be future content |
-| Advanced Functions | Not needed for core gameplay |
-| Sound Effects | Can use minimal audio |
+**Can Cut:**
+- `for` loops (while can substitute)
+- `elif` (can use nested if)
+- Water/boat levels
+- Infinite mode
+- Advanced functions (speed, follow)
 
 ---
 
 ## 12. Success Metrics
 
-### 12.1 Hackathon Success Criteria
+### Educational Effectiveness
 
-| Criterion | Target | Measurement |
-|-----------|--------|-------------|
-| Core Features Functional | 100% of P0 features working | Demo Day checklist |
-| Bug-Free Presentation | Zero crashes during demo | Live demonstration |
-| Positive Judge Feedback | Above-average scores in all criteria | Judge scoring |
-| Complete Demonstration | Full 10-minute demo without issues | Presentation completion |
+| Metric | Target |
+|--------|--------|
+| Players write valid Python after tutorial | 90%+ |
+| Players use conditionals by level C5 | 85%+ |
+| Players use loops by level W5 | 80%+ |
+| Code transfers to real Python | Syntactically valid |
 
----
-
-### 12.2 Judging Criteria Alignment
+### Hackathon Criteria Alignment
 
 | Criterion (Weight) | How GoCars Addresses It |
 |--------------------|-------------------------|
-| **Originality & Creativity (20%)** | Unique blend of coding education + traffic simulation; VS Code-inspired interface; local cultural integration |
-| **Functionality & Mechanics (20%)** | Intuitive code → action feedback loop; progressive difficulty; dual game modes |
-| **Technical Implementation (20%)** | Custom code parser; efficient simulation engine; clean architecture |
-| **Design & Presentation (20%)** | Professional VS Code aesthetic; consistent visual language; polished UI |
-| **Completeness & Polish (10%)** | 15 complete levels; full gameplay loop; minimal bugs |
-| **Educational/Practical Impact (10%)** | Teaches real programming concepts; demonstrates traffic management principles; accessible to beginners |
-
----
-
-### 12.3 Educational Effectiveness Indicators
-
-| Indicator | Target | How Measured |
-|-----------|--------|--------------|
-| Function Comprehension | Players understand 5+ functions after tutorial | Tutorial completion rate |
-| Concept Application | Players can solve puzzles without hints | Level completion without skip |
-| Code-to-Action Connection | Players see immediate visual feedback | User observation/feedback |
-| Progressive Mastery | Players improve over time | Star rating progression |
-
----
-
-### 12.4 Technical Quality Indicators
-
-| Indicator | Target |
-|-----------|--------|
-| Code Documentation | All complex functions documented |
-| Repository Cleanliness | Organized structure, no dead code |
-| Build Stability | Consistent builds across machines |
-| Performance | Stable 60 FPS on demo hardware |
+| **Originality (20%)** | Real Python in a puzzle game; unique concept |
+| **Functionality (20%)** | Full Python interpreter; intuitive feedback |
+| **Technical (20%)** | Custom Python parser; AST interpreter |
+| **Design (20%)** | VS Code aesthetic; Python syntax highlighting |
+| **Completeness (10%)** | 15 levels; full Python subset |
+| **Educational (10%)** | Teaches real Python; transferable skills |
 
 ---
 
 ## 13. Appendices
 
-### Appendix A: Complete Function Reference
+### Appendix A: Complete Python API Reference
 
-#### Basic Movement Functions
+#### Car Object
 
-| Function | Parameters | Returns | Description |
-|----------|------------|---------|-------------|
-| `car.go()` | None | None | Starts continuous forward movement |
-| `car.stop()` | None | None | Stops all movement immediately |
-| `car.turn_left()` | None | None | Queues 90° left turn at next intersection |
-| `car.turn_right()` | None | None | Queues 90° right turn at next intersection |
-| `car.wait(n)` | n: integer seconds | None | Pauses movement for n seconds |
+```python
+# Movement
+car.go()                    # Start moving forward
+car.stop()                  # Stop immediately
+car.turn_left()             # Queue left turn
+car.turn_right()            # Queue right turn
+car.wait(seconds)           # Wait for seconds (float)
 
-#### Traffic Light Functions
+# Speed
+car.set_speed(multiplier)   # Set speed (0.5 to 2.0)
+car.get_speed()             # Get current speed → float
 
-| Function | Parameters | Returns | Description |
-|----------|------------|---------|-------------|
-| `stoplight.set_red()` | None | None | Changes light to red |
-| `stoplight.set_green()` | None | None | Changes light to green |
-| `stoplight.set_yellow()` | None | None | Changes light to yellow |
-| `stoplight.get_state()` | None | string | Returns "red", "green", or "yellow" |
+# State queries (return bool)
+car.is_moving()             # Is car currently moving?
+car.is_blocked()            # Is path blocked?
+car.is_at_intersection()    # Is car at intersection?
+car.is_at_destination()     # Has car reached destination?
 
-#### Advanced Functions
-
-| Function | Parameters | Returns | Description |
-|----------|------------|---------|-------------|
-| `car.speed(v)` | v: float (0.5-2.0) | None | Sets speed multiplier |
-| `car.follow(target)` | target: car reference | None | Follows specified car |
-| `boat.depart()` | None | None | Forces immediate departure |
-| `boat.get_capacity()` | None | integer | Returns current passenger count |
-
-#### Conditional Helpers
-
-| Function | Parameters | Returns | Description |
-|----------|------------|---------|-------------|
-| `car.at_intersection()` | None | boolean | True if at intersection |
-| `car.distance_to(dest)` | dest: destination | float | Distance in units |
-| `car.is_blocked()` | None | boolean | True if path obstructed |
-
----
-
-### Appendix B: Level Design Template
-
-```
-Level ID: [SET]-[NUMBER] (e.g., T1, C3, W5)
-Level Name: "[Descriptive Name]"
-Location: [Real-world location or "Generic"]
-
-OBJECTIVES:
-- Primary: [Main goal]
-- Secondary: [Optional challenges]
-
-LAYOUT:
-- Map Size: [Width x Height in tiles]
-- Road Configuration: [Description]
-- Intersections: [Count and types]
-
-ENTITIES:
-- Cars: [Count] - Spawn points: [Coordinates]
-- Stoplights: [Count] - Positions: [Coordinates]
-- Destinations: [Count] - Positions: [Coordinates]
-
-AVAILABLE FUNCTIONS:
-- [List of unlocked functions for this level]
-
-WIN CONDITIONS:
-- [Specific requirements]
-
-FAIL CONDITIONS:
-- [Specific failure triggers]
-
-STAR CRITERIA:
-- 1 Star: [Requirement]
-- 2 Stars: [Requirement]
-- 3 Stars: [Requirement]
-
-HINTS:
-- Hint 1: [First hint text]
-- Hint 2: [Second hint text]
-
-OPTIMAL SOLUTION:
-[Code example - for internal reference only]
+# Distance queries (return float)
+car.distance_to_destination()    # Distance to destination
+car.distance_to_intersection()   # Distance to next intersection
 ```
 
----
+#### Stoplight Object
 
-### Appendix C: Asset Checklist
+```python
+# Control
+stoplight.set_red()         # Change to red
+stoplight.set_yellow()      # Change to yellow
+stoplight.set_green()       # Change to green
 
-#### Vehicles (Sprites)
+# State queries (return bool)
+stoplight.is_red()          # Is light red?
+stoplight.is_yellow()       # Is light yellow?
+stoplight.is_green()        # Is light green?
 
-- [ ] Sedan (4 color variants)
-- [ ] SUV (3 color variants)
-- [ ] Motorcycle (3 color variants)
-- [ ] Jeepney (3 design variants)
-- [ ] Truck (2 color variants)
-- [ ] Tricycle (2 color variants)
-- [ ] Boat (2 variants)
-
-#### Environment (Tiles)
-
-- [ ] Road - Straight (horizontal/vertical)
-- [ ] Road - Curved (4 directions)
-- [ ] Road - T-Intersection (4 orientations)
-- [ ] Road - 4-Way Intersection
-- [ ] Road - Roundabout
-- [ ] Grass/Ground tile
-- [ ] Water tile
-- [ ] Dock/Pier tile
-
-#### Traffic Elements
-
-- [ ] Traffic Light - 2-way
-- [ ] Traffic Light - 4-way
-- [ ] Destination marker
-- [ ] Spawn point marker
-- [ ] Stop line
-
-#### Landmarks (Decorative)
-
-- [ ] Jaro Cathedral
-- [ ] Iloilo Esplanade
-- [ ] SM City Iloilo
-- [ ] Calle Real Buildings
-- [ ] Molo Church
-
-#### UI Elements
-
-- [ ] Game logo
-- [ ] Menu buttons (normal/hover/pressed)
-- [ ] Panel backgrounds
-- [ ] File icons (.py files)
-- [ ] Playback control icons
-- [ ] Star icons (filled/empty)
-- [ ] Lock icon
-- [ ] Life/heart icon
-
-#### Audio
-
-- [ ] Main menu music
-- [ ] Gameplay ambient music
-- [ ] Engine sound (loop)
-- [ ] Crash sound effect
-- [ ] Success sound effect
-- [ ] Failure sound effect
-- [ ] Button click sound
-- [ ] Level complete fanfare
-
----
-
-### Appendix D: Team Roles Template
-
-| Role | Responsibilities | Team Member |
-|------|------------------|-------------|
-| **Project Lead** | Overall coordination, scope management, presentations | [Name] |
-| **Lead Programmer** | Core systems, code parser, simulation engine | [Name] |
-| **Gameplay Programmer** | Level logic, UI systems, save system | [Name] |
-| **Artist/Designer** | Visual assets, UI design, animations | [Name] |
-| **Level Designer/QA** | Level creation, testing, balance | [Name] |
-
----
-
-### Appendix E: Repository Structure
-
-```
-GoCars/
-├── README.md
-├── LICENSE
-├── project.godot
-├── assets/
-│   ├── sprites/
-│   │   ├── vehicles/
-│   │   ├── environment/
-│   │   └── ui/
-│   ├── audio/
-│   │   ├── music/
-│   │   └── sfx/
-│   └── fonts/
-├── scenes/
-│   ├── main_menu.tscn
-│   ├── gameplay.tscn
-│   ├── level_select.tscn
-│   └── levels/
-│       ├── tutorial/
-│       ├── iloilo/
-│       └── water/
-├── scripts/
-│   ├── core/
-│   │   ├── code_parser.gd
-│   │   ├── simulation_engine.gd
-│   │   └── level_manager.gd
-│   ├── entities/
-│   │   ├── vehicle.gd
-│   │   ├── stoplight.gd
-│   │   └── boat.gd
-│   ├── ui/
-│   │   ├── code_editor.gd
-│   │   ├── file_explorer.gd
-│   │   └── hud.gd
-│   └── systems/
-│       ├── save_manager.gd
-│       └── score_manager.gd
-├── data/
-│   ├── levels/
-│   └── vehicles.json
-└── docs/
-	├── PRD.md
-	└── CONTRIBUTING.md
+# Get state (return string)
+stoplight.get_state()       # Returns "red", "yellow", or "green"
 ```
 
----
+#### Boat Object
 
-## Document Control
+```python
+# Control
+boat.depart()               # Force immediate departure
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | January 2026 | [Team Name] | Initial release |
+# State queries
+boat.is_ready()             # Is boat docked and ready?
+boat.is_full()              # Is boat at capacity?
+boat.get_passenger_count()  # Number of cars on board → int
+```
+
+### Appendix B: Supported Python Syntax Summary
+
+| Feature | Syntax | Supported |
+|---------|--------|-----------|
+| Variables | `x = 5` | ✅ |
+| Numbers | `1`, `3.14` | ✅ |
+| Strings | `"text"`, `'text'` | ✅ |
+| Booleans | `True`, `False` | ✅ |
+| Comments | `# comment` | ✅ |
+| Arithmetic | `+`, `-`, `*`, `/` | ✅ |
+| Comparison | `==`, `!=`, `<`, `>`, `<=`, `>=` | ✅ |
+| Logical | `and`, `or`, `not` | ✅ |
+| If statement | `if x:` | ✅ |
+| Elif | `elif x:` | ✅ |
+| Else | `else:` | ✅ |
+| While loop | `while x:` | ✅ |
+| For loop | `for i in range(n):` | ✅ |
+| Break | `break` | ✅ |
+| Function calls | `obj.method()` | ✅ |
+| Function defs | `def func():` | ❌ |
+| Classes | `class X:` | ❌ |
+| Imports | `import x` | ❌ |
+| Lists | `[1, 2, 3]` | ❌ |
+| Dictionaries | `{"a": 1}` | ❌ |
+| Try/except | `try:` | ❌ |
+| Lambda | `lambda x: x` | ❌ |
 
 ---
 

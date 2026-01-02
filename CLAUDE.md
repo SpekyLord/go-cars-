@@ -2,12 +2,12 @@
 
 ## Project Overview
 
-GoCars is an educational coding-puzzle game built with Godot 4.5.1 for the TrackTech: CSS Hackathon 2026. Players write simplified Python-like code to control vehicles and traffic elements to solve puzzles.
+GoCars is an educational coding-puzzle game built with Godot 4.5.1 for the TrackTech: CSS Hackathon 2026. Players write **real Python code** to control vehicles and traffic elements to solve puzzles.
 
 **Theme:** Cars, Transportation, Motorsports, or Racing Systems  
-**Focus:** Educational project with real-world relevance  
+**Focus:** Educational project teaching real Python programming  
 **Engine:** Godot 4.5.1  
-**Language:** GDScript  
+**Language:** GDScript (engine), Python subset (player code)
 
 Read the full PRD at `docs/PRD.md` before implementing any features.
 
@@ -46,7 +46,7 @@ Run all tests:
 
 Run a specific test:
 ```bash
-godot --path . --headless --script tests/test_code_parser.gd
+godot --path . --headless --script tests/test_python_parser.gd
 ```
 
 Tests are located in `tests/` directory with `.test.gd` extension. Co-located tests can also be placed next to their source files.
@@ -77,13 +77,13 @@ GoCars/
 │   │   └── map_editor.tscn    # Level/map editor scene
 │   └── levels/
 ├── scripts/
-│   ├── core/              # Code parser, simulation engine
+│   ├── core/              # Python parser, interpreter, simulation engine
 │   ├── entities/          # Vehicle, stoplight, boat
 │   ├── ui/                # Code editor, file explorer, HUD
 │   └── systems/           # Save manager, score manager
 ├── tests/                 # Test files (.test.gd)
 └── data/
-	└── levels/            # Level configuration files
+    └── levels/            # Level configuration files
 ```
 
 ---
@@ -191,43 +191,211 @@ var fn = func(x): return x * 2
 
 ## Core Systems Overview
 
-### 1. Code Parser (`scripts/core/code_parser.gd`)
-- Parses simplified Python-like syntax
-- Validates against available functions
-- Returns structured commands or errors
-- See PRD section TECH-003 for specifications
+### 1. Python Parser (`scripts/core/python_parser.gd`)
+- Parses **actual Python syntax** (subset)
+- **Tokenizer:** Keywords, identifiers, operators, literals, INDENT/DEDENT
+- **AST Builder:** Creates Abstract Syntax Tree from tokens
+- **Indentation Handler:** Tracks levels, emits INDENT/DEDENT tokens
+- Returns Python-style errors (SyntaxError, IndentationError, NameError, etc.)
+- See PRD section TECH-003 for grammar specification
 
-### 2. Simulation Engine (`scripts/core/simulation_engine.gd`)
-- Executes queued commands
-- Handles vehicle movement and physics
-- Manages collision detection
-- Controls playback speed
+### 2. Python Interpreter (`scripts/core/python_interpreter.gd`)
+- Executes AST nodes sequentially
+- Manages variable scope (store/retrieve variables)
+- Evaluates expressions and conditions
+- Executes loops with iteration limits
+- Handles control flow (if/elif/else, while, for, break)
+- Infinite loop detection (10-second timeout)
 
-### 3. Level Manager (`scripts/core/level_manager.gd`)
-- Loads level configurations
-- Tracks win/lose conditions
-- Manages progression and scoring
+### 3. Simulation Engine (`scripts/core/simulation_engine.gd`)
+- Receives commands from interpreter
+- Manages vehicle physics (position, velocity, rotation)
+- Handles collision detection (vehicle-vehicle, vehicle-boundary)
+- Controls traffic light state machines
+- Manages timing and synchronization
 
-### 4. Available Player Functions
-```gdscript
+### 4. Level Manager (`scripts/core/level_manager.gd`)
+- Loads level configurations from data files
+- Spawns vehicles and traffic elements at designated positions
+- Tracks win/lose condition states
+- Manages scoring and star rating calculations
+- Handles level transitions
+
+---
+
+## Python API Reference (Player Code)
+
+### Car Object
+
+```python
 # Basic Movement
-car.go()           # Move forward continuously
-car.stop()         # Stop immediately
-car.turn_left()    # Turn 90° left at intersection
-car.turn_right()   # Turn 90° right at intersection
-car.wait(seconds)  # Pause for N seconds
+car.go()                    # Start moving forward continuously
+car.stop()                  # Stop immediately
+car.turn_left()             # Queue 90° left turn at intersection
+car.turn_right()            # Queue 90° right turn at intersection
+car.wait(seconds)           # Wait for seconds (float)
 
-# Traffic Lights
-stoplight.set_red()
-stoplight.set_green()
-stoplight.set_yellow()
-stoplight.get_state()
+# Speed Control
+car.set_speed(multiplier)   # Set speed (0.5 to 2.0)
+car.get_speed()             # Get current speed → float
 
-# Advanced (later levels)
-car.speed(value)   # 0.5 to 2.0 multiplier
-boat.depart()
-boat.get_capacity()
+# State Queries (return bool)
+car.is_moving()             # Is car currently moving?
+car.is_blocked()            # Is path blocked?
+car.is_at_intersection()    # Is car at intersection?
+car.is_at_destination()     # Has car reached destination?
+
+# Distance Queries (return float)
+car.distance_to_destination()    # Distance to destination
+car.distance_to_intersection()   # Distance to next intersection
 ```
+
+### Stoplight Object
+
+```python
+# Control
+stoplight.set_red()         # Change to red
+stoplight.set_yellow()      # Change to yellow
+stoplight.set_green()       # Change to green
+
+# State Queries (return bool)
+stoplight.is_red()          # Is light red?
+stoplight.is_yellow()       # Is light yellow?
+stoplight.is_green()        # Is light green?
+
+# Get State (return string)
+stoplight.get_state()       # Returns "red", "yellow", or "green"
+```
+
+### Boat Object
+
+```python
+# Control
+boat.depart()               # Force immediate departure
+
+# State Queries
+boat.is_ready()             # Is boat docked and ready?
+boat.is_full()              # Is boat at capacity?
+boat.get_passenger_count()  # Number of cars on board → int
+```
+
+---
+
+## Supported Python Syntax
+
+### Variables
+```python
+speed = 1.5
+wait_time = 3
+is_ready = True
+light_state = stoplight.get_state()
+car.set_speed(speed)
+```
+
+### Conditionals (if/elif/else)
+```python
+if stoplight.is_red():
+    car.stop()
+elif stoplight.is_yellow():
+    car.stop()
+else:
+    car.go()
+```
+
+### Comparison Operators
+```python
+==    # Equal to
+!=    # Not equal to
+<     # Less than
+>     # Greater than
+<=    # Less than or equal
+>=    # Greater than or equal
+
+# Example
+if car.distance_to_destination() < 5:
+    car.stop()
+```
+
+### Logical Operators
+```python
+and   # Both conditions True
+or    # At least one condition True
+not   # Inverts the condition
+
+# Example
+if stoplight.is_green() and not car.is_blocked():
+    car.go()
+```
+
+### While Loops
+```python
+while not car.is_at_destination():
+    car.go()
+
+# With break
+while True:
+    car.go()
+    if car.is_at_intersection():
+        break
+```
+
+### For Loops
+```python
+for i in range(3):
+    car.go()
+    car.wait(1)
+    car.stop()
+```
+
+### Comments
+```python
+# This is a single-line comment
+car.go()  # Inline comment
+```
+
+### NOT Supported (to keep it simple)
+```python
+# These are NOT supported:
+# - Function definitions (def)
+# - Classes
+# - Import statements
+# - List/dict comprehensions
+# - Try/except
+# - With statements
+# - Lambda functions
+# - Multiple assignment (a, b = 1, 2)
+# - Lists and dictionaries
+```
+
+---
+
+## Python Error Messages
+
+The parser/interpreter generates Python-style error messages:
+
+| Error Type | Example Message |
+|------------|-----------------|
+| SyntaxError | `SyntaxError: expected ':' after if condition (line 3)` |
+| IndentationError | `IndentationError: expected an indented block (line 5)` |
+| NameError | `NameError: 'car2' is not defined (line 7)` |
+| TypeError | `TypeError: car.wait() requires a number, got string (line 2)` |
+| AttributeError | `AttributeError: 'car' has no method 'fly' (line 4)` |
+| RuntimeError | `RuntimeError: infinite loop detected (exceeded 10s)` |
+
+---
+
+## Keyboard Shortcuts
+
+| Control | Function | Shortcut |
+|---------|----------|----------|
+| Run | Execute Python code | F5 or Ctrl+Enter |
+| Pause | Freeze simulation | Space |
+| Resume | Continue simulation | Space (toggle) |
+| Fast-Forward 2x | Double speed | + or = |
+| Fast-Forward 4x | Quadruple speed | Ctrl + + |
+| Slow-Motion 0.5x | Half speed | - |
+| Fast Retry | Instant restart | R or Ctrl+R |
+| Step | Execute one line | F10 |
 
 ---
 
@@ -246,8 +414,8 @@ boat.get_capacity()
 4. Update documentation if needed
 
 ### When Creating New Files:
-- Use snake_case for file names: `code_parser.gd`
-- Use PascalCase for class names: `CodeParser`
+- Use snake_case for file names: `python_parser.gd`
+- Use PascalCase for class names: `PythonParser`
 - Place files in appropriate directories per project structure
 - Add corresponding test file if it's a core system
 
@@ -257,30 +425,31 @@ boat.get_capacity()
 
 ### Test File Naming
 - Test files end with `.test.gd`
-- Name matches source: `code_parser.gd` → `code_parser.test.gd`
+- Name matches source: `python_parser.gd` → `python_parser.test.gd`
 
 ### Test Structure
 ```gdscript
 extends SceneTree
 
 func _init():
-    print("Running CodeParser tests...")
-    test_parse_go_command()
-    test_parse_invalid_command()
+    print("Running PythonParser tests...")
+    test_tokenize_keywords()
+    test_parse_if_statement()
+    test_indentation_error()
     print("All tests passed!")
     quit()
 
-func test_parse_go_command():
-    var parser = CodeParser.new()
-    var result = parser.parse("car.go()")
-    assert(result.valid == true, "car.go() should be valid")
-    print("  ✓ test_parse_go_command")
+func test_tokenize_keywords():
+    var parser = PythonParser.new()
+    var tokens = parser.tokenize("if True:")
+    assert(tokens[0].type == "KEYWORD", "First token should be keyword")
+    print("  ✓ test_tokenize_keywords")
 
-func test_parse_invalid_command():
-    var parser = CodeParser.new()
-    var result = parser.parse("car.fly()")
-    assert(result.valid == false, "car.fly() should be invalid")
-    print("  ✓ test_parse_invalid_command")
+func test_parse_if_statement():
+    var parser = PythonParser.new()
+    var ast = parser.parse("if stoplight.is_red():\n    car.stop()")
+    assert(ast.type == "if_statement", "Should parse if statement")
+    print("  ✓ test_parse_if_statement")
 ```
 
 ---
@@ -291,22 +460,27 @@ Levels are stored as JSON in `data/levels/`:
 
 ```json
 {
-    "id": "T1",
-    "name": "First Drive",
-    "description": "Learn to make your car go!",
-    "available_functions": ["car.go"],
+    "id": "C2",
+    "name": "Esplanade Evening",
+    "description": "Learn to use if statements to react to traffic lights",
+    "location": "Iloilo Esplanade",
+    "python_concepts": ["if", "boolean_queries"],
+    "available_functions": ["car.go", "car.stop", "stoplight.is_green", "stoplight.is_red"],
     "entities": {
         "cars": [
             {"id": "car1", "position": [2, 5], "destination": [8, 5]}
         ],
-        "stoplights": []
+        "stoplights": [
+            {"id": "stoplight1", "position": [5, 5], "initial_state": "red"}
+        ]
     },
     "win_condition": "all_cars_at_destination",
     "star_criteria": {
         "one_star": "complete",
-        "two_stars": "no_crashes",
-        "three_stars": "lines_of_code <= 1"
-    }
+        "two_stars": "lines_of_code <= 6",
+        "three_stars": "lines_of_code <= 4"
+    },
+    "hint": "Use 'if stoplight.is_green():' to check the light state"
 }
 ```
 
@@ -315,13 +489,21 @@ Levels are stored as JSON in `data/levels/`:
 ## Signals to Use
 
 ```gdscript
+# Parser/Interpreter events
+signal code_parsed(ast: Dictionary)
+signal parse_error(error: String, line: int)
+signal execution_started()
+signal execution_line(line_number: int)
+signal execution_error(error: String, line: int)
+signal execution_completed()
+
 # Game events
-signal code_executed(commands: Array)
 signal simulation_started()
 signal simulation_paused()
 signal simulation_ended(success: bool)
 signal car_reached_destination(car_id: String)
 signal car_crashed(car_id: String)
+signal infinite_loop_detected()
 signal level_completed(stars: int)
 signal level_failed(reason: String)
 ```
@@ -333,36 +515,64 @@ signal level_failed(reason: String)
 Based on PRD priorities:
 
 ### P0 - Critical (Must Have)
-1. Code Parser System (CORE-001, TECH-003)
-2. Vehicle Control Functions (CORE-002)
-3. Simulation Controls (CORE-003)
-4. Campaign Mode (MODE-001)
-5. Tutorial Levels T1-T5 (LVL-001)
-6. Main Menu (UI-001)
-7. Gameplay Interface (UI-002)
+1. Python Parser System (TECH-003)
+2. Python Interpreter (TECH-002)
+3. Python Vehicle API (CORE-002)
+4. Python Language Features (CORE-003)
+5. Simulation Controls (CORE-004)
+6. Campaign Mode (MODE-001)
+7. Tutorial Levels T1-T5 (LVL-001) - Functions
+8. Iloilo City Levels C1-C5 (LVL-002) - Variables & Conditionals
+9. Main Menu (UI-001)
+10. Gameplay Interface with Python Highlighting (UI-002)
 
 ### P1 - High (Should Have)
-1. Iloilo City Levels C1-C5 (LVL-002)
-2. Water/Port Levels W1-W5 (LVL-003)
+1. Water/Port Levels W1-W5 (LVL-003) - Loops
+2. Boat Mechanics
 3. Infinite Mode (MODE-002)
 4. Vehicle Collection System (VEH-001)
 
 ### P2 - Medium (Nice to Have)
 1. Vehicle Info Display (VEH-002)
-2. Advanced functions (speed, follow)
+2. Advanced functions (follow)
 3. Sound effects and music
 4. Polish and animations
+
+---
+
+## Python Concepts by Level Set
+
+| Set | Levels | Python Concepts |
+|-----|--------|-----------------|
+| Tutorial | T1-T5 | Function calls, sequencing |
+| Iloilo City | C1-C5 | Variables, if/elif/else, and/or/not, comparisons |
+| Water/Port | W1-W5 | while loops, for loops with range(), nested loops |
+
+---
+
+## Syntax Highlighting Colors (VS Code Python Theme)
+
+| Element | Color | Hex |
+|---------|-------|-----|
+| Keywords | Purple | #C586C0 |
+| Built-in Constants | Blue | #569CD6 |
+| Functions/Methods | Yellow | #DCDCAA |
+| Strings | Orange | #CE9178 |
+| Numbers | Light Green | #B5CEA8 |
+| Comments | Green | #6A9955 |
+| Variables | Light Blue | #9CDCFE |
+| Operators | White | #D4D4D4 |
 
 ---
 
 ## Asking Claude Code for Help
 
 ### Good Prompts:
-- "Read docs/PRD.md section 4.1 and implement CORE-001 Code Editor System"
-- "Create the code parser based on TECH-003 specifications"
-- "Write tests for the code parser before implementing"
+- "Read docs/PRD.md section TECH-003 and implement the Python tokenizer"
+- "Create the Python AST builder based on the grammar in the PRD"
+- "Write tests for the Python parser before implementing"
+- "Implement the if/elif/else interpreter following PRD CORE-003"
 - "Run the game and fix any errors you see"
-- "Review scripts/core/ for logical inconsistencies"
 
 ### When Stuck:
 - "Let's plan this feature before implementing. Create a plan in docs/plans/"
@@ -373,11 +583,11 @@ Based on PRD priorities:
 
 ## Hackathon Timeline Reminder
 
-- **Dec 15-22:** Foundation (car moves based on code)
-- **Dec 23-31:** Core Mechanics (full gameplay loop)
-- **Jan 1-10:** Content (all 15 levels)
-- **Jan 11-18:** Polish & UI
-- **Jan 19-23:** Testing & Submission
+- **Dec 15-22:** Phase 1 - Python parser foundation
+- **Dec 23-31:** Phase 2 - Complete Python interpreter, game mechanics
+- **Jan 1-10:** Phase 3 - All 15 levels with Python concepts
+- **Jan 11-18:** Phase 4 - VS Code UI with Python highlighting
+- **Jan 19-23:** Phase 5 - Testing & Submission
 - **Jan 24:** Demo Day
 
 ---
@@ -389,6 +599,7 @@ Based on PRD priorities:
 - Test on target hardware (standard school computer specs)
 - The game should run at stable 60 FPS
 - Executable size target: < 200MB
+- Code parse time target: < 100ms
 
 ---
 
