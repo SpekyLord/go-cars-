@@ -51,7 +51,7 @@ var _map_bounds: Rect2 = Rect2(-100, -100, 2000, 2000)  # Default large bounds
 
 func _ready() -> void:
 	_parser = CodeParser.new()
-	process_mode = Node.PROCESS_MODE_PAUSABLE
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
 # ============================================

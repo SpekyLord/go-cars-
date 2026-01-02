@@ -431,6 +431,23 @@ Check off items as they are completed.
 
 ## Bug Fixes Log
 
+### January 2, 2026 - Pause/Resume Fix in Simulation Engine
+
+**Issue:** Pressing Space pauses the game but pressing Space again doesn't resume.
+
+**Root Cause:**
+- Line 54: `process_mode = Node.PROCESS_MODE_PAUSABLE`
+- Line 261: `get_tree().paused = true` when pausing
+- When tree is paused, SimulationEngine is ALSO paused, so `_unhandled_input()` never receives the Space key!
+
+**Fix Applied:**
+- Changed `process_mode` from `PROCESS_MODE_PAUSABLE` to `PROCESS_MODE_ALWAYS` (line 54)
+
+**Files Modified:**
+- `scripts/core/simulation_engine.gd`
+
+---
+
 ### January 2, 2026 - Type Casting Fix in Stoplight
 
 **Issue:** `stoplight.gd` had type errors preventing the game from running
