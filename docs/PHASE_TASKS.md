@@ -47,22 +47,22 @@ Check off items as they are completed.
 ## Phase 2: Core Mechanics
 
 ### Vehicle Control Functions (P0)
-- [ ] **CORE-002** Complete basic movement functions
-  - [ ] `car.go()` - continuous forward movement
-  - [ ] `car.stop()` - immediate stop
-  - [ ] `car.turn_left()` - 90 degree left turn at intersection
-  - [ ] `car.turn_right()` - 90 degree right turn at intersection
-  - [ ] `car.wait(seconds)` - pause for N seconds
+- [x] **CORE-002** Complete basic movement functions
+  - [x] `car.go()` - continuous forward movement
+  - [x] `car.stop()` - immediate stop
+  - [x] `car.turn_left()` - 90 degree left turn at intersection
+  - [x] `car.turn_right()` - 90 degree right turn at intersection
+  - [x] `car.wait(seconds)` - pause for N seconds
 
 ### Traffic Light System (P0)
-- [ ] Create `scripts/entities/stoplight.gd`
-  - [ ] Implement state machine (red, yellow, green)
-  - [ ] `stoplight.set_red()`
-  - [ ] `stoplight.set_green()`
-  - [ ] `stoplight.set_yellow()`
-  - [ ] `stoplight.get_state()` - returns current state
-- [ ] Create traffic light sprite (2-way and 4-way variants)
-- [ ] Implement car stopping at red lights
+- [x] Create `scripts/entities/stoplight.gd`
+  - [x] Implement state machine (red, yellow, green)
+  - [x] `stoplight.set_red()`
+  - [x] `stoplight.set_green()`
+  - [x] `stoplight.set_yellow()`
+  - [x] `stoplight.get_state()` - returns current state
+- [x] Create traffic light sprite (2-way and 4-way variants)
+- [x] Implement car stopping at red lights
 
 ### Turn Mechanics
 - [ ] Implement intersection detection
@@ -421,12 +421,12 @@ Check off items as they are completed.
 
 | Phase | Status | Completion |
 |-------|--------|------------|
-| Phase 1: Foundation | In Progress | 90% |
-| Phase 2: Core Mechanics | Not Started | 0% |
+| Phase 1: Foundation | Complete | 100% |
+| Phase 2: Core Mechanics | In Progress | 40% |
 | Phase 3: Content Creation | Not Started | 0% |
 | Phase 4: Polish & UI | Not Started | 0% |
 | Phase 5: Testing & Submission | Not Started | 0% |
 
 ---
 
-*Last Updated: January 2026*
+*Last Updated: January 2, 2026*

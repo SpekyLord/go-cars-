@@ -41,6 +41,43 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 
 
+# ============================================
+# Stoplight Registration
+# ============================================
+
+## Register a stoplight with the simulation
+func register_stoplight(stoplight: Stoplight) -> void:
+	_stoplights[stoplight.stoplight_id] = stoplight
+	# Connect state change signal
+	stoplight.state_changed.connect(_on_stoplight_state_changed)
+	# Make all existing vehicles aware of this stoplight
+	for vehicle_id in _vehicles:
+		_vehicles[vehicle_id].add_stoplight(stoplight)
+
+
+## Unregister a stoplight
+func unregister_stoplight(stoplight_id: String) -> void:
+	if stoplight_id in _stoplights:
+		_stoplights.erase(stoplight_id)
+
+
+## Get all registered stoplight IDs
+func get_stoplight_ids() -> Array:
+	return _stoplights.keys()
+
+
+## Get a stoplight by ID
+func get_stoplight(stoplight_id: String) -> Stoplight:
+	if stoplight_id in _stoplights:
+		return _stoplights[stoplight_id]
+	return null
+
+
+func _on_stoplight_state_changed(stoplight_id: String, new_state: String) -> void:
+	# Can be used for logging or triggering other events
+	print("Stoplight %s changed to %s" % [stoplight_id, new_state])
+
+
 func _process(delta: float) -> void:
 	if current_state == State.RUNNING:
 		# Engine.time_scale handles speed, no additional logic needed here
@@ -59,6 +96,10 @@ func register_vehicle(vehicle: Vehicle) -> void:
 	# Connect signals
 	vehicle.reached_destination.connect(_on_vehicle_reached_destination)
 	vehicle.crashed.connect(_on_vehicle_crashed)
+
+	# Make this vehicle aware of all existing stoplights
+	for stoplight_id in _stoplights:
+		vehicle.add_stoplight(_stoplights[stoplight_id])
 
 
 ## Unregister a vehicle
@@ -81,9 +122,14 @@ func get_vehicle_ids() -> Array:
 func execute_code(code: String) -> void:
 	# Get available objects based on registered entities
 	var available_objects: Array = []
-	for vehicle_id in _vehicles:
-		available_objects.append("car")  # All vehicles respond to "car" for now
-		break  # Only need to add "car" once
+
+	# Add "car" if vehicles are registered
+	if _vehicles.size() > 0:
+		available_objects.append("car")
+
+	# Add "stoplight" if stoplights are registered
+	if _stoplights.size() > 0:
+		available_objects.append("stoplight")
 
 	# Parse the code
 	var result = _parser.parse(code, available_objects)
@@ -126,6 +172,13 @@ func _execute_command(command: Dictionary) -> void:
 			var vehicle = _vehicles[vehicle_id]
 			_call_vehicle_function(vehicle, func_name, params)
 
+	# Stoplight commands go to all stoplights
+	# In the future, we can have stoplight1, stoplight2, etc.
+	elif obj_type == "stoplight":
+		for stoplight_id in _stoplights:
+			var stoplight = _stoplights[stoplight_id]
+			_call_stoplight_function(stoplight, func_name, params)
+
 
 ## Call a function on a vehicle
 func _call_vehicle_function(vehicle: Vehicle, func_name: String, params: Array) -> void:
@@ -144,6 +197,21 @@ func _call_vehicle_function(vehicle: Vehicle, func_name: String, params: Array) 
 		"speed":
 			if params.size() > 0:
 				vehicle.set_speed(params[0])
+
+
+## Call a function on a stoplight
+func _call_stoplight_function(stoplight: Stoplight, func_name: String, _params: Array) -> void:
+	match func_name:
+		"set_red":
+			stoplight.set_red()
+		"set_green":
+			stoplight.set_green()
+		"set_yellow":
+			stoplight.set_yellow()
+		"get_state":
+			# get_state returns a value, but for now we just call it
+			# In a more advanced system, we could store the return value
+			var _state = stoplight.get_state()
 
 
 # ============================================
