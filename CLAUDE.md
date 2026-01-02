@@ -65,10 +65,16 @@ GoCars/
 ├── assets/
 │   ├── sprites/
 │   ├── audio/
-│   └── fonts/
+│   ├── fonts/
+│   └── tiles/             # Tileset images for map editor
+│       ├── RoadTilesDebug64x64.png   # Debug tileset (17x16 tiles)
+│       ├── RoadTilesDebug32x32.png   # Debug tileset 32px version
+│       ├── RoadTiles64x64.png        # Production tileset
+│       └── RoadTiles32x32.png        # Production tileset 32px
 ├── scenes/
-│   ├── main_menu.tscn
-│   ├── gameplay.tscn
+│   ├── main.tscn
+│   ├── map_editor/
+│   │   └── map_editor.tscn    # Level/map editor scene
 │   └── levels/
 ├── scripts/
 │   ├── core/              # Code parser, simulation engine
@@ -383,3 +389,76 @@ Based on PRD priorities:
 - Test on target hardware (standard school computer specs)
 - The game should run at stable 60 FPS
 - Executable size target: < 200MB
+
+---
+
+## Map Editor
+
+The Map Editor (`scenes/map_editor/map_editor.tscn`) allows creating levels visually.
+
+### Controls
+- **WASD / Arrow Keys**: Move camera
+- **Mouse Wheel**: Zoom in/out (0.25x - 3x)
+- **Left Click**: Paint selected terrain
+- **Right Click**: Erase (paint grass)
+- **1 / Grass Button**: Select grass terrain
+- **2 / Road Button**: Select road terrain
+
+### Tileset System
+
+The map editor uses a 17-column x 16-row tileset (`RoadTilesDebug64x64.png`) with auto-tiling:
+
+#### Columns (Main Tile Type - Cardinal Connections)
+Roads automatically connect to adjacent roads in cardinal directions:
+
+| Column | Index | Description |
+|--------|-------|-------------|
+| c1 | 0 | Grass |
+| c2 | 1 | Road (isolated, no connections) |
+| c3 | 2 | Road connects South |
+| c4 | 3 | Road connects North |
+| c5 | 4 | Road connects East |
+| c6 | 5 | Road connects West |
+| c7 | 6 | Road connects South + North |
+| c8 | 7 | Road connects East + West |
+| c9 | 8 | Road connects South + East |
+| c10 | 9 | Road connects South + West |
+| c11 | 10 | Road connects North + East |
+| c12 | 11 | Road connects North + West |
+| c13 | 12 | Road connects South + North + East |
+| c14 | 13 | Road connects South + East + West |
+| c15 | 14 | Road connects North + East + West |
+| c16 | 15 | Road connects South + North + West |
+| c17 | 16 | Road connects all four (4-way intersection) |
+
+#### Rows (Sub Type - Diagonal Road Detection)
+Rows are selected based on which diagonal tiles contain roads (for corner decorations):
+
+| Row | Index | Diagonal Roads Present |
+|-----|-------|------------------------|
+| r1 | 0 | None (basic tile) |
+| r2 | 1 | NW only |
+| r3 | 2 | NE only |
+| r4 | 3 | SW only |
+| r5 | 4 | SE only |
+| r6 | 5 | NW + SW |
+| r7 | 6 | NE + NW |
+| r8 | 7 | NE + SE |
+| r9 | 8 | SW + SE |
+| r10 | 9 | NW + SE |
+| r11 | 10 | SW + NE |
+| r12 | 11 | NW + NE + SW |
+| r13 | 12 | NW + NE + SE |
+| r14 | 13 | NE + SW + SE |
+| r15 | 14 | NW + SW + SE |
+| r16 | 15 | All four diagonals |
+
+#### How Auto-Tiling Works
+1. When placing a road, the system checks cardinal neighbors (N, S, E, W) to determine the column
+2. It also checks diagonal neighbors (NW, NE, SW, SE) to determine the row
+3. All affected tiles (placed tile + 8 neighbors) are updated automatically
+4. Priority: More specific diagonal patterns (r16) are checked before less specific ones (r1)
+
+### Map Editor Code Location
+- Scene: `scenes/map_editor/map_editor.tscn`
+- Script: `scenes/map_editor/map_editor.gd`

@@ -2,8 +2,8 @@ extends Node2D
 class_name MapEditor
 
 ## Map Editor for creating GoCars levels
-## Allows painting with Grass (1), Road (2), and House (3) terrains
-## Houses only connect to ONE road - the first adjacent road found
+## Allows painting with Grass (1) and Road (2) terrains
+## Uses 64x64 debug tileset with diagonal corner connection rules
 
 signal tile_placed(position: Vector2i, terrain_type: int)
 signal terrain_selected(terrain_type: int)
@@ -12,11 +12,10 @@ signal terrain_selected(terrain_type: int)
 enum TerrainType {
 	NONE = 0,
 	GRASS = 1,
-	ROAD = 2,
-	HOUSE = 3
+	ROAD = 2
 }
 
-# Direction vectors for checking neighbors
+# Direction vectors for checking cardinal neighbors
 const DIRECTIONS = {
 	"north": Vector2i(0, -1),
 	"south": Vector2i(0, 1),
@@ -24,60 +23,33 @@ const DIRECTIONS = {
 	"west": Vector2i(-1, 0)
 }
 
-# Track house connections: house_pos -> connected_direction
-var house_connections: Dictionary = {}
+# Diagonal direction vectors for checking corner neighbors
+const DIAGONALS = {
+	"north_west": Vector2i(-1, -1),
+	"north_east": Vector2i(1, -1),
+	"south_west": Vector2i(-1, 1),
+	"south_east": Vector2i(1, 1)
+}
 
 # Current selected terrain for painting
 var current_terrain: TerrainType = TerrainType.ROAD
 
 # References
 @onready var tile_map: TileMap = $TileMap
+@onready var camera: Camera2D = $Camera2D
 @onready var card_container: HBoxContainer = $UI/CardContainer
 @onready var grass_card: Button = $UI/CardContainer/GrassCard
 @onready var road_card: Button = $UI/CardContainer/RoadCard
-@onready var house_card: Button = $UI/CardContainer/HouseCard
+
+# Camera settings
+const CAMERA_SPEED: float = 400.0
+const ZOOM_SPEED: float = 0.1
+const MIN_ZOOM: float = 0.25
+const MAX_ZOOM: float = 3.0
 
 # TileSet source ID (atlas)
 const SOURCE_ID: int = 0
-
-# Tile Atlas Coordinates mapping (column, row) -> Vector2i(x, y)
-# Based on your tileset layout:
-const TILES = {
-	# Row 0
-	"grass": Vector2i(0, 0),           # c1/r1 - Grass
-	"road_isolated": Vector2i(1, 0),   # c2/r1 - Road (no connections)
-	"road_e": Vector2i(2, 0),          # c3/r1 - Road east
-	"road_ew": Vector2i(3, 0),         # c4/r1 - Road east+west
-	"road_w": Vector2i(4, 0),          # c5/r1 - Road west
-
-	# Row 1
-	"road_nesw": Vector2i(0, 1),       # c1/r2 - Road all 4 directions
-	"road_es": Vector2i(1, 1),         # c2/r2 - Road east+south
-	"road_ws": Vector2i(2, 1),         # c3/r2 - Road west+south
-	"road_ens": Vector2i(3, 1),        # c4/r2 - Road east+north+south
-	"road_ews": Vector2i(4, 1),        # c5/r2 - Road east+west+south
-
-	# Row 2
-	"road_s": Vector2i(0, 2),          # c1/r3 - Road south
-	"road_en": Vector2i(1, 2),         # c2/r3 - Road east+north
-	"road_wn": Vector2i(2, 2),         # c3/r3 - Road west+north
-	"road_ewn": Vector2i(3, 2),        # c4/r3 - Road east+west+north
-	"road_wns": Vector2i(4, 2),        # c5/r3 - Road west+north+south
-
-	# Row 3
-	"road_ns": Vector2i(0, 3),         # c1/r4 - Road north+south
-	"house_n": Vector2i(1, 3),         # c2/r4 - House connects north
-	"house_s": Vector2i(2, 3),         # c3/r4 - House connects south
-	"house_isolated": Vector2i(3, 3),  # c4/r4 - House (no connection)
-	# c5/r4 = None (4, 3)
-
-	# Row 4
-	"road_n": Vector2i(0, 4),          # c1/r5 - Road north
-	"house_w": Vector2i(1, 4),         # c2/r5 - House connects west
-	"house_e": Vector2i(2, 4),         # c3/r5 - House connects east
-	# c4/r5 = None (3, 4)
-	# c5/r5 = None (4, 4)
-}
+const TILE_SIZE: int = 64
 
 # Mouse state
 var is_painting: bool = false
@@ -87,15 +59,42 @@ func _ready() -> void:
 	# Connect card button signals
 	grass_card.pressed.connect(_on_grass_card_pressed)
 	road_card.pressed.connect(_on_road_card_pressed)
-	house_card.pressed.connect(_on_house_card_pressed)
 
 	# Set initial selection visual
 	_update_card_selection()
 
 
+func _process(delta: float) -> void:
+	_handle_camera_movement(delta)
+
+
+func _handle_camera_movement(delta: float) -> void:
+	var move_direction = Vector2.ZERO
+
+	if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
+		move_direction.y -= 1
+	if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
+		move_direction.y += 1
+	if Input.is_action_pressed("ui_left") or Input.is_key_pressed(KEY_A):
+		move_direction.x -= 1
+	if Input.is_action_pressed("ui_right") or Input.is_key_pressed(KEY_D):
+		move_direction.x += 1
+
+	if move_direction != Vector2.ZERO:
+		move_direction = move_direction.normalized()
+		# Adjust speed based on zoom level (faster when zoomed out)
+		var adjusted_speed = CAMERA_SPEED / camera.zoom.x
+		camera.position += move_direction * adjusted_speed * delta
+
+
 func _input(event: InputEvent) -> void:
+	# Handle zoom with mouse wheel
 	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+			_zoom_camera(ZOOM_SPEED)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+			_zoom_camera(-ZOOM_SPEED)
+		elif event.button_index == MOUSE_BUTTON_LEFT:
 			is_painting = event.pressed
 			if is_painting:
 				_paint_at_mouse_position()
@@ -105,6 +104,12 @@ func _input(event: InputEvent) -> void:
 
 	elif event is InputEventMouseMotion and is_painting:
 		_paint_at_mouse_position()
+
+
+func _zoom_camera(zoom_change: float) -> void:
+	var new_zoom = camera.zoom.x + zoom_change
+	new_zoom = clamp(new_zoom, MIN_ZOOM, MAX_ZOOM)
+	camera.zoom = Vector2(new_zoom, new_zoom)
 
 
 func _paint_at_mouse_position() -> void:
@@ -118,19 +123,11 @@ func _erase_at_mouse_position() -> void:
 	var mouse_pos = get_global_mouse_position()
 	var tile_pos = tile_map.local_to_map(tile_map.to_local(mouse_pos))
 
-	# Check if we're erasing a road that a house is connected to
-	var old_terrain = get_terrain_at(tile_pos)
-	if old_terrain == TerrainType.ROAD:
-		_handle_road_removal(tile_pos)
-	elif old_terrain == TerrainType.HOUSE:
-		# Remove house from connections tracking
-		house_connections.erase(tile_pos)
-
 	# Erase by setting to grass
-	_set_tile_direct(tile_pos, TerrainType.GRASS)
+	tile_map.set_cell(0, tile_pos, SOURCE_ID, Vector2i(0, 0))
 
-	# Update adjacent roads after erasing
-	_update_adjacent_roads(tile_pos)
+	# Update this tile and all adjacent tiles
+	_update_tile_and_neighbors(tile_pos)
 
 
 func _set_tile(pos: Vector2i, terrain_type: TerrainType) -> void:
@@ -138,234 +135,180 @@ func _set_tile(pos: Vector2i, terrain_type: TerrainType) -> void:
 		TerrainType.NONE:
 			tile_map.erase_cell(0, pos)
 		TerrainType.GRASS:
-			_set_tile_direct(pos, TerrainType.GRASS)
+			# Place grass and update it properly
+			tile_map.set_cell(0, pos, SOURCE_ID, Vector2i(0, 0))
+			_update_tile_and_neighbors(pos)
 		TerrainType.ROAD:
+			# Place road and update connections
 			_place_road(pos)
-		TerrainType.HOUSE:
-			_place_house(pos)
 
 	tile_placed.emit(pos, terrain_type)
 
 
-func _set_tile_direct(pos: Vector2i, terrain_type: TerrainType) -> void:
-	# Direct tile placement - no auto-connect, just place the tile
-	match terrain_type:
-		TerrainType.NONE:
-			tile_map.erase_cell(0, pos)
-		TerrainType.GRASS:
-			tile_map.set_cell(0, pos, SOURCE_ID, TILES["grass"])
-		TerrainType.ROAD:
-			tile_map.set_cell(0, pos, SOURCE_ID, TILES["road_isolated"])
-		TerrainType.HOUSE:
-			tile_map.set_cell(0, pos, SOURCE_ID, TILES["house_isolated"])
-
-
 func _place_road(pos: Vector2i) -> void:
-	# Determine which directions have ROADS (not houses) to connect to
-	var connections = {
-		"north": false,
-		"south": false,
-		"east": false,
-		"west": false
-	}
+	# Place a road tile at position and update all affected tiles
+	# First, temporarily mark this as a road by setting column 1 (basic road south connection)
+	tile_map.set_cell(0, pos, SOURCE_ID, Vector2i(1, 0))
 
+	# Update this tile and all neighbors
+	_update_tile_and_neighbors(pos)
+
+
+func _update_tile_and_neighbors(pos: Vector2i) -> void:
+	# Update the tile at pos and all its cardinal and diagonal neighbors
+	_update_tile(pos)
+
+	# Update cardinal neighbors
 	for dir_name in DIRECTIONS:
 		var neighbor_pos = pos + DIRECTIONS[dir_name]
-		var neighbor_terrain = get_terrain_at(neighbor_pos)
+		_update_tile(neighbor_pos)
 
-		# Only connect to actual roads, NOT houses
-		if neighbor_terrain == TerrainType.ROAD:
-			connections[dir_name] = true
-
-	# Manually set the road tile based on connections (ignoring houses)
-	_set_road_tile_manual(pos, connections)
-
-	# Now check if any adjacent ISOLATED houses (3,3) need to connect to this road
-	for dir_name in DIRECTIONS:
-		var neighbor_pos = pos + DIRECTIONS[dir_name]
-
-		# Only connect to isolated houses (3,3 tile)
-		if _is_isolated_house(neighbor_pos):
-			# Connect this isolated house to the road
-			var opposite_dir = _get_opposite_direction(dir_name)
-			house_connections[neighbor_pos] = opposite_dir
-			_update_house_tile(neighbor_pos, opposite_dir)
-
-	# Update adjacent roads to connect properly (NOT houses)
-	_update_adjacent_roads(pos)
+	# Update diagonal neighbors
+	for diag_name in DIAGONALS:
+		var neighbor_pos = pos + DIAGONALS[diag_name]
+		_update_tile(neighbor_pos)
 
 
-func _is_isolated_house(pos: Vector2i) -> bool:
-	# Check if the tile at pos is an isolated house
-	var atlas_coords = tile_map.get_cell_atlas_coords(0, pos)
-	return atlas_coords == TILES["house_isolated"]
+func _update_tile(pos: Vector2i) -> void:
+	# Update a single tile based on its terrain type and neighbors
+	var terrain = get_terrain_at(pos)
+
+	if terrain == TerrainType.GRASS:
+		_update_grass_tile(pos)
+	elif terrain == TerrainType.ROAD:
+		_update_road_tile(pos)
 
 
-func _set_road_tile_manual(pos: Vector2i, connections: Dictionary) -> void:
-	# Manually select the correct road tile based on connections
-	# This ignores houses - roads only connect to other roads visually
-	var n = connections["north"]
-	var s = connections["south"]
-	var e = connections["east"]
-	var w = connections["west"]
-
-	var tile_key: String
-
-	# Match connection pattern to tile key
-	if n and s and e and w:
-		tile_key = "road_nesw"      # 4-way intersection
-	elif e and n and s:
-		tile_key = "road_ens"       # T: east+north+south
-	elif w and n and s:
-		tile_key = "road_wns"       # T: west+north+south
-	elif e and w and n:
-		tile_key = "road_ewn"       # T: east+west+north
-	elif e and w and s:
-		tile_key = "road_ews"       # T: east+west+south
-	elif n and s:
-		tile_key = "road_ns"        # Vertical
-	elif e and w:
-		tile_key = "road_ew"        # Horizontal
-	elif e and n:
-		tile_key = "road_en"        # Corner: east+north
-	elif w and n:
-		tile_key = "road_wn"        # Corner: west+north
-	elif e and s:
-		tile_key = "road_es"        # Corner: east+south
-	elif w and s:
-		tile_key = "road_ws"        # Corner: west+south
-	elif n:
-		tile_key = "road_n"         # Dead end: north
-	elif s:
-		tile_key = "road_s"         # Dead end: south
-	elif e:
-		tile_key = "road_e"         # Dead end: east
-	elif w:
-		tile_key = "road_w"         # Dead end: west
-	else:
-		tile_key = "road_isolated"  # No connections
-
-	tile_map.set_cell(0, pos, SOURCE_ID, TILES[tile_key])
-
-
-func _place_house(pos: Vector2i) -> void:
-	# Always place isolated house first
-	tile_map.set_cell(0, pos, SOURCE_ID, TILES["house_isolated"])
-
-	# Find first adjacent road to connect to
-	var connected_dir = ""
-
-	for dir_name in DIRECTIONS:
-		var neighbor_pos = pos + DIRECTIONS[dir_name]
-		var neighbor_terrain = get_terrain_at(neighbor_pos)
-
-		if neighbor_terrain == TerrainType.ROAD:
-			connected_dir = dir_name
-			break  # Only connect to first road found
-
-	# If there's an adjacent road, connect to it
-	if connected_dir != "":
-		house_connections[pos] = connected_dir
-		_update_house_tile(pos, connected_dir)
-	else:
-		# No road nearby - keep as isolated house
-		house_connections[pos] = ""
-		# Already placed as isolated, no need to update
-
-
-func _update_house_tile(pos: Vector2i, connection_dir: String) -> void:
-	# Set house tile based on which direction it connects
-	var tile_key: String
-
-	match connection_dir:
-		"north":
-			tile_key = "house_n"
-		"south":
-			tile_key = "house_s"
-		"west":
-			tile_key = "house_w"
-		"east":
-			tile_key = "house_e"
-		_:  # No connection - isolated house
-			tile_key = "house_isolated"
-
-	tile_map.set_cell(0, pos, SOURCE_ID, TILES[tile_key])
+func _update_grass_tile(pos: Vector2i) -> void:
+	# Grass tiles use column 0, with row based on diagonal road neighbors
+	var row = _calculate_row_for_diagonals(pos)
+	tile_map.set_cell(0, pos, SOURCE_ID, Vector2i(0, row))
 
 
 func _update_road_tile(pos: Vector2i) -> void:
-	# Re-calculate road connections (only to other roads, not houses)
-	var connections = {
-		"north": false,
-		"south": false,
-		"east": false,
-		"west": false
-	}
+	# Determine column based on cardinal road connections
+	var column = _calculate_column_for_connections(pos)
+	# Determine row based on diagonal road neighbors
+	var row = _calculate_row_for_diagonals(pos)
 
-	for dir_name in DIRECTIONS:
-		var neighbor_pos = pos + DIRECTIONS[dir_name]
-		var neighbor_terrain = get_terrain_at(neighbor_pos)
-
-		# Only connect to actual roads, NOT houses
-		if neighbor_terrain == TerrainType.ROAD:
-			connections[dir_name] = true
-
-	_set_road_tile_manual(pos, connections)
+	tile_map.set_cell(0, pos, SOURCE_ID, Vector2i(column, row))
 
 
-func _update_adjacent_roads(pos: Vector2i) -> void:
-	# Update all adjacent road tiles
-	for dir_name in DIRECTIONS:
-		var neighbor_pos = pos + DIRECTIONS[dir_name]
-		var neighbor_terrain = get_terrain_at(neighbor_pos)
+func _calculate_column_for_connections(pos: Vector2i) -> int:
+	# Check cardinal directions for road connections
+	var has_south = get_terrain_at(pos + DIRECTIONS["south"]) == TerrainType.ROAD
+	var has_north = get_terrain_at(pos + DIRECTIONS["north"]) == TerrainType.ROAD
+	var has_east = get_terrain_at(pos + DIRECTIONS["east"]) == TerrainType.ROAD
+	var has_west = get_terrain_at(pos + DIRECTIONS["west"]) == TerrainType.ROAD
 
-		if neighbor_terrain == TerrainType.ROAD:
-			_update_road_tile(neighbor_pos)
+	# Column mapping based on connection pattern:
+	# c1 (0) - Grass (handled separately)
+	# c2 (1) - Road (isolated, no connections)
+	# c3 (2) - Road C South
+	# c4 (3) - Road C North
+	# c5 (4) - Road C East
+	# c6 (5) - Road C West
+	# c7 (6) - Road C South and North
+	# c8 (7) - Road C East and West
+	# c9 (8) - Road C South and East
+	# c10 (9) - Road C South and West
+	# c11 (10) - Road C North and East
+	# c12 (11) - Road C North and West
+	# c13 (12) - Road C South and North and East
+	# c14 (13) - Road C South and East and West
+	# c15 (14) - Road C North and East and West
+	# c16 (15) - Road C South and North and West
+	# c17 (16) - Road C South and North and East and West
+
+	if has_south and has_north and has_east and has_west:
+		return 16  # c17 - All four
+	elif has_south and has_north and has_west:
+		return 15  # c16 - S+N+W
+	elif has_north and has_east and has_west:
+		return 14  # c15 - N+E+W
+	elif has_south and has_east and has_west:
+		return 13  # c14 - S+E+W
+	elif has_south and has_north and has_east:
+		return 12  # c13 - S+N+E
+	elif has_north and has_west:
+		return 11  # c12 - N+W
+	elif has_north and has_east:
+		return 10  # c11 - N+E
+	elif has_south and has_west:
+		return 9   # c10 - S+W
+	elif has_south and has_east:
+		return 8   # c9 - S+E
+	elif has_east and has_west:
+		return 7   # c8 - E+W
+	elif has_south and has_north:
+		return 6   # c7 - S+N
+	elif has_west:
+		return 5   # c6 - W
+	elif has_east:
+		return 4   # c5 - E
+	elif has_north:
+		return 3   # c4 - N
+	elif has_south:
+		return 2   # c3 - S
+	else:
+		return 1   # c2 - Isolated road (no connections)
 
 
-func _handle_road_removal(road_pos: Vector2i) -> void:
-	# Check if any houses were connected to this road
-	for dir_name in DIRECTIONS:
-		var neighbor_pos = road_pos + DIRECTIONS[dir_name]
+func _calculate_row_for_diagonals(pos: Vector2i) -> int:
+	# Check diagonal positions for roads
+	var has_nw = get_terrain_at(pos + DIAGONALS["north_west"]) == TerrainType.ROAD
+	var has_ne = get_terrain_at(pos + DIAGONALS["north_east"]) == TerrainType.ROAD
+	var has_sw = get_terrain_at(pos + DIAGONALS["south_west"]) == TerrainType.ROAD
+	var has_se = get_terrain_at(pos + DIAGONALS["south_east"]) == TerrainType.ROAD
 
-		if house_connections.has(neighbor_pos):
-			var house_connection = house_connections[neighbor_pos]
-			var opposite = _get_opposite_direction(dir_name)
-
-			# Check if this house was connected to the removed road
-			if house_connection == opposite:
-				# House needs to find a new connection
-				_reconnect_house(neighbor_pos)
-
-
-func _reconnect_house(house_pos: Vector2i) -> void:
-	# First, reset house to isolated
-	tile_map.set_cell(0, house_pos, SOURCE_ID, TILES["house_isolated"])
-	house_connections[house_pos] = ""
-
-	# Find a new road to connect to
-	var new_connection = ""
-
-	for dir_name in DIRECTIONS:
-		var neighbor_pos = house_pos + DIRECTIONS[dir_name]
-		var neighbor_terrain = get_terrain_at(neighbor_pos)
-
-		if neighbor_terrain == TerrainType.ROAD:
-			new_connection = dir_name
-			break
-
-	# If found a new road, connect to it
-	if new_connection != "":
-		house_connections[house_pos] = new_connection
-		_update_house_tile(house_pos, new_connection)
-
-
-func _get_opposite_direction(dir: String) -> String:
-	match dir:
-		"north": return "south"
-		"south": return "north"
-		"east": return "west"
-		"west": return "east"
-	return ""
+	# Row mapping - check from r16 to r1 (most specific first)
+	# r16 (15) - All four diagonals
+	if has_nw and has_ne and has_sw and has_se:
+		return 15
+	# r15 (14) - NW + SW + SE
+	if has_nw and has_sw and has_se:
+		return 14
+	# r14 (13) - NE + SW + SE
+	if has_ne and has_sw and has_se:
+		return 13
+	# r13 (12) - NW + NE + SE
+	if has_nw and has_ne and has_se:
+		return 12
+	# r12 (11) - NW + NE + SW
+	if has_nw and has_ne and has_sw:
+		return 11
+	# r11 (10) - SW + NE
+	if has_sw and has_ne:
+		return 10
+	# r10 (9) - NW + SE
+	if has_nw and has_se:
+		return 9
+	# r9 (8) - SW + SE
+	if has_sw and has_se:
+		return 8
+	# r8 (7) - NE + SE
+	if has_ne and has_se:
+		return 7
+	# r7 (6) - NE + NW
+	if has_ne and has_nw:
+		return 6
+	# r6 (5) - NW + SW
+	if has_nw and has_sw:
+		return 5
+	# r5 (4) - SE only
+	if has_se:
+		return 4
+	# r4 (3) - SW only
+	if has_sw:
+		return 3
+	# r3 (2) - NE only
+	if has_ne:
+		return 2
+	# r2 (1) - NW only
+	if has_nw:
+		return 1
+	# r1 (0) - No diagonal roads
+	return 0
 
 
 # Card button handlers
@@ -381,17 +324,10 @@ func _on_road_card_pressed() -> void:
 	terrain_selected.emit(TerrainType.ROAD)
 
 
-func _on_house_card_pressed() -> void:
-	current_terrain = TerrainType.HOUSE
-	_update_card_selection()
-	terrain_selected.emit(TerrainType.HOUSE)
-
-
 func _update_card_selection() -> void:
 	# Reset all cards to default style
 	_set_card_selected(grass_card, false)
 	_set_card_selected(road_card, false)
-	_set_card_selected(house_card, false)
 
 	# Highlight selected card
 	match current_terrain:
@@ -399,8 +335,6 @@ func _update_card_selection() -> void:
 			_set_card_selected(grass_card, true)
 		TerrainType.ROAD:
 			_set_card_selected(road_card, true)
-		TerrainType.HOUSE:
-			_set_card_selected(house_card, true)
 
 
 func _set_card_selected(card: Button, selected: bool) -> void:
@@ -432,17 +366,8 @@ func get_terrain_at(pos: Vector2i) -> TerrainType:
 
 	var atlas_coords = tile_map.get_cell_atlas_coords(0, pos)
 
-	# Check against TILES dictionary
-	if atlas_coords == TILES["grass"]:
+	# Column 0 is grass, columns 1-15 are road variants
+	if atlas_coords.x == 0:
 		return TerrainType.GRASS
-
-	# Check if it's a house tile
-	if atlas_coords == TILES["house_isolated"] or \
-	   atlas_coords == TILES["house_n"] or \
-	   atlas_coords == TILES["house_s"] or \
-	   atlas_coords == TILES["house_e"] or \
-	   atlas_coords == TILES["house_w"]:
-		return TerrainType.HOUSE
-
-	# Everything else in the tileset is a road
-	return TerrainType.ROAD
+	else:
+		return TerrainType.ROAD
