@@ -218,6 +218,59 @@ car.turn_left()
 car.go()
 ```
 
+**Enhanced Movement Functions (NEW):**
+
+```python
+# Immediate Turns (no intersection required)
+car.turn("left")      # Turns car 90° left immediately
+car.turn("right")     # Turns car 90° right immediately
+
+# Tile-Based Movement
+car.move(tiles)       # Moves car forward N tiles (1-100)
+
+# Example
+car.turn("left")      # Turn immediately
+car.move(5)           # Move forward 5 tiles
+```
+
+**Road Detection Functions (NEW):**
+
+```python
+# Road Detection (returns bool)
+car.is_front_road()   # Returns True if road tile ahead
+car.is_left_road()    # Returns True if road tile to the left
+car.is_right_road()   # Returns True if road tile to the right
+
+# Example: Navigate maze
+if car.is_front_road():
+    car.go()
+elif car.is_left_road():
+    car.turn("left")
+    car.go()
+elif car.is_right_road():
+    car.turn("right")
+    car.go()
+```
+
+**Car Detection Functions (NEW):**
+
+```python
+# Car Detection (returns bool)
+car.is_front_car()          # Returns True if ANY car ahead (active or crashed)
+car.is_front_crashed_car()  # Returns True if CRASHED car ahead (obstacle)
+
+# Example: Avoid obstacles
+if car.is_front_crashed_car():
+    if car.is_left_road():
+        car.turn("left")
+    elif car.is_right_road():
+        car.turn("right")
+elif car.is_front_car():
+    car.stop()  # Wait for car to move
+else:
+    car.go()
+```
+
 **Traffic Light Functions:**
 
 ```python
@@ -453,6 +506,64 @@ car.go()  # Inline comment
 - [ ] Fast Retry resets all entities to starting positions
 - [ ] Current executing line is highlighted in editor
 - [ ] Keyboard shortcuts work when code editor is not focused
+
+---
+
+#### CORE-005: Extended Game Mechanics (NEW)
+
+| Attribute | Details |
+|-----------|---------|
+| **Priority** | P0 (Critical) |
+| **Description** | Additional gameplay mechanics for strategic depth |
+
+**Road Cards System:**
+- Players have a limited number of road cards (default: 10)
+- Left-click on grass to place a road tile (costs 1 card)
+- Right-click on road to remove it (refunds 1 card)
+- **Live editing**: Roads can be placed/removed DURING gameplay
+- UI displays remaining road cards in top-left corner
+
+**Hearts/Lives System:**
+- Players start with limited hearts (default: 10)
+- Lose 1 heart when:
+  - Car crashes (moves onto non-road tile)
+  - Car collides with another car
+- Game over when hearts reach 0
+- UI displays remaining hearts in top-left corner
+
+**Crashed Cars as Obstacles:**
+- When a car crashes, it does NOT disappear
+- Crashed cars become permanent obstacles on the map
+- Visual: Crashed cars are darkened (50% gray modulate)
+- Vehicle States:
+  - State 1 (Active): Car moves and executes code normally
+  - State 0 (Crashed): Car stops all movement, becomes static obstacle
+- Players must navigate around crashed cars
+
+**Automatic Car Spawning:**
+- After pressing "Run", new cars spawn at regular intervals
+- Spawn interval: Every 15 seconds
+- All spawned cars execute the same Python code
+- Naming: car1, car2, car3, etc.
+- Spawning stops on level reset
+
+**Stoplight Control Panel:**
+- Manual UI controls for stoplights in top-right corner
+- Buttons: Set Red, Set Yellow, Set Green
+- Displays current stoplight state
+
+**Road-Only Movement:**
+- Cars can only move on road tiles (tileset columns 1-16)
+- Moving onto grass (column 0) triggers a crash
+- Use road detection methods to check paths before moving
+
+**Acceptance Criteria:**
+- [x] Road cards system functional with live editing
+- [x] Hearts system tracks crashes and triggers game over
+- [x] Crashed cars remain as visible obstacles
+- [x] Cars spawn automatically every 15 seconds
+- [x] Stoplight control panel allows manual control
+- [x] Cars crash when moving off-road
 
 ---
 

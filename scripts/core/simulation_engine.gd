@@ -2,7 +2,7 @@ extends Node
 class_name SimulationEngine
 
 ## Manages code execution and simulation playback.
-## Coordinates between CodeParser and Vehicle entities.
+## Coordinates between PythonParser, PythonInterpreter, and Vehicle entities.
 
 signal simulation_started()
 signal simulation_paused()
@@ -36,7 +36,6 @@ var _vehicles: Dictionary = {}  # vehicle_id -> Vehicle node
 var _stoplights: Dictionary = {}  # stoplight_id -> Stoplight node
 var _command_queue: Array = []
 var _current_command_index: int = 0
-var _use_python_interpreter: bool = true  # Use new Python system by default
 
 # Level tracking
 var _vehicles_at_destination: int = 0
@@ -148,10 +147,9 @@ func get_vehicle_ids() -> Array:
 # Code Execution
 # ============================================
 
-## Parse and execute code
+## Parse and execute code using Python parser and interpreter
 func execute_code(code: String) -> void:
-	if _use_python_interpreter:
-		_execute_code_python(code)
+	_execute_code_python(code)
 
 
 ## Execute code using the new Python parser and interpreter

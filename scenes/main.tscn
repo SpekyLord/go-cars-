@@ -94,11 +94,11 @@ offset_left = 20.0
 offset_top = 100.0
 offset_right = 600.0
 offset_bottom = 200.0
-text = "Instructions:
-- car.go() / car.stop() / car.turn_left() / car.turn_right() / car.move(N) / car.wait(N)
-- if car.is_front_road(): / if car.is_left_road(): / if car.is_right_road():
+text = "Python Commands:
+- car.go() | car.stop() | car.turn(\"left\") | car.turn(\"right\") | car.move(5) | car.wait(2)
+- car.is_front_road() | car.is_left_road() | car.is_right_road() | car.is_front_car()
 - Click tiles to place/remove roads (costs road cards)
-- Space: pause/resume | R: reset | +/-: speed | S: step"
+- Space: pause/resume | R: reset | +/-: speed"
 
 [node name="StoplightPanel" type="Panel" parent="UI"]
 offset_left = 800.0
