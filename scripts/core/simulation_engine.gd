@@ -40,11 +40,12 @@ var _stoplights: Dictionary = {}  # stoplight_id -> Stoplight node
 var _command_queue: Array = []
 var _current_command_index: int = 0
 
-# Continuous execution (Reeborg-style - re-run code each frame)
+# Step-based execution (execute one statement per interval)
 var _current_code: String = ""
-var _execution_interval: float = 0.1  # Execute code every 100ms
+var _execution_interval: float = 0.1  # Execute one step every 100ms
 var _execution_timer: float = 0.0
 var _is_executing: bool = false
+var _current_ast: Dictionary = {}
 
 # Level tracking
 var _vehicles_at_destination: int = 0
@@ -118,12 +119,12 @@ func _process(delta: float) -> void:
 		# Check for out-of-bounds vehicles
 		_check_vehicle_boundaries()
 
-		# Continuous code execution (Reeborg-style)
-		if _is_executing and _current_code != "":
+		# Step-based code execution (one statement/iteration per interval)
+		if _is_executing:
 			_execution_timer += delta
 			if _execution_timer >= _execution_interval:
 				_execution_timer = 0.0
-				_run_code_iteration()
+				_execute_one_step()
 
 		# Handle step mode
 		if current_state == State.STEP:
@@ -172,50 +173,61 @@ func execute_code(code: String) -> void:
 	_execute_code_python(code)
 
 
-## Execute code using the new Python parser and interpreter (Reeborg-style continuous execution)
+## Execute code using the new Python parser and interpreter (step-based execution)
 func _execute_code_python(code: String) -> void:
-	# Store code for continuous execution
+	# Store code for step-based execution
 	_current_code = code
 	_execution_timer = 0.0
-	_is_executing = true
-
-	# Register game objects with interpreter
-	_register_game_objects()
-
-	# Run first iteration immediately
-	_run_code_iteration()
-
-	# Start the simulation
-	start()
-
-
-## Run one iteration of code execution (called repeatedly during simulation)
-func _run_code_iteration() -> void:
-	if _current_code == "":
-		return
 
 	# Parse code with PythonParser
-	var ast = _python_parser.parse(_current_code)
+	_current_ast = _python_parser.parse(code)
 
 	# Check for parse errors
-	if ast["errors"].size() > 0:
-		for error in ast["errors"]:
+	if _current_ast["errors"].size() > 0:
+		for error in _current_ast["errors"]:
 			push_error("Line %s: %s" % [error["line"], error["message"]])
 			execution_error_occurred.emit(error["message"], error["line"])
 		_is_executing = false
 		return
 
+	# Register game objects with interpreter
+	_register_game_objects()
+
+	# Initialize step-based execution
+	_python_interpreter.start_execution(_current_ast)
+	_is_executing = true
+
+	# Execute first step immediately
+	_execute_one_step()
+
+	# Start the simulation
+	start()
+
+
+## Execute one step of code (one statement or one loop iteration)
+func _execute_one_step() -> void:
+	if not _is_executing:
+		return
+
 	# Re-register game objects (in case new vehicles spawned)
 	_register_game_objects()
 
-	# Execute the code
-	var result = _python_interpreter.execute(ast)
+	# Execute one step
+	var has_more = _python_interpreter.step()
 
-	# Check for runtime errors
-	if result.has("error") and result["error"] != "":
-		execution_error_occurred.emit(result["error"], result.get("line", 0))
+	# Check for errors
+	if _python_interpreter.has_errors():
+		var errors = _python_interpreter.get_errors()
+		if errors.size() > 0:
+			var err = errors[0]
+			execution_error_occurred.emit(err.get("message", "Unknown error"), err.get("line", 0))
 		_is_executing = false
 		return
+
+	# Check if execution is complete
+	if not has_more:
+		_is_executing = false
+		# Execution complete - code finished running
 
 
 ## Register all game objects with the interpreter
@@ -361,10 +373,12 @@ func stop() -> void:
 	_vehicles_at_destination = 0
 	_step_timer = 0.0
 	_level_timer = 0.0
-	# Stop continuous execution
+	# Stop step-based execution
 	_is_executing = false
 	_current_code = ""
+	_current_ast = {}
 	_execution_timer = 0.0
+	_python_interpreter.stop_execution()
 
 
 ## Reset all vehicles to starting positions
