@@ -1,0 +1,80 @@
+[gd_scene load_steps=5 format=3 uid="uid://roadtile1"]
+
+[ext_resource type="Script" uid="uid://bme2ebhctatun" path="res://scenes/map_editor/road_tile.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cf5v5oc5evd7c" path="res://assets/tiles/RoadTile1.png" id="2_main"]
+[ext_resource type="Texture2D" uid="uid://w7aq4i2l4rnp" path="res://assets/tiles/RoadTiles-Sheet.png" id="3_combo"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_main"]
+size = Vector2(48, 48)
+
+[node name="RoadTile" type="Area2D" groups=["road_tiles"]]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_script")
+
+[node name="MainCollision" type="CollisionShape2D" parent="."]
+position = Vector2(24, 24)
+shape = SubResource("RectangleShape2D_main")
+
+[node name="ComboSprites" type="Node2D" parent="."]
+position = Vector2(-48, -48)
+
+[node name="TopLeft" type="Sprite2D" parent="ComboSprites"]
+visible = false
+position = Vector2(72, 72)
+texture = ExtResource("3_combo")
+region_enabled = true
+region_rect = Rect2(0, 0, 144, 144)
+
+[node name="Top" type="Sprite2D" parent="ComboSprites"]
+visible = false
+position = Vector2(72, 72)
+texture = ExtResource("3_combo")
+region_enabled = true
+region_rect = Rect2(144, 0, 144, 144)
+
+[node name="TopRight" type="Sprite2D" parent="ComboSprites"]
+visible = false
+position = Vector2(72, 72)
+texture = ExtResource("3_combo")
+region_enabled = true
+region_rect = Rect2(288, 0, 144, 144)
+
+[node name="Left" type="Sprite2D" parent="ComboSprites"]
+visible = false
+position = Vector2(72, 72)
+texture = ExtResource("3_combo")
+region_enabled = true
+region_rect = Rect2(0, 144, 144, 144)
+
+[node name="Right" type="Sprite2D" parent="ComboSprites"]
+visible = false
+position = Vector2(72, 72)
+texture = ExtResource("3_combo")
+region_enabled = true
+region_rect = Rect2(288, 144, 144, 144)
+
+[node name="BottomLeft" type="Sprite2D" parent="ComboSprites"]
+visible = false
+position = Vector2(72, 72)
+texture = ExtResource("3_combo")
+region_enabled = true
+region_rect = Rect2(0, 288, 144, 144)
+
+[node name="Bottom" type="Sprite2D" parent="ComboSprites"]
+visible = false
+position = Vector2(72, 72)
+texture = ExtResource("3_combo")
+region_enabled = true
+region_rect = Rect2(144, 288, 144, 144)
+
+[node name="BottomRight" type="Sprite2D" parent="ComboSprites"]
+visible = false
+position = Vector2(72, 72)
+texture = ExtResource("3_combo")
+region_enabled = true
+region_rect = Rect2(288, 288, 144, 144)
+
+[node name="MainSprite" type="Sprite2D" parent="."]
+position = Vector2(24, 24)
+texture = ExtResource("2_main")

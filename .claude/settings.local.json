@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(godot:*)",
-      "Bash(\"/c/Users/Mist/Downloads/Godot_v4.5.1-stable_win64.exe/Godot_v4.5.1-stable_win64_console.exe\" --path . --headless --script tests/python_interpreter.test.gd)"
+      "Bash(\"/c/Users/Mist/Downloads/Godot_v4.5.1-stable_win64.exe/Godot_v4.5.1-stable_win64_console.exe\" --path . --headless --script tests/python_interpreter.test.gd)",
+      "Bash(\"C:\\Users\\Mist\\Downloads\\Godot_v4.5.1-stable_win64.exe\\Godot_v4.5.1-stable_win64_console.exe\" --path \"C:\\Users\\Jorge Acidre\\Documents\\GitHub\\go-cars-\" --headless --quit-after 5)",
+      "Bash(cmd /c \"\"C:UsersMistDownloadsGodot_v4.5.1-stable_win64.exeGodot_v4.5.1-stable_win64_console.exe\" --path \"C:UsersJorge AcidreDocumentsGitHubgo-cars-\" --headless --quit-after 5\")",
+      "Bash(\"/c/Users/Mist/Downloads/Godot_v4.5.1-stable_win64.exe/Godot_v4.5.1-stable_win64_console.exe\" --path . --headless --quit-after 3)",
+      "Bash(cmd /c \"\"\"C:\\Users\\Mist\\Downloads\\Godot_v4.5.1-stable_win64.exe\\Godot_v4.5.1-stable_win64_console.exe\"\" --path \"\"C:\\Users\\Jorge Acidre\\Documents\\GitHub\\go-cars-\"\" --headless --quit-after 3\")"
     ]
   }
 }
