@@ -29,6 +29,10 @@ extends Node2D
 @onready var stoplight_green_button: Button = $UI/StoplightPanel/GreenButton
 @onready var stoplight_state_label: Label = $UI/StoplightPanel/StateLabel
 
+# Help panel elements
+@onready var help_panel: Panel = $UI/HelpPanel
+@onready var toggle_help_button: Button = $UI/ToggleHelpButton
+
 # Current line highlighting
 var _current_executing_line: int = -1
 
@@ -107,6 +111,9 @@ func _ready() -> void:
 	stoplight_red_button.pressed.connect(_on_stoplight_red_pressed)
 	stoplight_yellow_button.pressed.connect(_on_stoplight_yellow_pressed)
 	stoplight_green_button.pressed.connect(_on_stoplight_green_pressed)
+
+	# Connect help panel button
+	toggle_help_button.pressed.connect(_on_toggle_help_pressed)
 
 	# Update stoplight panel if stoplight exists
 	if test_stoplight:
@@ -458,6 +465,9 @@ func _input(event: InputEvent) -> void:
 				# - key for slow down
 				simulation_engine.slow_down()
 				call_deferred("_update_speed_label")
+			KEY_F1:
+				# F1 - Toggle help panel
+				_on_toggle_help_pressed()
 
 	# Handle tile editing (only when not running simulation)
 	if is_editing_enabled:
@@ -536,6 +546,14 @@ func _update_stoplight_state_label() -> void:
 	if test_stoplight:
 		var state = test_stoplight.get_state()
 		stoplight_state_label.text = "Current: %s" % state.capitalize()
+
+
+# ============================================
+# Help Panel Functions
+# ============================================
+
+func _on_toggle_help_pressed() -> void:
+	help_panel.visible = not help_panel.visible
 
 
 # ============================================
