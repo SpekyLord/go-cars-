@@ -748,3 +748,83 @@ offset_top = 130.0
 offset_right = 350.0
 offset_bottom = 170.0
 text = "Next Level"
+
+[node name="ToggleHelpButton" type="Button" parent="UI"]
+offset_left = 540.0
+offset_top = 450.0
+offset_right = 620.0
+offset_bottom = 490.0
+text = "Help (F1)"
+
+[node name="HelpPanel" type="Panel" parent="UI"]
+visible = false
+offset_left = 420.0
+offset_top = 100.0
+offset_right = 780.0
+offset_bottom = 440.0
+
+[node name="HelpTitle" type="Label" parent="UI/HelpPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 350.0
+offset_bottom = 40.0
+text = "Python Commands Reference"
+
+[node name="HelpContent" type="RichTextLabel" parent="UI/HelpPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 45.0
+offset_right = 350.0
+offset_bottom = 330.0
+text = "=== CAR COMMANDS ===
+
+Movement:
+  car.go()           - Start moving
+  car.stop()         - Stop immediately
+  car.turn(\"left\")   - Turn 90 left
+  car.turn(\"right\")  - Turn 90 right
+  car.move(tiles)    - Move N tiles
+  car.wait(seconds)  - Wait N seconds
+
+Road Detection:
+  car.is_front_road()  - Road ahead?
+  car.is_left_road()   - Road left?
+  car.is_right_road()  - Road right?
+  car.is_at_dead_end() - No roads?
+
+Car Detection:
+  car.is_front_car()        - Car ahead?
+  car.is_front_crashed_car()- Crashed car?
+
+State:
+  car.is_moving()
+  car.is_blocked()
+  car.is_at_intersection()
+  car.is_at_destination()
+  car.is_at_red_light()   - Near red?
+
+=== STOPLIGHT ===
+
+  stoplight.set_red()
+  stoplight.set_yellow()
+  stoplight.set_green()
+  stoplight.is_red()
+  stoplight.is_green()
+
+=== PYTHON SYNTAX ===
+
+if condition:
+    code
+elif condition:
+    code
+else:
+    code
+
+while condition:
+    code
+
+for i in range(n):
+    code
+
+Operators: == != < > and or not"
