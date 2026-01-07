@@ -378,6 +378,15 @@ func is_road_at_position(world_pos: Vector2) -> bool:
 	return road_tiles.has(grid_pos)
 
 
+## Check if road at from_grid has a connection in the specified direction
+func is_road_connected(from_grid: Vector2i, connection_dir: String) -> bool:
+	if not road_tiles.has(from_grid):
+		return false
+
+	var tile = road_tiles[from_grid] as RoadTile
+	return tile.has_connection(connection_dir)
+
+
 func _get_grid_pos_from_world(world_pos: Vector2) -> Vector2i:
 	return Vector2i(int(world_pos.x / TILE_SIZE), int(world_pos.y / TILE_SIZE))
 

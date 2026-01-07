@@ -658,11 +658,43 @@ func _exec_move(tiles: int) -> void:
 	# Move completion is handled in _physics_process()
 
 
-## Check if there's a road in front of the car (short name)
+## Get the grid position of the tile the car is currently on (compensating for lane offset)
+func _get_current_grid_pos() -> Vector2i:
+	# Lane offset is perpendicular to direction (90° clockwise)
+	var offset_dir = direction.rotated(PI / 2)
+	var center_pos = global_position - (offset_dir.normalized() * LANE_OFFSET)
+	return Vector2i(int(center_pos.x / TILE_SIZE), int(center_pos.y / TILE_SIZE))
+
+
+## Convert direction vector to RoadTile connection string
+func _vector_to_connection_direction(dir: Vector2) -> String:
+	var x = round(dir.normalized().x)
+	var y = round(dir.normalized().y)
+
+	if x == 0 and y == -1: return "top"
+	if x == 0 and y == 1: return "bottom"
+	if x == -1 and y == 0: return "left"
+	if x == 1 and y == 0: return "right"
+	if x == -1 and y == -1: return "top_left"
+	if x == 1 and y == -1: return "top_right"
+	if x == -1 and y == 1: return "bottom_left"
+	if x == 1 and y == 1: return "bottom_right"
+	return ""
+
+
+## Check if there's a CONNECTED road in front of the car (short name)
 func front_road() -> bool:
 	if _road_checker == null:
 		return false
-	var front_offset = direction.normalized() * 64
+
+	var grid_pos = _get_current_grid_pos()
+	var conn_dir = _vector_to_connection_direction(direction)
+
+	if conn_dir != "" and _road_checker.has_method("is_road_connected"):
+		return _road_checker.is_road_connected(grid_pos, conn_dir)
+
+	# Fallback to old behavior
+	var front_offset = direction.normalized() * TILE_SIZE
 	var front_pos = global_position + front_offset
 	return _is_road_at_position(front_pos)
 
@@ -672,12 +704,20 @@ func is_front_road() -> bool:
 	return front_road()
 
 
-## Check if there's a road to the left of the car (short name)
+## Check if there's a CONNECTED road to the left of the car (short name)
 func left_road() -> bool:
 	if _road_checker == null:
 		return false
-	var left_direction = direction.rotated(-PI / 2)
-	var left_offset = left_direction.normalized() * 64
+
+	var grid_pos = _get_current_grid_pos()
+	var left_dir = direction.rotated(-PI / 2)
+	var conn_dir = _vector_to_connection_direction(left_dir)
+
+	if conn_dir != "" and _road_checker.has_method("is_road_connected"):
+		return _road_checker.is_road_connected(grid_pos, conn_dir)
+
+	# Fallback to old behavior
+	var left_offset = left_dir.normalized() * TILE_SIZE
 	var left_pos = global_position + left_offset
 	return _is_road_at_position(left_pos)
 
@@ -687,12 +727,20 @@ func is_left_road() -> bool:
 	return left_road()
 
 
-## Check if there's a road to the right of the car (short name)
+## Check if there's a CONNECTED road to the right of the car (short name)
 func right_road() -> bool:
 	if _road_checker == null:
 		return false
-	var right_direction = direction.rotated(PI / 2)
-	var right_offset = right_direction.normalized() * 64
+
+	var grid_pos = _get_current_grid_pos()
+	var right_dir = direction.rotated(PI / 2)
+	var conn_dir = _vector_to_connection_direction(right_dir)
+
+	if conn_dir != "" and _road_checker.has_method("is_road_connected"):
+		return _road_checker.is_road_connected(grid_pos, conn_dir)
+
+	# Fallback to old behavior
+	var right_offset = right_dir.normalized() * TILE_SIZE
 	var right_pos = global_position + right_offset
 	return _is_road_at_position(right_pos)
 
@@ -704,7 +752,7 @@ func is_right_road() -> bool:
 
 ## Check if there's ANY car (crashed or active) in front (short name)
 func front_car() -> bool:
-	var front_offset = direction.normalized() * 64
+	var front_offset = direction.normalized() * TILE_SIZE
 	var front_pos = global_position + front_offset
 	return _is_vehicle_at_position(front_pos)
 
@@ -716,7 +764,7 @@ func is_front_car() -> bool:
 
 ## Check if there's a CRASHED car in front (short name)
 func front_crash() -> bool:
-	var front_offset = direction.normalized() * 64
+	var front_offset = direction.normalized() * TILE_SIZE
 	var front_pos = global_position + front_offset
 	return _is_crashed_vehicle_at_position(front_pos)
 
