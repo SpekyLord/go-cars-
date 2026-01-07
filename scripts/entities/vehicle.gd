@@ -106,6 +106,7 @@ var is_waiting: bool = false
 var wait_timer: float = 0.0
 var queued_turn: String = ""  # "left" or "right" or ""
 var direction: Vector2 = Vector2.RIGHT  # Current facing direction
+var _last_move_direction: Vector2 = Vector2.ZERO  # Track where we came from (to avoid turning back)
 
 # Speed multiplier (for car.speed() function)
 var speed_multiplier: float = 1.0
@@ -613,6 +614,8 @@ func _command_completed() -> void:
 func _exec_go() -> void:
 	_wants_to_move = true
 	_is_moving = true
+	# Track the direction we're moving so we don't turn back to it
+	_last_move_direction = direction
 	# go() runs indefinitely, so mark command as complete immediately
 	# (the car keeps moving until stop() is called)
 	_command_completed()
@@ -645,6 +648,8 @@ func _exec_move(tiles: int) -> void:
 	_move_start_position = global_position
 	_is_moving = true
 	_wants_to_move = true
+	# Track the direction we're moving so we don't turn back to it
+	_last_move_direction = direction
 	# Move completion is handled in _physics_process()
 
 
@@ -725,6 +730,7 @@ func front_road() -> bool:
 
 ## Check if there's a CONNECTED road to the left of the car (short name)
 ## Checks if the ADJACENT tile to the left exists and has a connection back to current tile
+## Does NOT detect the road we came from (to avoid turning back)
 func left_road() -> bool:
 	if _road_checker == null:
 		return false
@@ -732,6 +738,13 @@ func left_road() -> bool:
 	var grid_pos = _get_current_grid_pos()
 	var left_dir = direction.rotated(-PI / 2)
 	var conn_dir = _vector_to_connection_direction(left_dir)
+
+	# Don't detect the road we came from (prevents turning back after corner)
+	if _last_move_direction != Vector2.ZERO:
+		var came_from_dir = -_last_move_direction
+		var came_from_conn = _vector_to_connection_direction(came_from_dir)
+		if conn_dir == came_from_conn:
+			return false  # This would be turning back to where we came from
 
 	if conn_dir != "" and _road_checker.has_method("is_road_connected"):
 		# Get the adjacent tile in the left direction
@@ -749,6 +762,7 @@ func left_road() -> bool:
 
 ## Check if there's a CONNECTED road to the right of the car (short name)
 ## Checks if the ADJACENT tile to the right exists and has a connection back to current tile
+## Does NOT detect the road we came from (to avoid turning back)
 func right_road() -> bool:
 	if _road_checker == null:
 		return false
@@ -756,6 +770,13 @@ func right_road() -> bool:
 	var grid_pos = _get_current_grid_pos()
 	var right_dir = direction.rotated(PI / 2)
 	var conn_dir = _vector_to_connection_direction(right_dir)
+
+	# Don't detect the road we came from (prevents turning back after corner)
+	if _last_move_direction != Vector2.ZERO:
+		var came_from_dir = -_last_move_direction
+		var came_from_conn = _vector_to_connection_direction(came_from_dir)
+		if conn_dir == came_from_conn:
+			return false  # This would be turning back to where we came from
 
 	if conn_dir != "" and _road_checker.has_method("is_road_connected"):
 		# Get the adjacent tile in the right direction
