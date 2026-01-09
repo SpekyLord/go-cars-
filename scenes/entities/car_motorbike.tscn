@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://car_motorbike"]
+[gd_scene load_steps=5 format=3 uid="uid://dx3vyclxtf45b"]
 
 [ext_resource type="Script" uid="uid://c2xn0chj2i2d4" path="res://scripts/entities/vehicle.gd" id="1_vehicle"]
 [ext_resource type="Texture2D" uid="uid://ce38qedlya0bo" path="res://assets/cars/gocars.png" id="2_gocars"]

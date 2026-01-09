@@ -3,6 +3,13 @@ extends Node2D
 ## Main scene controller - connects UI to SimulationEngine
 ## Manages hearts, road cards, and tile editing
 
+# Background tile types
+enum BackgroundTile {
+	GRASS,   # Player can place roads here
+	WATER,   # Player cannot place roads here
+	ROAD     # Auto-spawn road at game start
+}
+
 @onready var simulation_engine: SimulationEngine = $SimulationEngine
 @onready var level_manager: LevelManager = LevelManager.new()
 @onready var code_editor: TextEdit = $UI/CodeEditor
@@ -55,6 +62,12 @@ var destination_road_pos: Vector2i = Vector2i(9, 3)  # Protected destination roa
 var preview_road_tile: RoadTile = null  # Preview tile that follows mouse
 var preview_grid_pos: Vector2i = Vector2i(-1, -1)  # Current preview position
 
+# Background tile data - stores tile type for each grid position
+# Key: Vector2i grid position, Value: BackgroundTile enum value
+var background_tiles: Dictionary = {}
+var background_sprites: Dictionary = {}  # Key: Vector2i, Value: Sprite2D for visual
+@onready var background_container: Node2D = null  # Created in _ready
+
 # Camera movement
 const CAMERA_SPEED: float = 500.0
 const CAMERA_ZOOM_DEFAULT: Vector2 = Vector2(0.5, 0.5)  # Zoomed out to see more
@@ -83,7 +96,15 @@ var next_car_id: int = 2  # Start from 2 since car1 is the test vehicle
 
 
 func _ready() -> void:
-	# Initialize the tilemap with some grass
+	# Create background container (behind roads)
+	background_container = Node2D.new()
+	background_container.name = "Background"
+	background_container.z_index = -10  # Behind everything
+	$GameWorld.add_child(background_container)
+	$GameWorld.move_child(background_container, 0)  # Move to front of child order (renders first/behind)
+
+	# Initialize the background tiles and roads
+	_create_default_background()
 	_create_default_map()
 
 	# Initialize level manager
@@ -187,21 +208,128 @@ func _process(delta: float) -> void:
 	_update_preview_tile()
 
 
-func _create_default_map() -> void:
-	# With 144x144 tiles, create a horizontal road using RoadTile scenes
-	# No grass for now as per user request - only roads
+## Create default background with grass, water, and road markers
+func _create_default_background() -> void:
+	# Create a 15x10 grid of background tiles
+	# Default: all grass except some water areas
+	for x in range(-2, 13):
+		for y in range(-1, 9):
+			var grid_pos = Vector2i(x, y)
+			var tile_type = BackgroundTile.GRASS
 
-	# Add a horizontal road (10 tiles = 1440 pixels wide)
-	# Position at row 3 (y=3) so cars at y=432+72=504 are centered on road
-	for x in range(0, 10):
-		var grid_pos = Vector2i(x, 3)
-		_place_road_tile(grid_pos)
+			# Road tiles at row 3 (will auto-spawn roads)
+			if y == 3 and x >= 0 and x <= 9:
+				tile_type = BackgroundTile.ROAD
+
+			# Add some water at the edges for decoration
+			# Top water
+			if y < 0:
+				tile_type = BackgroundTile.WATER
+			# Bottom water
+			if y > 7:
+				tile_type = BackgroundTile.WATER
+
+			_set_background_tile(grid_pos, tile_type)
+
+
+## Set a background tile at a grid position
+func _set_background_tile(grid_pos: Vector2i, tile_type: BackgroundTile) -> void:
+	background_tiles[grid_pos] = tile_type
+
+	# Create or update visual sprite
+	if background_sprites.has(grid_pos):
+		var sprite = background_sprites[grid_pos]
+		_update_background_sprite(sprite, tile_type)
+	else:
+		var sprite = _create_background_sprite(grid_pos, tile_type)
+		background_sprites[grid_pos] = sprite
+		background_container.add_child(sprite)
+
+
+## Create a background sprite for a tile (placeholder text for now)
+func _create_background_sprite(grid_pos: Vector2i, tile_type: BackgroundTile) -> Node2D:
+	# Create a container for the tile visual
+	var container = Node2D.new()
+	container.position = Vector2(grid_pos.x * TILE_SIZE, grid_pos.y * TILE_SIZE)
+
+	# Create a ColorRect as the background
+	var rect = ColorRect.new()
+	rect.size = Vector2(TILE_SIZE, TILE_SIZE)
+	rect.color = _get_background_color(tile_type)
+	container.add_child(rect)
+
+	# Create a label showing tile type (since no assets)
+	var label = Label.new()
+	label.text = _get_tile_type_name(tile_type)
+	label.position = Vector2(10, TILE_SIZE / 2 - 10)
+	label.add_theme_color_override("font_color", Color(0, 0, 0, 0.5))
+	container.add_child(label)
+
+	return container
+
+
+## Update an existing background sprite
+func _update_background_sprite(container: Node2D, tile_type: BackgroundTile) -> void:
+	if container.get_child_count() >= 2:
+		var rect = container.get_child(0) as ColorRect
+		var label = container.get_child(1) as Label
+		if rect:
+			rect.color = _get_background_color(tile_type)
+		if label:
+			label.text = _get_tile_type_name(tile_type)
+
+
+## Get color for background tile type
+func _get_background_color(tile_type: BackgroundTile) -> Color:
+	match tile_type:
+		BackgroundTile.GRASS:
+			return Color(0.3, 0.6, 0.2, 1.0)  # Green grass
+		BackgroundTile.WATER:
+			return Color(0.2, 0.4, 0.8, 1.0)  # Blue water
+		BackgroundTile.ROAD:
+			return Color(0.5, 0.5, 0.5, 1.0)  # Gray road marker
+	return Color(0.5, 0.5, 0.5, 1.0)
+
+
+## Get name for tile type
+func _get_tile_type_name(tile_type: BackgroundTile) -> String:
+	match tile_type:
+		BackgroundTile.GRASS:
+			return "Grass"
+		BackgroundTile.WATER:
+			return "Water"
+		BackgroundTile.ROAD:
+			return "Road"
+	return "Unknown"
+
+
+## Check if player can place a road at a position
+func can_place_road_at(grid_pos: Vector2i) -> bool:
+	if not background_tiles.has(grid_pos):
+		return false  # No background tile defined
+
+	var tile_type = background_tiles[grid_pos]
+	# Can place on grass or road markers, not on water
+	return tile_type == BackgroundTile.GRASS or tile_type == BackgroundTile.ROAD
+
+
+## Get background tile type at position
+func get_background_tile(grid_pos: Vector2i) -> BackgroundTile:
+	return background_tiles.get(grid_pos, BackgroundTile.GRASS)
+
+
+func _create_default_map() -> void:
+	# Spawn roads where background has ROAD tiles
+	for grid_pos in background_tiles:
+		if background_tiles[grid_pos] == BackgroundTile.ROAD:
+			_place_road_tile(grid_pos)
 
 	# Manually connect adjacent road tiles (left-right connections)
 	for x in range(0, 9):
 		var current_pos = Vector2i(x, 3)
 		var next_pos = Vector2i(x + 1, 3)
-		_connect_two_roads(current_pos, next_pos, "right")
+		if road_tiles.has(current_pos) and road_tiles.has(next_pos):
+			_connect_two_roads(current_pos, next_pos, "right")
 
 
 func _place_road_tile(grid_pos: Vector2i) -> RoadTile:
@@ -331,6 +459,11 @@ func _update_preview_tile() -> void:
 
 	# Don't show preview on existing roads
 	if road_tiles.has(mouse_grid_pos):
+		_hide_preview_tile()
+		return
+
+	# Don't show preview on water tiles
+	if not can_place_road_at(mouse_grid_pos):
 		_hide_preview_tile()
 		return
 
@@ -759,6 +892,11 @@ func _handle_road_click() -> void:
 			_update_status("No road cards left!")
 			return
 
+		# Check if placement is allowed (not on water)
+		if not can_place_road_at(grid_pos):
+			_update_status("Cannot place road on water!")
+			return
+
 		# Place new road
 		_place_road_tile(grid_pos)
 
@@ -856,11 +994,11 @@ func _spawn_new_car() -> void:
 	var car_scenes = [
 		"res://scenes/entities/car_sedan.tscn",
 		"res://scenes/entities/car_estate.tscn",
-		"res://scenes/entities/car_micro.tscn",
 		"res://scenes/entities/car_sport.tscn",
+		"res://scenes/entities/car_micro.tscn",
 		"res://scenes/entities/car_pickup.tscn",
 		"res://scenes/entities/car_jeepney.tscn",
-		"res://scenes/entities/car_motorbike.tscn"
+		"res://scenes/entities/car_bus.tscn"
 	]
 	var random_index = randi() % car_scenes.size()
 	var vehicle_scene = load(car_scenes[random_index])
@@ -939,11 +1077,11 @@ func _respawn_test_vehicle() -> void:
 	var car_scenes = [
 		"res://scenes/entities/car_sedan.tscn",
 		"res://scenes/entities/car_estate.tscn",
-		"res://scenes/entities/car_micro.tscn",
 		"res://scenes/entities/car_sport.tscn",
+		"res://scenes/entities/car_micro.tscn",
 		"res://scenes/entities/car_pickup.tscn",
 		"res://scenes/entities/car_jeepney.tscn",
-		"res://scenes/entities/car_motorbike.tscn"
+		"res://scenes/entities/car_bus.tscn"
 	]
 	var random_index = randi() % car_scenes.size()
 	var vehicle_scene = load(car_scenes[random_index])

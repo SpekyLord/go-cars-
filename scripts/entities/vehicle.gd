@@ -18,11 +18,11 @@ signal off_road_crash(vehicle_id: String)
 enum VehicleType {
 	SEDAN,      # Standard car - Speed 1.0x, Size 1.0
 	ESTATE,     # Estate/wagon - Speed 0.9x, Size 1.2
-	MICRO,      # Micro car - Speed 1.1x, Size 0.8
 	SPORT,      # Sports car - Speed 1.4x, Size 1.0
+	MICRO,      # Micro car - Speed 1.1x, Size 0.8
 	PICKUP,     # Pickup truck - Speed 0.8x, Size 1.3
 	JEEPNEY,    # Modern Jeepney - Speed 0.7x, Size 1.5
-	MOTORBIKE   # Motorbike - Speed 1.5x, Size 0.4 (can lane split)
+	BUS         # Bus - Speed 0.6x, Size 1.8
 }
 
 # Vehicle type configuration
@@ -31,7 +31,6 @@ const VEHICLE_CONFIG: Dictionary = {
 		"name": "Sedan",
 		"speed_mult": 1.0,
 		"size_mult": 1.0,
-		"color": Color(0.8, 0.2, 0.2),  # Red
 		"can_lane_split": false,
 		"stopping_distance": 1.0
 	},
@@ -39,31 +38,27 @@ const VEHICLE_CONFIG: Dictionary = {
 		"name": "Estate",
 		"speed_mult": 0.9,
 		"size_mult": 1.2,
-		"color": Color(0.3, 0.3, 0.8),  # Blue
 		"can_lane_split": false,
 		"stopping_distance": 1.1
-	},
-	VehicleType.MICRO: {
-		"name": "Micro",
-		"speed_mult": 1.1,
-		"size_mult": 0.8,
-		"color": Color(0.2, 0.7, 0.3),  # Green
-		"can_lane_split": false,
-		"stopping_distance": 0.8
 	},
 	VehicleType.SPORT: {
 		"name": "Sport",
 		"speed_mult": 1.4,
 		"size_mult": 1.0,
-		"color": Color(0.9, 0.5, 0.1),  # Orange
 		"can_lane_split": false,
 		"stopping_distance": 0.9
+	},
+	VehicleType.MICRO: {
+		"name": "Micro",
+		"speed_mult": 1.1,
+		"size_mult": 0.8,
+		"can_lane_split": false,
+		"stopping_distance": 0.8
 	},
 	VehicleType.PICKUP: {
 		"name": "Pickup",
 		"speed_mult": 0.8,
 		"size_mult": 1.3,
-		"color": Color(0.5, 0.3, 0.1),  # Brown
 		"can_lane_split": false,
 		"stopping_distance": 1.3
 	},
@@ -71,17 +66,15 @@ const VEHICLE_CONFIG: Dictionary = {
 		"name": "Modern Jeepney",
 		"speed_mult": 0.7,
 		"size_mult": 1.5,
-		"color": Color(0.9, 0.7, 0.1),  # Yellow/Gold
 		"can_lane_split": false,
 		"stopping_distance": 1.4
 	},
-	VehicleType.MOTORBIKE: {
-		"name": "Motorbike",
-		"speed_mult": 1.5,
-		"size_mult": 0.4,
-		"color": Color(0.1, 0.1, 0.1),  # Black
-		"can_lane_split": true,
-		"stopping_distance": 0.6
+	VehicleType.BUS: {
+		"name": "Bus",
+		"speed_mult": 0.6,
+		"size_mult": 1.8,
+		"can_lane_split": false,
+		"stopping_distance": 1.6
 	}
 }
 
@@ -165,39 +158,139 @@ var _current_command: Dictionary = {}  # Currently executing command
 var wheels: Array = []
 
 # Sprite region for each car type (7 cars in gocars.png spritesheet)
-# Each car is 48x96 pixels (16x3 width, 16x6 height), spaced in columns
+# Layout: 7 columns x 2 rows
+# Row 0 = Active/Fixed cars, Row 1 = Crashed cars
+# Each car is 48x96 pixels (16x3 wide, 16x6 tall)
 const CAR_SPRITE_WIDTH: int = 48
 const CAR_SPRITE_HEIGHT: int = 96
+# Active sprite regions (row 0)
 const CAR_SPRITE_REGIONS: Dictionary = {
 	VehicleType.SEDAN: Rect2(0, 0, 48, 96),
 	VehicleType.ESTATE: Rect2(48, 0, 48, 96),
-	VehicleType.MICRO: Rect2(96, 0, 48, 96),
-	VehicleType.SPORT: Rect2(144, 0, 48, 96),
+	VehicleType.SPORT: Rect2(96, 0, 48, 96),
+	VehicleType.MICRO: Rect2(144, 0, 48, 96),
 	VehicleType.PICKUP: Rect2(192, 0, 48, 96),
 	VehicleType.JEEPNEY: Rect2(240, 0, 48, 96),
-	VehicleType.MOTORBIKE: Rect2(288, 0, 48, 96)
+	VehicleType.BUS: Rect2(288, 0, 48, 96)
+}
+# Crashed sprite regions (row 1)
+const CAR_CRASHED_REGIONS: Dictionary = {
+	VehicleType.SEDAN: Rect2(0, 96, 48, 96),
+	VehicleType.ESTATE: Rect2(48, 96, 48, 96),
+	VehicleType.SPORT: Rect2(96, 96, 48, 96),
+	VehicleType.MICRO: Rect2(144, 96, 48, 96),
+	VehicleType.PICKUP: Rect2(192, 96, 48, 96),
+	VehicleType.JEEPNEY: Rect2(240, 96, 48, 96),
+	VehicleType.BUS: Rect2(288, 96, 48, 96)
 }
 
-# Color palettes for vehicles (tint colors applied to sprites)
+# Color palettes for vehicles
+# Base sprite is red, these colors replace the red tones
+# Red palette reference (default in sprite):
+#   outline: #7d0000, shadow: #aa0303, light_outline: #c80000, base: #e30404, highlight: #f60017
+# We use modulate to tint the sprite - multiplies with sprite colors
+
+# Color palette definitions using shader-friendly values
+# Format: Dictionary with keys for each shade level
+const COLOR_PALETTE_DATA: Dictionary = {
+	"red": {  # Default (no tint needed, sprite is already red)
+		"outline": Color("7d0000"),
+		"shadow": Color("aa0303"),
+		"light_outline": Color("c80000"),
+		"base": Color("e30404"),
+		"highlight": Color("f60017")
+	},
+	"blue": {
+		"outline": Color("00007d"),
+		"shadow": Color("0303aa"),
+		"light_outline": Color("0000c8"),
+		"base": Color("0404e3"),
+		"highlight": Color("1700f6")
+	},
+	"yellow": {
+		"outline": Color("7d7d00"),
+		"shadow": Color("aaaa03"),
+		"light_outline": Color("c8c800"),
+		"base": Color("e3e304"),
+		"highlight": Color("f6f617")
+	},
+	"green": {
+		"outline": Color("007d00"),
+		"shadow": Color("03aa03"),
+		"light_outline": Color("00c800"),
+		"base": Color("04e304"),
+		"highlight": Color("17f617")
+	},
+	"purple": {
+		"outline": Color("7d007d"),
+		"shadow": Color("aa03aa"),
+		"light_outline": Color("c800c8"),
+		"base": Color("e304e3"),
+		"highlight": Color("f617f6")
+	},
+	"orange": {
+		"outline": Color("7d4000"),
+		"shadow": Color("aa5503"),
+		"light_outline": Color("c86400"),
+		"base": Color("e37304"),
+		"highlight": Color("f68217")
+	},
+	"pink": {
+		"outline": Color("7d4060"),
+		"shadow": Color("aa5580"),
+		"light_outline": Color("c864a0"),
+		"base": Color("e373b8"),
+		"highlight": Color("f682d0")
+	},
+	"brown": {
+		"outline": Color("4d3020"),
+		"shadow": Color("6a4030"),
+		"light_outline": Color("7a5040"),
+		"base": Color("8a6050"),
+		"highlight": Color("9a7060")
+	},
+	"white": {
+		"outline": Color("808080"),
+		"shadow": Color("a0a0a0"),
+		"light_outline": Color("c0c0c0"),
+		"base": Color("e0e0e0"),
+		"highlight": Color("ffffff")
+	},
+	"black": {
+		"outline": Color("101010"),
+		"shadow": Color("202020"),
+		"light_outline": Color("303030"),
+		"base": Color("404040"),
+		"highlight": Color("505050")
+	}
+}
+
+# Simple modulate colors for tinting (multiplied with sprite)
+# Since sprite is already red-based, we use complementary multipliers
 const COLOR_PALETTES: Array = [
-	Color(1.0, 1.0, 1.0),       # 0: White (default)
-	Color(1.0, 0.4, 0.4),       # 1: Red
-	Color(0.4, 0.6, 1.0),       # 2: Blue
-	Color(0.4, 1.0, 0.5),       # 3: Green
-	Color(1.0, 0.9, 0.4),       # 4: Yellow
-	Color(1.0, 0.6, 0.3),       # 5: Orange
-	Color(0.9, 0.5, 1.0),       # 6: Purple
-	Color(1.0, 0.6, 0.7),       # 7: Pink
-	Color(0.5, 0.9, 1.0),       # 8: Cyan
-	Color(0.7, 0.7, 0.7),       # 9: Gray
-	Color(0.6, 0.4, 0.3),       # 10: Brown
-	Color(0.3, 0.3, 0.3),       # 11: Dark Gray
+	Color(1.0, 1.0, 1.0),       # 0: Red (default - no tint, sprite is already red)
+	Color(0.3, 0.5, 1.0),       # 1: Blue
+	Color(1.0, 1.0, 0.3),       # 2: Yellow
+	Color(0.3, 1.0, 0.4),       # 3: Green
+	Color(0.9, 0.4, 1.0),       # 4: Purple
+	Color(1.0, 0.7, 0.3),       # 5: Orange
+	Color(1.0, 0.6, 0.8),       # 6: Pink
+	Color(0.6, 0.45, 0.35),     # 7: Brown
+	Color(1.2, 1.2, 1.2),       # 8: White (brighten)
+	Color(0.25, 0.25, 0.25),    # 9: Black (darken)
+]
+
+# Palette names for reference
+const COLOR_PALETTE_NAMES: Array = [
+	"Red", "Blue", "Yellow", "Green", "Purple",
+	"Orange", "Pink", "Brown", "White", "Black"
 ]
 
 # Current color palette index
 var color_palette_index: int = 0
 
 # Wheel positions per vehicle type (relative to center, for 48x96 car sprites)
+# Sprite is 48 wide x 96 tall, car faces UP so width is left-right, height is front-back
 const WHEEL_POSITIONS: Dictionary = {
 	VehicleType.SEDAN: {
 		"FL": Vector2(-16, -30),
@@ -211,17 +304,17 @@ const WHEEL_POSITIONS: Dictionary = {
 		"BL": Vector2(-16, 30),
 		"BR": Vector2(16, 30)
 	},
-	VehicleType.MICRO: {
-		"FL": Vector2(-14, -28),
-		"FR": Vector2(14, -28),
-		"BL": Vector2(-14, 28),
-		"BR": Vector2(14, 28)
-	},
 	VehicleType.SPORT: {
 		"FL": Vector2(-16, -32),
 		"FR": Vector2(16, -32),
 		"BL": Vector2(-16, 32),
 		"BR": Vector2(16, 32)
+	},
+	VehicleType.MICRO: {
+		"FL": Vector2(-14, -28),
+		"FR": Vector2(14, -28),
+		"BL": Vector2(-14, 28),
+		"BR": Vector2(14, 28)
 	},
 	VehicleType.PICKUP: {
 		"FL": Vector2(-16, -30),
@@ -235,11 +328,11 @@ const WHEEL_POSITIONS: Dictionary = {
 		"BL": Vector2(-16, 30),
 		"BR": Vector2(16, 30)
 	},
-	VehicleType.MOTORBIKE: {
-		"FL": Vector2(0, -35),
-		"FR": Vector2(0, -35),
-		"BL": Vector2(0, 35),
-		"BR": Vector2(0, 35)
+	VehicleType.BUS: {
+		"FL": Vector2(-16, -38),
+		"FR": Vector2(16, -38),
+		"BL": Vector2(-16, 38),
+		"BR": Vector2(16, 38)
 	}
 }
 
@@ -379,11 +472,11 @@ static func get_random_type() -> VehicleType:
 	var types = [
 		VehicleType.SEDAN,
 		VehicleType.ESTATE,
-		VehicleType.MICRO,
 		VehicleType.SPORT,
+		VehicleType.MICRO,
 		VehicleType.PICKUP,
 		VehicleType.JEEPNEY,
-		VehicleType.MOTORBIKE
+		VehicleType.BUS
 	]
 	return types[randi() % types.size()]
 
@@ -479,17 +572,22 @@ func _check_destination() -> void:
 func _on_crash() -> void:
 	stop()
 	vehicle_state = 0  # Mark as crashed
-	modulate = Color(0.5, 0.5, 0.5, 1.0)  # Darken the sprite to show it's crashed
+	_switch_to_crashed_sprite()
 	crashed.emit(vehicle_id)
-	# TODO: Change sprite to crashed sprite when available
 
 
 func _on_off_road_crash() -> void:
 	stop()
 	vehicle_state = 0  # Mark as crashed
-	modulate = Color(0.5, 0.5, 0.5, 1.0)  # Darken the sprite to show it's crashed
+	_switch_to_crashed_sprite()
 	off_road_crash.emit(vehicle_id)
-	# TODO: Change sprite to crashed sprite when available
+
+
+## Switch to the crashed sprite from row 2 of the spritesheet
+func _switch_to_crashed_sprite() -> void:
+	var sprite = get_node_or_null("Sprite2D")
+	if sprite and vehicle_type in CAR_CRASHED_REGIONS:
+		sprite.region_rect = CAR_CRASHED_REGIONS[vehicle_type]
 
 
 # ============================================
