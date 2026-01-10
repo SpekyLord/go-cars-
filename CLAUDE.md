@@ -763,15 +763,36 @@ Cars automatically spawn at regular intervals after running code:
 - **Control**: Spawning starts when "Run Code" is pressed, stops on reset
 - **Strategy**: Your code must handle multiple cars and navigate around crashed cars
 
-### Car Color Palettes
-Cars spawn with random colors for visual variety:
-- **12 color options**: White, Red, Blue, Green, Yellow, Orange, Purple, Pink, Cyan, Gray, Brown, Dark Gray
-- **Random assignment**: Each spawned car gets a random color
-- **API functions**:
-  - `set_color_palette(index)` - Set specific color (0-11)
-  - `set_random_color()` - Assign random color
-  - `get_color_palette()` - Get current color index
-  - `get_palette_count()` - Get total number of colors
+### Car Color Palettes with Rarity System
+Cars spawn with random colors based on a rarity system:
+
+**15 Colors organized by rarity:**
+| Rarity | Colors | Spawn Chance |
+|--------|--------|--------------|
+| Common | Red, Blue, Black, White, Gray | 60% |
+| Uncommon | Beige, Brown, Green, Orange, Yellow | 30% |
+| Rare | Purple, Pink, Cyan, Lime, Magenta | 10% |
+
+**How it works:**
+- When a car spawns, the system first rolls for rarity (60%/30%/10%)
+- Then picks a random color from that rarity tier
+- Default color is Red (Common)
+- Uses shader-based palette swapping for efficient rendering
+
+**API functions:**
+- `set_color_palette(ColorPalette.BLUE)` - Set specific color by enum
+- `set_color_palette_index(index)` - Set color by index (0-14)
+- `set_random_color()` - Assign random color based on rarity weights
+- `get_color_palette()` - Get current color enum
+- `get_color_palette_index()` - Get current color index (0-14)
+- `get_palette_count()` - Get total number of colors (15)
+- `get_color_name()` - Get color name string ("Blue", "Magenta", etc.)
+- `get_color_rarity()` - Get rarity enum (COMMON, UNCOMMON, RARE)
+- `get_color_rarity_name()` - Get rarity name string ("Common", "Uncommon", "Rare")
+
+**Files:**
+- Shader: `shaders/palette_swap.gdshader`
+- Palette textures: `assets/cars/Cars Color Palette/gocars palette-*.png`
 
 ### Lane Driving System
 Cars drive on the left side of the road to avoid head-on collisions:
@@ -809,7 +830,7 @@ Cars must stay on road tiles:
 | Live Map Editing | ✅ | Edit roads during gameplay |
 | Crashed Cars as Obstacles | ✅ | Cars stay on map when crashed (darkened) |
 | Automatic Car Spawning | ✅ | New car every 15 seconds |
-| Car Color Palettes | ✅ | 12 random colors for variety |
+| Car Color Palettes | ✅ | 15 colors with rarity system (Common/Uncommon/Rare) |
 | Lane Driving | ✅ | Cars offset to left side of road |
 | Smaller Hitboxes | ✅ | Cars don't collide as easily |
 | Short API Names | ✅ | `front_road()`, `at_end()`, etc. |

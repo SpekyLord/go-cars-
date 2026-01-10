@@ -7,6 +7,66 @@ class_name Vehicle
 ## Vehicles do NOT automatically stop at red lights - players must code this!
 ## Running a red light (passing through when red) costs the player a heart.
 
+# ============================================
+# Color Palette System
+# ============================================
+enum CarColor {
+	RED,      # Default - Common
+	BLUE,     # Common
+	BLACK,    # Common
+	WHITE,    # Common
+	GRAY,     # Common
+	BEIGE,    # Uncommon
+	BROWN,    # Uncommon
+	GREEN,    # Uncommon
+	ORANGE,   # Uncommon
+	YELLOW,   # Uncommon
+	PURPLE,   # Rare
+	PINK,     # Rare
+	CYAN,     # Rare
+	LIME,     # Rare
+	MAGENTA   # Rare
+}
+
+enum ColorRarity {
+	COMMON,
+	UNCOMMON,
+	RARE
+}
+
+# Color configuration with rarity
+const COLOR_CONFIG: Dictionary = {
+	CarColor.RED: {"name": "Red", "rarity": ColorRarity.COMMON, "path": "res://assets/cars/Cars Color Palette/gocars palette-RED.png"},
+	CarColor.BLUE: {"name": "Blue", "rarity": ColorRarity.COMMON, "path": "res://assets/cars/Cars Color Palette/gocars palette-BLUE.png"},
+	CarColor.BLACK: {"name": "Black", "rarity": ColorRarity.COMMON, "path": "res://assets/cars/Cars Color Palette/gocars palette-BLACK.png"},
+	CarColor.WHITE: {"name": "White", "rarity": ColorRarity.COMMON, "path": "res://assets/cars/Cars Color Palette/gocars palette-WHITE.png"},
+	CarColor.GRAY: {"name": "Gray", "rarity": ColorRarity.COMMON, "path": "res://assets/cars/Cars Color Palette/gocars palette-GRAY.png"},
+	CarColor.BEIGE: {"name": "Beige", "rarity": ColorRarity.UNCOMMON, "path": "res://assets/cars/Cars Color Palette/gocars palette-BEIGE.png"},
+	CarColor.BROWN: {"name": "Brown", "rarity": ColorRarity.UNCOMMON, "path": "res://assets/cars/Cars Color Palette/gocars palette-BROWN.png"},
+	CarColor.GREEN: {"name": "Green", "rarity": ColorRarity.UNCOMMON, "path": "res://assets/cars/Cars Color Palette/gocars palette-GREEN.png"},
+	CarColor.ORANGE: {"name": "Orange", "rarity": ColorRarity.UNCOMMON, "path": "res://assets/cars/Cars Color Palette/gocars palette-ORANGE.png"},
+	CarColor.YELLOW: {"name": "Yellow", "rarity": ColorRarity.UNCOMMON, "path": "res://assets/cars/Cars Color Palette/gocars palette-YELLOW.png"},
+	CarColor.PURPLE: {"name": "Purple", "rarity": ColorRarity.RARE, "path": "res://assets/cars/Cars Color Palette/gocars palette-PURPLE.png"},
+	CarColor.PINK: {"name": "Pink", "rarity": ColorRarity.RARE, "path": "res://assets/cars/Cars Color Palette/gocars palette-PINK.png"},
+	CarColor.CYAN: {"name": "Cyan", "rarity": ColorRarity.RARE, "path": "res://assets/cars/Cars Color Palette/gocars palette-CYAN.png"},
+	CarColor.LIME: {"name": "Lime", "rarity": ColorRarity.RARE, "path": "res://assets/cars/Cars Color Palette/gocars palette-LIME.png"},
+	CarColor.MAGENTA: {"name": "Magenta", "rarity": ColorRarity.RARE, "path": "res://assets/cars/Cars Color Palette/gocars palette-MAGENTA.png"}
+}
+
+# Rarity weights for random selection (higher = more likely)
+const RARITY_WEIGHTS: Dictionary = {
+	ColorRarity.COMMON: 60,    # 60% chance
+	ColorRarity.UNCOMMON: 30,  # 30% chance
+	ColorRarity.RARE: 10       # 10% chance
+}
+
+# Rarity display names and colors
+const RARITY_INFO: Dictionary = {
+	ColorRarity.COMMON: {"name": "Common", "color": Color.GRAY},
+	ColorRarity.UNCOMMON: {"name": "Uncommon", "color": Color.GREEN},
+	ColorRarity.RARE: {"name": "Rare", "color": Color.PURPLE}
+}
+
 signal reached_destination(vehicle_id: String)
 signal crashed(vehicle_id: String)
 signal ran_red_light(vehicle_id: String, stoplight_id: String)
@@ -21,7 +81,8 @@ enum VehicleType {
 	SPORT,      # Sports car - Speed 1.4x, Size 1.0
 	MICRO,      # Micro car - Speed 1.1x, Size 0.8
 	PICKUP,     # Pickup truck - Speed 0.8x, Size 1.3
-	JEEPNEY,    # Modern Jeepney - Speed 0.7x, Size 1.5
+	JEEPNEY_1,  # Jeepney variant 1 - Speed 0.7x, Size 1.5
+	JEEPNEY_2,  # Jeepney variant 2 - Speed 0.7x, Size 1.5
 	BUS         # Bus - Speed 0.6x, Size 1.8
 }
 
@@ -62,8 +123,15 @@ const VEHICLE_CONFIG: Dictionary = {
 		"can_lane_split": false,
 		"stopping_distance": 1.3
 	},
-	VehicleType.JEEPNEY: {
-		"name": "Modern Jeepney",
+	VehicleType.JEEPNEY_1: {
+		"name": "Jeepney 1",
+		"speed_mult": 0.7,
+		"size_mult": 1.5,
+		"can_lane_split": false,
+		"stopping_distance": 1.4
+	},
+	VehicleType.JEEPNEY_2: {
+		"name": "Jeepney 2",
 		"speed_mult": 0.7,
 		"size_mult": 1.5,
 		"can_lane_split": false,
@@ -81,8 +149,12 @@ const VEHICLE_CONFIG: Dictionary = {
 # Vehicle properties
 @export var vehicle_id: String = "car1"
 @export var vehicle_type: VehicleType = VehicleType.SEDAN
+@export var color_palette: CarColor = CarColor.RED  # Default color is red
 @export var speed: float = 200.0  # Base pixels per second
 @export var destination: Vector2 = Vector2.ZERO
+
+# Shader material for palette swap
+var _palette_material: ShaderMaterial = null
 
 # Vehicle state (0 = crashed, 1 = normal/active)
 var vehicle_state: int = 1
@@ -157,8 +229,8 @@ var _current_command: Dictionary = {}  # Currently executing command
 # Wheel references (set in _ready)
 var wheels: Array = []
 
-# Sprite region for each car type (7 cars in gocars.png spritesheet)
-# Layout: 7 columns x 2 rows
+# Sprite region for each car type (8 cars in gocars.png spritesheet)
+# Layout: 8 columns x 2 rows
 # Row 0 = Active/Fixed cars, Row 1 = Crashed cars
 # Each car is 48x96 pixels (16x3 wide, 16x6 tall)
 const CAR_SPRITE_WIDTH: int = 48
@@ -170,8 +242,9 @@ const CAR_SPRITE_REGIONS: Dictionary = {
 	VehicleType.SPORT: Rect2(96, 0, 48, 96),
 	VehicleType.MICRO: Rect2(144, 0, 48, 96),
 	VehicleType.PICKUP: Rect2(192, 0, 48, 96),
-	VehicleType.JEEPNEY: Rect2(240, 0, 48, 96),
-	VehicleType.BUS: Rect2(288, 0, 48, 96)
+	VehicleType.JEEPNEY_1: Rect2(240, 0, 48, 96),
+	VehicleType.JEEPNEY_2: Rect2(288, 0, 48, 96),
+	VehicleType.BUS: Rect2(336, 0, 48, 96)
 }
 # Crashed sprite regions (row 1)
 const CAR_CRASHED_REGIONS: Dictionary = {
@@ -180,114 +253,10 @@ const CAR_CRASHED_REGIONS: Dictionary = {
 	VehicleType.SPORT: Rect2(96, 96, 48, 96),
 	VehicleType.MICRO: Rect2(144, 96, 48, 96),
 	VehicleType.PICKUP: Rect2(192, 96, 48, 96),
-	VehicleType.JEEPNEY: Rect2(240, 96, 48, 96),
-	VehicleType.BUS: Rect2(288, 96, 48, 96)
+	VehicleType.JEEPNEY_1: Rect2(240, 96, 48, 96),
+	VehicleType.JEEPNEY_2: Rect2(288, 96, 48, 96),
+	VehicleType.BUS: Rect2(336, 96, 48, 96)
 }
-
-# Color palettes for vehicles
-# Base sprite is red, these colors replace the red tones
-# Red palette reference (default in sprite):
-#   outline: #7d0000, shadow: #aa0303, light_outline: #c80000, base: #e30404, highlight: #f60017
-# We use modulate to tint the sprite - multiplies with sprite colors
-
-# Color palette definitions using shader-friendly values
-# Format: Dictionary with keys for each shade level
-const COLOR_PALETTE_DATA: Dictionary = {
-	"red": {  # Default (no tint needed, sprite is already red)
-		"outline": Color("7d0000"),
-		"shadow": Color("aa0303"),
-		"light_outline": Color("c80000"),
-		"base": Color("e30404"),
-		"highlight": Color("f60017")
-	},
-	"blue": {
-		"outline": Color("00007d"),
-		"shadow": Color("0303aa"),
-		"light_outline": Color("0000c8"),
-		"base": Color("0404e3"),
-		"highlight": Color("1700f6")
-	},
-	"yellow": {
-		"outline": Color("7d7d00"),
-		"shadow": Color("aaaa03"),
-		"light_outline": Color("c8c800"),
-		"base": Color("e3e304"),
-		"highlight": Color("f6f617")
-	},
-	"green": {
-		"outline": Color("007d00"),
-		"shadow": Color("03aa03"),
-		"light_outline": Color("00c800"),
-		"base": Color("04e304"),
-		"highlight": Color("17f617")
-	},
-	"purple": {
-		"outline": Color("7d007d"),
-		"shadow": Color("aa03aa"),
-		"light_outline": Color("c800c8"),
-		"base": Color("e304e3"),
-		"highlight": Color("f617f6")
-	},
-	"orange": {
-		"outline": Color("7d4000"),
-		"shadow": Color("aa5503"),
-		"light_outline": Color("c86400"),
-		"base": Color("e37304"),
-		"highlight": Color("f68217")
-	},
-	"pink": {
-		"outline": Color("7d4060"),
-		"shadow": Color("aa5580"),
-		"light_outline": Color("c864a0"),
-		"base": Color("e373b8"),
-		"highlight": Color("f682d0")
-	},
-	"brown": {
-		"outline": Color("4d3020"),
-		"shadow": Color("6a4030"),
-		"light_outline": Color("7a5040"),
-		"base": Color("8a6050"),
-		"highlight": Color("9a7060")
-	},
-	"white": {
-		"outline": Color("808080"),
-		"shadow": Color("a0a0a0"),
-		"light_outline": Color("c0c0c0"),
-		"base": Color("e0e0e0"),
-		"highlight": Color("ffffff")
-	},
-	"black": {
-		"outline": Color("101010"),
-		"shadow": Color("202020"),
-		"light_outline": Color("303030"),
-		"base": Color("404040"),
-		"highlight": Color("505050")
-	}
-}
-
-# Simple modulate colors for tinting (multiplied with sprite)
-# Since sprite is already red-based, we use complementary multipliers
-const COLOR_PALETTES: Array = [
-	Color(1.0, 1.0, 1.0),       # 0: Red (default - no tint, sprite is already red)
-	Color(0.3, 0.5, 1.0),       # 1: Blue
-	Color(1.0, 1.0, 0.3),       # 2: Yellow
-	Color(0.3, 1.0, 0.4),       # 3: Green
-	Color(0.9, 0.4, 1.0),       # 4: Purple
-	Color(1.0, 0.7, 0.3),       # 5: Orange
-	Color(1.0, 0.6, 0.8),       # 6: Pink
-	Color(0.6, 0.45, 0.35),     # 7: Brown
-	Color(1.2, 1.2, 1.2),       # 8: White (brighten)
-	Color(0.25, 0.25, 0.25),    # 9: Black (darken)
-]
-
-# Palette names for reference
-const COLOR_PALETTE_NAMES: Array = [
-	"Red", "Blue", "Yellow", "Green", "Purple",
-	"Orange", "Pink", "Brown", "White", "Black"
-]
-
-# Current color palette index
-var color_palette_index: int = 0
 
 # Wheel positions per vehicle type (relative to center, for 48x96 car sprites)
 # Sprite is 48 wide x 96 tall, car faces UP so width is left-right, height is front-back
@@ -322,7 +291,13 @@ const WHEEL_POSITIONS: Dictionary = {
 		"BL": Vector2(-16, 30),
 		"BR": Vector2(16, 30)
 	},
-	VehicleType.JEEPNEY: {
+	VehicleType.JEEPNEY_1: {
+		"FL": Vector2(-16, -30),
+		"FR": Vector2(16, -30),
+		"BL": Vector2(-16, 30),
+		"BR": Vector2(16, 30)
+	},
+	VehicleType.JEEPNEY_2: {
 		"FL": Vector2(-16, -30),
 		"FR": Vector2(16, -30),
 		"BL": Vector2(-16, 30),
@@ -348,6 +323,9 @@ func _ready() -> void:
 	# Apply vehicle type configuration
 	_apply_vehicle_type()
 
+	# Set up color palette shader
+	_setup_palette_shader()
+
 	# Find and register wheels
 	_setup_wheels()
 
@@ -366,8 +344,6 @@ func _apply_vehicle_type() -> void:
 		if sprite and vehicle_type in CAR_SPRITE_REGIONS:
 			sprite.region_enabled = true
 			sprite.region_rect = CAR_SPRITE_REGIONS[vehicle_type]
-			# Apply color palette tint
-			_apply_color_palette()
 
 		# Apply size scaling
 		scale = Vector2(type_size_mult, type_size_mult)
@@ -420,40 +396,6 @@ func _update_wheel_positions() -> void:
 		wheel_br.position = positions["BR"]
 
 
-## Apply color palette to sprite
-func _apply_color_palette() -> void:
-	var sprite = get_node_or_null("Sprite2D")
-	if sprite:
-		if color_palette_index >= 0 and color_palette_index < COLOR_PALETTES.size():
-			sprite.modulate = COLOR_PALETTES[color_palette_index]
-		else:
-			sprite.modulate = Color.WHITE
-
-
-## Set color palette by index
-func set_color_palette(palette_index: int) -> void:
-	color_palette_index = clampi(palette_index, 0, COLOR_PALETTES.size() - 1)
-	_apply_color_palette()
-
-
-## Set random color palette
-func set_random_color() -> void:
-	color_palette_index = randi() % COLOR_PALETTES.size()
-	# Defer if not in tree yet (will be applied in _ready via _apply_vehicle_type)
-	if is_inside_tree():
-		_apply_color_palette()
-
-
-## Get current color palette index
-func get_color_palette() -> int:
-	return color_palette_index
-
-
-## Get total number of color palettes
-static func get_palette_count() -> int:
-	return COLOR_PALETTES.size()
-
-
 ## Set vehicle type and apply configuration
 func set_vehicle_type(new_type: VehicleType) -> void:
 	vehicle_type = new_type
@@ -475,10 +417,156 @@ static func get_random_type() -> VehicleType:
 		VehicleType.SPORT,
 		VehicleType.MICRO,
 		VehicleType.PICKUP,
-		VehicleType.JEEPNEY,
+		VehicleType.JEEPNEY_1,
+		VehicleType.JEEPNEY_2,
 		VehicleType.BUS
 	]
 	return types[randi() % types.size()]
+
+
+# ============================================
+# Color Palette Functions
+# ============================================
+
+## Set up the palette swap shader on the sprite
+func _setup_palette_shader() -> void:
+	var sprite = get_node_or_null("Sprite2D")
+	if sprite == null:
+		return
+
+	# Load the base material resource
+	var base_material = load("res://shaders/palette_swap_material.tres")
+	if base_material == null:
+		push_warning("Could not load palette swap material")
+		return
+
+	# Duplicate the material so each vehicle has its own instance
+	_palette_material = base_material.duplicate() as ShaderMaterial
+
+	# Apply the material to the sprite
+	sprite.material = _palette_material
+
+	# Apply the current color palette
+	_apply_color_palette()
+
+
+## Apply the current color palette to the shader
+func _apply_color_palette() -> void:
+	if _palette_material == null:
+		return
+
+	if color_palette not in COLOR_CONFIG:
+		return
+
+	var config = COLOR_CONFIG[color_palette]
+	var palette_texture = load(config["path"])
+
+	if palette_texture:
+		_palette_material.set_shader_parameter("palette_texture", palette_texture)
+		_palette_material.set_shader_parameter("enabled", true)
+
+
+## Set the color palette by enum value
+func set_color_palette(palette: CarColor) -> void:
+	color_palette = palette
+	_apply_color_palette()
+
+
+## Set the color palette by index (0-14)
+func set_color_palette_index(index: int) -> void:
+	if index >= 0 and index < CarColor.size():
+		set_color_palette(index as CarColor)
+
+
+## Get the current color palette enum value
+func get_color_palette() -> CarColor:
+	return color_palette
+
+
+## Get the current color palette index (0-14)
+func get_color_palette_index() -> int:
+	return int(color_palette)
+
+
+## Get the total number of color palettes
+func get_palette_count() -> int:
+	return CarColor.size()
+
+
+## Get the name of the current color
+func get_color_name() -> String:
+	if color_palette in COLOR_CONFIG:
+		return COLOR_CONFIG[color_palette]["name"]
+	return "Unknown"
+
+
+## Get the rarity of the current color
+func get_color_rarity() -> ColorRarity:
+	if color_palette in COLOR_CONFIG:
+		return COLOR_CONFIG[color_palette]["rarity"]
+	return ColorRarity.COMMON
+
+
+## Get the rarity name of the current color
+func get_color_rarity_name() -> String:
+	var rarity = get_color_rarity()
+	if rarity in RARITY_INFO:
+		return RARITY_INFO[rarity]["name"]
+	return "Common"
+
+
+## Get the rarity display color
+func get_color_rarity_color() -> Color:
+	var rarity = get_color_rarity()
+	if rarity in RARITY_INFO:
+		return RARITY_INFO[rarity]["color"]
+	return Color.GRAY
+
+
+## Set a random color based on rarity weights
+func set_random_color() -> void:
+	var selected_palette = get_random_color_by_rarity()
+	set_color_palette(selected_palette)
+
+
+## Get a random color palette based on rarity weights (static)
+static func get_random_color_by_rarity() -> CarColor:
+	# Calculate total weight
+	var total_weight = 0
+	for rarity in RARITY_WEIGHTS:
+		total_weight += RARITY_WEIGHTS[rarity]
+
+	# Roll for rarity
+	var roll = randi() % total_weight
+	var selected_rarity = ColorRarity.COMMON
+
+	var cumulative = 0
+	for rarity in RARITY_WEIGHTS:
+		cumulative += RARITY_WEIGHTS[rarity]
+		if roll < cumulative:
+			selected_rarity = rarity
+			break
+
+	# Get all colors of this rarity
+	var colors_of_rarity: Array = []
+	for palette in COLOR_CONFIG:
+		if COLOR_CONFIG[palette]["rarity"] == selected_rarity:
+			colors_of_rarity.append(palette)
+
+	# Pick a random color from this rarity
+	if colors_of_rarity.is_empty():
+		return CarColor.RED  # Fallback
+
+	return colors_of_rarity[randi() % colors_of_rarity.size()]
+
+
+## Get all colors of a specific rarity
+static func get_colors_by_rarity(rarity: ColorRarity) -> Array:
+	var colors: Array = []
+	for palette in COLOR_CONFIG:
+		if COLOR_CONFIG[palette]["rarity"] == rarity:
+			colors.append(palette)
+	return colors
 
 
 func _physics_process(delta: float) -> void:
