@@ -101,10 +101,16 @@ func _draw() -> void:
 ## Get color for drawing path based on entry direction
 func _get_path_color(entry_dir: String) -> Color:
 	match entry_dir:
+		# Cardinals
 		"top": return Color(0.2, 0.8, 0.2, 0.8)     # Green
 		"bottom": return Color(0.8, 0.2, 0.2, 0.8)  # Red
 		"left": return Color(0.2, 0.2, 0.8, 0.8)    # Blue
 		"right": return Color(0.8, 0.8, 0.2, 0.8)   # Yellow
+		# Diagonals
+		"top_left": return Color(0.2, 0.8, 0.8, 0.8)     # Cyan
+		"top_right": return Color(0.8, 0.2, 0.8, 0.8)    # Magenta
+		"bottom_left": return Color(0.8, 0.5, 0.2, 0.8)  # Orange
+		"bottom_right": return Color(0.5, 0.8, 0.2, 0.8) # Lime
 	return Color.WHITE
 
 
@@ -293,9 +299,9 @@ func get_guideline_path(entry_dir: String, exit_dir: String) -> Array:
 func _update_through_paths() -> void:
 	through_paths.clear()
 
-	# Get all active cardinal connections (vehicles only use cardinal directions)
+	# Get all active connections (cardinals AND diagonals)
 	var active_connections: Array = []
-	for dir in ["top", "bottom", "left", "right"]:
+	for dir in connections:
 		if connections[dir]:
 			active_connections.append(dir)
 
@@ -342,18 +348,25 @@ func _calculate_path_waypoints(entry: String, exit_dir: String) -> Array:
 ## Get the center of an edge (no lane offset)
 func _get_edge_center(dir: String, tile_center: Vector2) -> Vector2:
 	match dir:
+		# Cardinals - edge centers
 		"top": return tile_center + Vector2(0, -HALF_TILE)
 		"bottom": return tile_center + Vector2(0, HALF_TILE)
 		"left": return tile_center + Vector2(-HALF_TILE, 0)
 		"right": return tile_center + Vector2(HALF_TILE, 0)
+		# Diagonals - tile corners
+		"top_left": return tile_center + Vector2(-HALF_TILE, -HALF_TILE)
+		"top_right": return tile_center + Vector2(HALF_TILE, -HALF_TILE)
+		"bottom_left": return tile_center + Vector2(-HALF_TILE, HALF_TILE)
+		"bottom_right": return tile_center + Vector2(HALF_TILE, HALF_TILE)
 	return tile_center
 
 
 ## Get lane offset for straight paths based on travel direction
 func _get_straight_lane_offset(entry: String, exit_dir: String) -> Vector2:
 	# For straight paths, lane offset depends on direction of travel
-	# Right-hand driving: offset to the RIGHT of travel direction
+	# Right-hand driving: offset to the RIGHT of travel direction (90° clockwise)
 	match entry + "_" + exit_dir:
+		# Cardinal straights
 		"left_right":  # Traveling RIGHT -> right side is DOWN (+Y)
 			return Vector2(0, LANE_OFFSET)
 		"right_left":  # Traveling LEFT -> right side is UP (-Y)
@@ -362,6 +375,15 @@ func _get_straight_lane_offset(entry: String, exit_dir: String) -> Vector2:
 			return Vector2(-LANE_OFFSET, 0)
 		"bottom_top":  # Traveling UP -> right side is RIGHT (+X)
 			return Vector2(LANE_OFFSET, 0)
+		# Diagonal straights - perpendicular offset (90° clockwise from travel)
+		"top_left_bottom_right":  # Traveling SE -> right side is SW (-X, +Y)
+			return Vector2(-1, 1).normalized() * LANE_OFFSET
+		"bottom_right_top_left":  # Traveling NW -> right side is NE (+X, -Y)
+			return Vector2(1, -1).normalized() * LANE_OFFSET
+		"top_right_bottom_left":  # Traveling SW -> right side is NW (-X, -Y)
+			return Vector2(-1, -1).normalized() * LANE_OFFSET
+		"bottom_left_top_right":  # Traveling NE -> right side is SE (+X, +Y)
+			return Vector2(1, 1).normalized() * LANE_OFFSET
 	return Vector2.ZERO
 
 
@@ -374,28 +396,12 @@ func _get_turn_edge_point(entry: String, exit_dir: String, tile_center: Vector2,
 	# Right-hand driving: offset to the RIGHT of travel direction
 	if is_entry:
 		# Entry point - offset based on entry direction's travel
-		match entry:
-			"left":  # Entering from left, traveling right -> right side is DOWN (+Y)
-				return edge_center + Vector2(0, LANE_OFFSET)
-			"right":  # Entering from right, traveling left -> right side is UP (-Y)
-				return edge_center + Vector2(0, -LANE_OFFSET)
-			"top":  # Entering from top, traveling down -> right side is LEFT (-X)
-				return edge_center + Vector2(-LANE_OFFSET, 0)
-			"bottom":  # Entering from bottom, traveling up -> right side is RIGHT (+X)
-				return edge_center + Vector2(LANE_OFFSET, 0)
+		var offset = _get_entry_lane_offset(entry)
+		return edge_center + offset
 	else:
 		# Exit point - offset based on exit direction's travel
-		match exit_dir:
-			"left":  # Exiting left, traveling left -> right side is UP (-Y)
-				return edge_center + Vector2(0, -LANE_OFFSET)
-			"right":  # Exiting right, traveling right -> right side is DOWN (+Y)
-				return edge_center + Vector2(0, LANE_OFFSET)
-			"top":  # Exiting top, traveling up -> right side is RIGHT (+X)
-				return edge_center + Vector2(LANE_OFFSET, 0)
-			"bottom":  # Exiting bottom, traveling down -> right side is LEFT (-X)
-				return edge_center + Vector2(-LANE_OFFSET, 0)
-
-	return edge_center
+		var offset = _get_exit_lane_offset(exit_dir)
+		return edge_center + offset
 
 
 ## Get corner waypoint for turns
@@ -405,16 +411,29 @@ func _get_corner_point(entry: String, exit_dir: String, tile_center: Vector2) ->
 	var entry_offset = _get_entry_lane_offset(entry)
 	var exit_offset = _get_exit_lane_offset(exit_dir)
 
-	# Corner is where the extended lanes would meet
-	# For horizontal entry: use entry's Y offset, exit's X offset
-	# For vertical entry: use entry's X offset, exit's Y offset
-	match entry + "_" + exit_dir:
-		# Entering horizontally (left/right), exiting vertically (top/bottom)
-		"left_top", "left_bottom", "right_top", "right_bottom":
-			return tile_center + Vector2(exit_offset.x, entry_offset.y)
-		# Entering vertically (top/bottom), exiting horizontally (left/right)
-		"top_left", "top_right", "bottom_left", "bottom_right":
-			return tile_center + Vector2(entry_offset.x, exit_offset.y)
+	var entry_axis = _get_axis(entry)
+	var exit_axis = _get_axis(exit_dir)
+
+	# Cardinal to cardinal turns
+	if entry_axis <= 1 and exit_axis <= 1:
+		match entry + "_" + exit_dir:
+			# Entering horizontally (left/right), exiting vertically (top/bottom)
+			"left_top", "left_bottom", "right_top", "right_bottom":
+				return tile_center + Vector2(exit_offset.x, entry_offset.y)
+			# Entering vertically (top/bottom), exiting horizontally (left/right)
+			"top_left", "top_right", "bottom_left", "bottom_right":
+				return tile_center + Vector2(entry_offset.x, exit_offset.y)
+
+	# Cardinal to diagonal or diagonal to cardinal turns
+	# Use a blend of entry and exit offsets for a smooth curve through center
+	if (entry_axis <= 1 and exit_axis >= 2) or (entry_axis >= 2 and exit_axis <= 1):
+		# Blend: take weighted average closer to center for a smoother path
+		return tile_center + (entry_offset + exit_offset) * 0.5
+
+	# Diagonal to diagonal turns (45° or 90° angle changes)
+	if entry_axis >= 2 and exit_axis >= 2:
+		# For diagonal-to-diagonal, blend the offsets
+		return tile_center + (entry_offset + exit_offset) * 0.5
 
 	# Fallback to center
 	return tile_center
@@ -422,41 +441,66 @@ func _get_corner_point(entry: String, exit_dir: String, tile_center: Vector2) ->
 
 ## Get lane offset for entry direction (where car enters the tile)
 func _get_entry_lane_offset(entry: String) -> Vector2:
-	# Right-hand driving: car is on RIGHT side of travel direction
+	# Right-hand driving: car is on RIGHT side of travel direction (90° clockwise)
 	match entry:
+		# Cardinals
 		"left":   return Vector2(0, LANE_OFFSET)    # Traveling right, right side is DOWN (+Y)
 		"right":  return Vector2(0, -LANE_OFFSET)   # Traveling left, right side is UP (-Y)
 		"top":    return Vector2(-LANE_OFFSET, 0)   # Traveling down, right side is LEFT (-X)
 		"bottom": return Vector2(LANE_OFFSET, 0)    # Traveling up, right side is RIGHT (+X)
+		# Diagonals - perpendicular offset (90° clockwise from travel direction)
+		"top_left":     return Vector2(-1, 1).normalized() * LANE_OFFSET   # Travel SE, right is SW
+		"top_right":    return Vector2(-1, -1).normalized() * LANE_OFFSET  # Travel SW, right is NW
+		"bottom_left":  return Vector2(1, 1).normalized() * LANE_OFFSET    # Travel NE, right is SE
+		"bottom_right": return Vector2(1, -1).normalized() * LANE_OFFSET   # Travel NW, right is NE
 	return Vector2.ZERO
 
 
 ## Get lane offset for exit direction (where car exits the tile)
 func _get_exit_lane_offset(exit_dir: String) -> Vector2:
-	# Right-hand driving: car is on RIGHT side of travel direction
+	# Right-hand driving: car is on RIGHT side of travel direction (90° clockwise)
 	match exit_dir:
+		# Cardinals
 		"left":   return Vector2(0, -LANE_OFFSET)   # Traveling left, right side is UP (-Y)
 		"right":  return Vector2(0, LANE_OFFSET)    # Traveling right, right side is DOWN (+Y)
 		"top":    return Vector2(LANE_OFFSET, 0)    # Traveling up, right side is RIGHT (+X)
 		"bottom": return Vector2(-LANE_OFFSET, 0)   # Traveling down, right side is LEFT (-X)
+		# Diagonals - perpendicular offset (90° clockwise from travel direction)
+		"top_left":     return Vector2(1, -1).normalized() * LANE_OFFSET   # Travel NW, right is NE
+		"top_right":    return Vector2(1, 1).normalized() * LANE_OFFSET    # Travel NE, right is SE
+		"bottom_left":  return Vector2(-1, -1).normalized() * LANE_OFFSET  # Travel SW, right is NW
+		"bottom_right": return Vector2(-1, 1).normalized() * LANE_OFFSET   # Travel SE, right is SW
 	return Vector2.ZERO
 
 
-## Get axis for a direction (0 = horizontal, 1 = vertical)
+## Get axis for a direction (0 = horizontal, 1 = vertical, 2 = diagonal /, 3 = diagonal \)
 func _get_axis(dir: String) -> int:
-	if dir == "left" or dir == "right":
-		return 0  # Horizontal
-	return 1  # Vertical
+	match dir:
+		"left", "right":
+			return 0  # Horizontal
+		"top", "bottom":
+			return 1  # Vertical
+		"top_right", "bottom_left":
+			return 2  # Diagonal /
+		"top_left", "bottom_right":
+			return 3  # Diagonal \
+	return -1
 
 
 ## Get the direction to the left of the given entry direction
 static func get_left_of(entry: String) -> String:
 	# When entering from a direction, left is relative to movement
 	match entry:
+		# Cardinals
 		"right": return "top"    # Moving left, left is up
 		"left": return "bottom"  # Moving right, left is down
 		"top": return "left"     # Moving down, left is left
 		"bottom": return "right" # Moving up, left is right
+		# Diagonals - 90° counter-clockwise from travel direction
+		"bottom_right": return "bottom_left"  # Travel NW, left is SW
+		"top_left": return "top_right"        # Travel SE, left is NE
+		"bottom_left": return "bottom_right"  # Travel NE, left is SE
+		"top_right": return "top_left"        # Travel SW, left is NW
 	return ""
 
 
@@ -464,8 +508,14 @@ static func get_left_of(entry: String) -> String:
 static func get_right_of(entry: String) -> String:
 	# When entering from a direction, right is relative to movement
 	match entry:
+		# Cardinals
 		"right": return "bottom" # Moving left, right is down
 		"left": return "top"     # Moving right, right is up
 		"top": return "right"    # Moving down, right is right
 		"bottom": return "left"  # Moving up, right is left
+		# Diagonals - 90° clockwise from travel direction
+		"bottom_right": return "top_right"    # Travel NW, right is NE
+		"top_left": return "bottom_left"      # Travel SE, right is SW
+		"bottom_left": return "top_left"      # Travel NE, right is NW
+		"top_right": return "bottom_right"    # Travel SW, right is SE
 	return ""

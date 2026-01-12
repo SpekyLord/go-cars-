@@ -616,10 +616,17 @@ func _move_along_path(delta: float) -> void:
 
 ## Convert grid offset to direction string
 func _grid_offset_to_direction(offset: Vector2i) -> String:
-	if offset == Vector2i(0, -1): return "top"
-	if offset == Vector2i(0, 1): return "bottom"
-	if offset == Vector2i(-1, 0): return "left"
-	if offset == Vector2i(1, 0): return "right"
+	match offset:
+		# Cardinals
+		Vector2i(0, -1): return "top"
+		Vector2i(0, 1): return "bottom"
+		Vector2i(-1, 0): return "left"
+		Vector2i(1, 0): return "right"
+		# Diagonals
+		Vector2i(-1, -1): return "top_left"
+		Vector2i(1, -1): return "top_right"
+		Vector2i(-1, 1): return "bottom_left"
+		Vector2i(1, 1): return "bottom_right"
 	return ""
 
 
