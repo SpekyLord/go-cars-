@@ -205,6 +205,7 @@ var _current_path: Array = []        # Waypoints to follow (world positions)
 var _path_index: int = 0             # Current waypoint index
 var _current_tile: Vector2i = Vector2i(-1, -1)   # Tile we're currently on
 var _entry_direction: String = ""    # Direction we entered current tile from
+var _last_exit_direction: String = "" # Direction we exited the previous tile (for diagonal transitions)
 
 # Auto-navigate mode - car automatically follows road
 var auto_navigate: bool = false
@@ -573,7 +574,11 @@ func _on_enter_new_tile(new_tile: Vector2i) -> void:
 	_current_tile = new_tile
 
 	# Determine entry direction based on where we came from
-	if old_tile != Vector2i(-1, -1):
+	if _last_exit_direction != "":
+		# Use opposite of last exit direction (handles diagonals correctly)
+		_entry_direction = RoadTile.get_opposite_direction(_last_exit_direction)
+	elif old_tile != Vector2i(-1, -1):
+		# Fallback to grid-based calculation (for cardinal directions)
 		var diff = old_tile - new_tile
 		_entry_direction = _grid_offset_to_direction(diff)
 	else:
@@ -609,6 +614,9 @@ func _acquire_path_for_current_tile() -> void:
 	if chosen_exit == "":
 		return
 
+	# Save exit direction for next tile's entry calculation
+	_last_exit_direction = chosen_exit
+
 	# Get the path
 	_current_path = tile.get_guideline_path(_entry_direction, chosen_exit)
 	_path_index = 0
@@ -626,13 +634,25 @@ func _choose_exit(entry: String, available_exits: Array) -> Array:
 
 	# If there's a queued turn command, use it
 	if queued_turn == "left":
+		# First try cardinal left
 		var left = RoadTile.get_left_of(entry)
 		if left in available_exits:
 			return [left, true]  # Turn used
+		# Then try diagonal lefts
+		var diagonal_lefts = _get_diagonal_lefts(entry)
+		for diag in diagonal_lefts:
+			if diag in available_exits:
+				return [diag, true]  # Turn used
 	elif queued_turn == "right":
+		# First try cardinal right
 		var right = RoadTile.get_right_of(entry)
 		if right in available_exits:
 			return [right, true]  # Turn used
+		# Then try diagonal rights
+		var diagonal_rights = _get_diagonal_rights(entry)
+		for diag in diagonal_rights:
+			if diag in available_exits:
+				return [diag, true]  # Turn used
 
 	# Try to go straight (opposite of entry)
 	if opposite in available_exits:
@@ -646,10 +666,20 @@ func _choose_exit(entry: String, available_exits: Array) -> Array:
 			var right = RoadTile.get_right_of(entry)
 			if right in available_exits:
 				return [right, true]
+			# Also try diagonal rights as fallback
+			var diagonal_rights = _get_diagonal_rights(entry)
+			for diag in diagonal_rights:
+				if diag in available_exits:
+					return [diag, true]
 		elif queued_turn == "right":
 			var left = RoadTile.get_left_of(entry)
 			if left in available_exits:
 				return [left, true]
+			# Also try diagonal lefts as fallback
+			var diagonal_lefts = _get_diagonal_lefts(entry)
+			for diag in diagonal_lefts:
+				if diag in available_exits:
+					return [diag, true]
 
 	# No valid path - car should crash (no turn queued and can't go straight)
 	return ["", false]
@@ -661,6 +691,12 @@ func _move_along_path(delta: float) -> void:
 		# Path complete - clear it so we get a new one on next tile
 		_current_path.clear()
 		_path_index = 0
+
+		# For diagonal exits, force transition to correct tile
+		# (grid position calculation fails due to perpendicular lane offset)
+		if _last_exit_direction in ["top_left", "top_right", "bottom_left", "bottom_right"]:
+			var next_tile = _current_tile + _get_grid_offset_from_direction(_last_exit_direction)
+			_on_enter_new_tile(next_tile)
 		return
 
 	var target = _current_path[_path_index]
@@ -668,18 +704,23 @@ func _move_along_path(delta: float) -> void:
 	var dist = to_target.length()
 
 	# Check if reached waypoint
-	if dist < 10.0:
+	if dist < 15.0:
 		_path_index += 1
 		if _path_index >= _current_path.size():
 			# Path complete
 			_current_path.clear()
 			_path_index = 0
+
+			# For diagonal exits, force transition to correct tile
+			if _last_exit_direction in ["top_left", "top_right", "bottom_left", "bottom_right"]:
+				var next_tile = _current_tile + _get_grid_offset_from_direction(_last_exit_direction)
+				_on_enter_new_tile(next_tile)
 		return
 
 	# Move toward waypoint
 	var move_dir = to_target.normalized()
 
-	# Update direction and rotation smoothly
+	# Update direction and rotation
 	direction = move_dir
 	rotation = direction.angle() + PI / 2  # Sprite faces UP
 
@@ -704,10 +745,17 @@ func _move_along_path(delta: float) -> void:
 
 ## Convert grid offset to direction string
 func _grid_offset_to_direction(offset: Vector2i) -> String:
-	if offset == Vector2i(0, -1): return "top"
-	if offset == Vector2i(0, 1): return "bottom"
-	if offset == Vector2i(-1, 0): return "left"
-	if offset == Vector2i(1, 0): return "right"
+	match offset:
+		# Cardinals
+		Vector2i(0, -1): return "top"
+		Vector2i(0, 1): return "bottom"
+		Vector2i(-1, 0): return "left"
+		Vector2i(1, 0): return "right"
+		# Diagonals
+		Vector2i(-1, -1): return "top_left"
+		Vector2i(1, -1): return "top_right"
+		Vector2i(-1, 1): return "bottom_left"
+		Vector2i(1, 1): return "bottom_right"
 	return ""
 
 
@@ -959,6 +1007,28 @@ func _get_opposite_direction(dir: String) -> String:
 	return ""
 
 
+## Get diagonal directions that count as "left" for a cardinal entry
+## When entering from a cardinal direction, diagonals in the left half-plane are valid lefts
+func _get_diagonal_lefts(entry: String) -> Array:
+	match entry:
+		"left": return ["bottom_left"]      # Traveling right, left is south side
+		"right": return ["top_right"]       # Traveling left, left is north side
+		"top": return ["top_left"]          # Traveling down, left is west side
+		"bottom": return ["bottom_right"]   # Traveling up, left is east side
+	return []
+
+
+## Get diagonal directions that count as "right" for a cardinal entry
+## When entering from a cardinal direction, diagonals in the right half-plane are valid rights
+func _get_diagonal_rights(entry: String) -> Array:
+	match entry:
+		"left": return ["top_right"]        # Traveling right, right is north side
+		"right": return ["bottom_left"]     # Traveling left, right is south side
+		"top": return ["bottom_right"]      # Traveling down, right is east side
+		"bottom": return ["top_left"]       # Traveling up, right is west side
+	return []
+
+
 ## Check if there's a road in front of the car (short name)
 ## With guidelines: checks if current tile has a straight-through exit
 ## Without guidelines: checks adjacent tile for connection
@@ -991,7 +1061,7 @@ func front_road() -> bool:
 
 
 ## Check if there's a road to the left of the car (short name)
-## With guidelines: checks if current tile has a left turn exit
+## With guidelines: checks if current tile has a left turn exit (cardinal or diagonal)
 ## Without guidelines: checks adjacent tile for connection
 func left_road() -> bool:
 	if _road_checker == null:
@@ -1002,9 +1072,16 @@ func left_road() -> bool:
 		var tile = _road_checker.get_road_tile(_current_tile) if _road_checker.has_method("get_road_tile") else null
 		if tile != null:
 			var exits = tile.get_available_exits(_entry_direction)
-			# "Left" is relative to our travel direction (opposite of entry)
+			# Check cardinal left direction
 			var left_exit = RoadTile.get_left_of(_entry_direction)
-			return left_exit in exits
+			if left_exit in exits:
+				return true
+			# Also check diagonal lefts for cardinal entries
+			var diagonal_lefts = _get_diagonal_lefts(_entry_direction)
+			for diag in diagonal_lefts:
+				if diag in exits:
+					return true
+			return false
 
 	# Fallback to old behavior
 	var grid_pos = _get_current_grid_pos()
@@ -1030,7 +1107,7 @@ func left_road() -> bool:
 
 
 ## Check if there's a road to the right of the car (short name)
-## With guidelines: checks if current tile has a right turn exit
+## With guidelines: checks if current tile has a right turn exit (cardinal or diagonal)
 ## Without guidelines: checks adjacent tile for connection
 func right_road() -> bool:
 	if _road_checker == null:
@@ -1041,9 +1118,16 @@ func right_road() -> bool:
 		var tile = _road_checker.get_road_tile(_current_tile) if _road_checker.has_method("get_road_tile") else null
 		if tile != null:
 			var exits = tile.get_available_exits(_entry_direction)
-			# "Right" is relative to our travel direction (opposite of entry)
+			# Check cardinal right direction
 			var right_exit = RoadTile.get_right_of(_entry_direction)
-			return right_exit in exits
+			if right_exit in exits:
+				return true
+			# Also check diagonal rights for cardinal entries
+			var diagonal_rights = _get_diagonal_rights(_entry_direction)
+			for diag in diagonal_rights:
+				if diag in exits:
+					return true
+			return false
 
 	# Fallback to old behavior
 	var grid_pos = _get_current_grid_pos()
@@ -1190,6 +1274,9 @@ func reset(start_pos: Vector2, start_dir: Vector2 = Vector2.RIGHT) -> void:
 	# Reset guideline path following
 	_current_path.clear()
 	_path_index = 0
+	_last_exit_direction = ""
+	# Reset last move direction tracking (used in fallback road detection)
+	_last_move_direction = Vector2.ZERO
 	# Initialize current tile and entry direction for guideline system
 	# This ensures front_road(), left_road(), right_road() work immediately
 	_current_tile = _get_current_grid_pos()
@@ -1364,7 +1451,20 @@ func _is_on_road() -> bool:
 	if _road_checker == null:
 		return true  # If no road checker, assume roads everywhere
 
-	return _is_road_at_position(global_position)
+	# First check current position
+	if _is_road_at_position(global_position):
+		return true
+
+	# For diagonal travel, the lane offset may put us in an "in-between" grid cell
+	# Check if the expected diagonal tile exists (car is in valid transition)
+	if _last_exit_direction in ["top_left", "top_right", "bottom_left", "bottom_right"]:
+		var expected_next = _current_tile + _get_grid_offset_from_direction(_last_exit_direction)
+		if _road_checker.has_method("get_road_tile"):
+			var tile = _road_checker.get_road_tile(expected_next)
+			if tile != null:
+				return true  # Diagonal tile exists, car is in valid transition
+
+	return false
 
 
 ## Check if there's a road at a specific world position
