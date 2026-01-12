@@ -1,0 +1,301 @@
+## IntelliSense Manager for GoCars Code Editor
+## Coordinates autocomplete, signature help, auto-pairing, and indentation
+## Author: Claude Code
+## Date: January 2026
+
+class_name IntelliSenseManager
+extends Node
+
+# Static class references
+static var GameCommands = preload("res://scripts/ui/game_commands.gd")
+static var EditorConfig = preload("res://scripts/ui/editor_config.gd")
+
+var code_edit: CodeEdit
+var auto_pair_handler: Variant
+var indent_handler: Variant
+
+var user_symbols: Dictionary = {}  # filename -> Array of symbols
+var current_file: String = ""
+
+# Popup references
+var autocomplete_popup: Variant
+var signature_popup: Variant
+
+# Trigger tracking
+var last_typed_char: String = ""
+var typing_word: bool = false
+
+func _init(editor: CodeEdit) -> void:
+	code_edit = editor
+	var AutoPairClass = load("res://scripts/ui/auto_pair_handler.gd")
+	auto_pair_handler = AutoPairClass.new(editor)
+	var IndentClass = load("res://scripts/ui/indent_handler.gd")
+	indent_handler = IndentClass.new(editor)
+
+func setup_popups(parent: Control) -> void:
+	# Create autocomplete popup
+	var AutocompleteClass = load("res://scripts/ui/autocomplete_popup.gd")
+	autocomplete_popup = AutocompleteClass.new()
+	autocomplete_popup.name = "AutocompletePopup"
+	parent.add_child(autocomplete_popup)
+	autocomplete_popup.suggestion_selected.connect(_on_suggestion_selected)
+
+	# Create signature help popup
+	var SignatureClass = load("res://scripts/ui/signature_help_popup.gd")
+	signature_popup = SignatureClass.new()
+	signature_popup.name = "SignatureHelpPopup"
+	parent.add_child(signature_popup)
+
+func handle_input(event: InputEvent) -> bool:
+	if event is InputEventKey and event.pressed:
+		# Tab handling
+		if event.keycode == KEY_TAB:
+			get_viewport().set_input_as_handled()
+			return indent_handler.handle_tab(event.shift_pressed)
+
+		# Enter handling
+		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+			# Check if autocomplete is open
+			if autocomplete_popup and autocomplete_popup.visible:
+				autocomplete_popup.confirm_selection()
+				get_viewport().set_input_as_handled()
+				return true
+			else:
+				var handled = indent_handler.handle_enter()
+				if handled:
+					get_viewport().set_input_as_handled()
+				return handled
+
+		# Ctrl+Space - manual trigger
+		if event.keycode == KEY_SPACE and event.ctrl_pressed:
+			_trigger_suggestions()
+			get_viewport().set_input_as_handled()
+			return true
+
+		# Escape - hide popups
+		if event.keycode == KEY_ESCAPE:
+			var was_visible = false
+			if autocomplete_popup and autocomplete_popup.visible:
+				autocomplete_popup.hide()
+				was_visible = true
+			if signature_popup and signature_popup.visible:
+				signature_popup.hide()
+				was_visible = true
+			if was_visible:
+				get_viewport().set_input_as_handled()
+			return was_visible
+
+		# Navigation when popup is visible
+		if autocomplete_popup and autocomplete_popup.visible:
+			if event.keycode == KEY_UP:
+				autocomplete_popup.select_previous()
+				get_viewport().set_input_as_handled()
+				return true
+			if event.keycode == KEY_DOWN:
+				autocomplete_popup.select_next()
+				get_viewport().set_input_as_handled()
+				return true
+
+		# Auto-pairing
+		if auto_pair_handler.handle_input(event):
+			get_viewport().set_input_as_handled()
+			# After inserting pair, trigger signature help if it was '('
+			if char(event.unicode) == "(":
+				await get_tree().process_frame
+				on_text_changed()
+			return true
+
+	return false
+
+func on_text_changed() -> void:
+	# Called when CodeEdit text changes
+	if not code_edit:
+		return
+
+	var caret_col = code_edit.get_caret_column()
+	var caret_line = code_edit.get_caret_line()
+
+	if caret_line >= code_edit.get_line_count():
+		return
+
+	var line_text = code_edit.get_line(caret_line)
+
+	# Get the word being typed
+	var word_start = _find_word_start(line_text, caret_col)
+	var current_word = line_text.substr(word_start, caret_col - word_start)
+
+	# Check for signature help (inside function call)
+	var func_context = _get_function_context(line_text, caret_col)
+	if func_context.function_name != "":
+		var func_data = GameCommands.find_by_name(func_context.function_name)
+		if not func_data.is_empty():
+			var pos = code_edit.get_caret_draw_pos()
+			pos = code_edit.global_position + pos
+			signature_popup.show_signature(func_data, func_context.param_index, pos)
+	else:
+		if signature_popup:
+			signature_popup.hide()
+
+	# Show suggestions if typing
+	if current_word.length() >= EditorConfig.autocomplete_trigger_length:
+		_show_suggestions_for(current_word)
+	elif current_word.length() == 0:
+		if autocomplete_popup:
+			autocomplete_popup.hide()
+	else:
+		# Update filter if already showing
+		if autocomplete_popup and autocomplete_popup.visible:
+			autocomplete_popup.update_filter(current_word)
+
+func _trigger_suggestions() -> void:
+	if not code_edit:
+		return
+
+	var caret_col = code_edit.get_caret_column()
+	var caret_line = code_edit.get_caret_line()
+
+	if caret_line >= code_edit.get_line_count():
+		return
+
+	var line_text = code_edit.get_line(caret_line)
+
+	var word_start = _find_word_start(line_text, caret_col)
+	var current_word = line_text.substr(word_start, caret_col - word_start)
+
+	_show_suggestions_for(current_word if current_word.length() > 0 else "")
+
+func _show_suggestions_for(prefix: String) -> void:
+	var suggestions: Array[Dictionary] = []
+
+	# Get game commands
+	suggestions.append_array(GameCommands.get_by_prefix(prefix))
+
+	# Get user-defined symbols
+	for symbol in user_symbols.get(current_file, []):
+		if symbol.name.to_lower().begins_with(prefix.to_lower()):
+			suggestions.append(symbol)
+
+	if suggestions.is_empty():
+		if autocomplete_popup:
+			autocomplete_popup.hide()
+		return
+
+	var pos = code_edit.get_caret_draw_pos()
+	pos = code_edit.global_position + pos
+	pos.y += code_edit.get_line_height()
+	autocomplete_popup.show_suggestions(suggestions, prefix, pos)
+
+func _find_word_start(line: String, col: int) -> int:
+	var start = col
+	while start > 0:
+		var c = line[start - 1]
+		if not (c.is_valid_identifier() or c == "_"):
+			break
+		start -= 1
+	return start
+
+func _get_function_context(line: String, col: int) -> Dictionary:
+	# Find if we're inside a function call and which parameter
+	var result = {"function_name": "", "param_index": 0}
+
+	var paren_depth = 0
+	var comma_count = 0
+	var func_start = -1
+
+	for i in range(col - 1, -1, -1):
+		if i >= line.length():
+			continue
+		var c = line[i]
+		if c == ")":
+			paren_depth += 1
+		elif c == "(":
+			if paren_depth == 0:
+				func_start = i
+				break
+			paren_depth -= 1
+		elif c == "," and paren_depth == 0:
+			comma_count += 1
+
+	if func_start > 0:
+		var word_start = _find_word_start(line, func_start)
+		result.function_name = line.substr(word_start, func_start - word_start)
+		result.param_index = comma_count
+
+	return result
+
+func _on_suggestion_selected(text: String) -> void:
+	# Replace the current word with the selected suggestion
+	var caret_col = code_edit.get_caret_column()
+	var caret_line = code_edit.get_caret_line()
+
+	if caret_line >= code_edit.get_line_count():
+		return
+
+	var line_text = code_edit.get_line(caret_line)
+
+	var word_start = _find_word_start(line_text, caret_col)
+
+	code_edit.select(caret_line, word_start, caret_line, caret_col)
+	code_edit.insert_text_at_caret(text)
+
+	# If function with (), position cursor inside
+	if text.ends_with("()"):
+		var new_col = code_edit.get_caret_column()
+		code_edit.set_caret_column(new_col - 1)
+
+		# Trigger signature help
+		await get_tree().process_frame
+		on_text_changed()
+
+func parse_file_symbols(filename: String, content: String) -> void:
+	# Parse file for variable and function definitions
+	var symbols: Array[Dictionary] = []
+	var lines = content.split("\n")
+
+	for i in range(lines.size()):
+		var line = lines[i].strip_edges()
+
+		# Function definition
+		if line.begins_with("def "):
+			var match_result = _parse_function_def(line)
+			if not match_result.is_empty():
+				match_result["line"] = i
+				symbols.append(match_result)
+
+		# Variable assignment (simple detection)
+		elif "=" in line and not line.begins_with("#"):
+			var parts = line.split("=")
+			if parts.size() >= 2:
+				var var_name = parts[0].strip_edges()
+				if var_name.is_valid_identifier():
+					symbols.append({
+						"name": var_name,
+						"type": "variable",
+						"signature": var_name,
+						"doc": "User variable",
+						"line": i
+					})
+
+	user_symbols[filename] = symbols
+	current_file = filename
+
+func _parse_function_def(line: String) -> Dictionary:
+	# Parse "def function_name(params):"
+	var regex = RegEx.new()
+	regex.compile("def\\s+(\\w+)\\s*\\(([^)]*)\\)")
+	var result = regex.search(line)
+
+	if result:
+		var name = result.get_string(1)
+		var params = result.get_string(2)
+		return {
+			"name": name,
+			"type": "function",
+			"signature": "def %s(%s)" % [name, params],
+			"doc": "User-defined function"
+		}
+
+	return {}
+
+func set_current_file(filename: String) -> void:
+	current_file = filename

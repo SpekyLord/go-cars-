@@ -30,6 +30,9 @@ var virtual_fs: Variant = null  # VirtualFileSystem instance
 ## Debugger reference
 var debugger: Variant = null  # Debugger instance
 
+## IntelliSense manager
+var intellisense: Variant = null
+
 ## Current file
 var current_file: String = "main.py"
 var is_modified: bool = false
@@ -141,6 +144,12 @@ func _setup_editor_ui() -> void:
 	status_label.text = "Ln 1, Col 1 | main.py | ✓ Saved"
 	status_bar.add_child(status_label)
 
+	# Setup IntelliSense
+	var IntelliSenseClass = load("res://scripts/ui/intellisense_manager.gd")
+	intellisense = IntelliSenseClass.new(code_edit)
+	intellisense.setup_popups(content)
+	intellisense.set_current_file(current_file)
+
 	# Connect signals
 	run_button.pressed.connect(_on_run_pressed)
 	pause_button.pressed.connect(_on_pause_pressed)
@@ -153,6 +162,10 @@ func _setup_editor_ui() -> void:
 func _input(event: InputEvent) -> void:
 	# Only handle input when window is visible
 	if not visible:
+		return
+
+	# Let IntelliSense handle input first
+	if intellisense and intellisense.handle_input(event):
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -232,6 +245,11 @@ func _load_file(file_path: String) -> void:
 	is_modified = false
 	_update_status_bar()
 
+	# Parse file for IntelliSense
+	if intellisense:
+		intellisense.parse_file_symbols(file_path, content)
+		intellisense.set_current_file(file_path)
+
 ## Save current file
 func _save_file() -> void:
 	if virtual_fs == null or current_file == "":
@@ -251,6 +269,10 @@ func _on_file_selected(file_path: String) -> void:
 func _on_text_changed() -> void:
 	is_modified = true
 	_update_status_bar()
+
+	# Trigger IntelliSense
+	if intellisense:
+		intellisense.on_text_changed()
 
 func _update_status_bar() -> void:
 	var line = code_edit.get_caret_line() + 1
