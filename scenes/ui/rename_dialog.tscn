@@ -1,0 +1,57 @@
+[gd_scene load_steps=2 format=3 uid="uid://cq8jx7y5wqr2m"]
+
+[ext_resource type="Script" path="res://scripts/ui/rename_dialog.gd" id="1_rename"]
+
+[node name="RenameDialog" type="PopupPanel"]
+title = "Rename File"
+initial_position = 2
+size = Vector2i(400, 180)
+script = ExtResource("1_rename")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 396.0
+offset_bottom = 176.0
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Rename File"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "New filename:"
+
+[node name="NameInput" type="LineEdit" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "Enter filename..."
+
+[node name="ErrorLabel" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+modulate = Color(1, 0.3, 0.3, 1)
+layout_mode = 2
+text = "Error message"
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="ButtonContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="ConfirmButton" type="Button" parent="VBoxContainer/ButtonContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Rename"
+
+[node name="CancelButton" type="Button" parent="VBoxContainer/ButtonContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"
