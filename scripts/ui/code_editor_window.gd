@@ -27,6 +27,9 @@ var status_label: Label
 ## Virtual filesystem reference
 var virtual_fs: Variant = null  # VirtualFileSystem instance
 
+## Debugger reference
+var debugger: Variant = null  # Debugger instance
+
 ## Current file
 var current_file: String = "main.py"
 var is_modified: bool = false
@@ -34,6 +37,10 @@ var is_modified: bool = false
 ## Speed options
 var speed_options: Array = [0.5, 1.0, 2.0, 4.0]
 var current_speed: float = 1.0
+
+## Debugger constants
+const BREAKPOINT_GUTTER: int = 1
+const EXECUTION_LINE_COLOR: Color = Color(1.0, 1.0, 0.0, 0.2)  # Yellow highlight
 
 func _init() -> void:
 	window_title = "Code Editor"
@@ -114,6 +121,14 @@ func _setup_editor_ui() -> void:
 	code_edit.syntax_highlighter = _create_python_highlighter()
 	code_edit.gutters_draw_line_numbers = true
 	code_edit.wrap_mode = TextEdit.LINE_WRAPPING_NONE
+
+	# Add breakpoint gutter
+	code_edit.add_gutter(BREAKPOINT_GUTTER)
+	code_edit.set_gutter_name(BREAKPOINT_GUTTER, "breakpoints")
+	code_edit.set_gutter_clickable(BREAKPOINT_GUTTER, true)
+	code_edit.set_gutter_draw(BREAKPOINT_GUTTER, true)
+	code_edit.set_gutter_type(BREAKPOINT_GUTTER, TextEdit.GUTTER_TYPE_ICON)
+
 	hsplit.add_child(code_edit)
 
 	# Status bar
@@ -133,6 +148,7 @@ func _setup_editor_ui() -> void:
 	file_explorer.file_selected.connect(_on_file_selected)
 	code_edit.text_changed.connect(_on_text_changed)
 	code_edit.caret_changed.connect(_update_status_bar)
+	code_edit.gutter_clicked.connect(_on_gutter_clicked)
 
 func _input(event: InputEvent) -> void:
 	# Only handle input when window is visible
@@ -156,27 +172,36 @@ func _input(event: InputEvent) -> void:
 				file_explorer._on_rename_pressed()
 			get_viewport().set_input_as_handled()
 
-		# F5 or Ctrl+Enter: Run code
+		# F5 or Ctrl+Enter: Run code / Continue debugging
 		elif (event.keycode == KEY_F5) or (event.keycode == KEY_ENTER and event.ctrl_pressed):
-			_on_run_pressed()
+			if debugger and debugger.is_paused():
+				debugger.resume_execution()
+			else:
+				_on_run_pressed()
+			get_viewport().set_input_as_handled()
+
+		# F10: Step over
+		elif event.keycode == KEY_F10:
+			if debugger:
+				debugger.step_over()
+			get_viewport().set_input_as_handled()
+
+		# F11: Step into
+		elif event.keycode == KEY_F11 and not event.shift_pressed:
+			if debugger:
+				debugger.step_into()
+			get_viewport().set_input_as_handled()
+
+		# Shift+F11: Step out
+		elif event.keycode == KEY_F11 and event.shift_pressed:
+			if debugger:
+				debugger.step_out()
 			get_viewport().set_input_as_handled()
 
 func _create_python_highlighter() -> SyntaxHighlighter:
-	var highlighter = SyntaxHighlighter.new()
-
-	# Python keywords (purple)
-	var keyword_color = Color(0.773, 0.525, 0.753)  # #C586C0
-	var keywords = [
-		"if", "elif", "else", "while", "for", "in", "range",
-		"and", "or", "not", "break", "return", "def", "from", "import"
-	]
-
-	# Built-in constants (blue)
-	var constant_color = Color(0.337, 0.612, 0.839)  # #569CD6
-	var constants = ["True", "False", "None"]
-
-	# This is a simplified highlighter - full implementation would require
-	# a custom SyntaxHighlighter subclass with _get_line_syntax_highlighting
+	# Load and create the custom PythonSyntaxHighlighter
+	var PythonSyntaxHighlighterClass = load("res://scripts/ui/python_syntax_highlighter.gd")
+	var highlighter = PythonSyntaxHighlighterClass.new()
 	return highlighter
 
 ## Set the virtual filesystem
@@ -185,6 +210,16 @@ func set_virtual_filesystem(vfs: Variant) -> void:
 	if file_explorer:
 		file_explorer.set_virtual_filesystem(vfs)
 		_load_file(current_file)
+
+## Set the debugger
+func set_debugger(dbg: Variant) -> void:
+	debugger = dbg
+	if debugger:
+		# Connect debugger signals
+		debugger.breakpoint_hit.connect(_on_breakpoint_hit)
+		debugger.execution_paused.connect(_on_execution_paused)
+		debugger.execution_resumed.connect(_on_execution_resumed)
+		debugger.execution_line_changed.connect(_on_execution_line_changed)
 
 ## Load a file into the editor
 func _load_file(file_path: String) -> void:
@@ -249,3 +284,65 @@ func set_code(code: String) -> void:
 	code_edit.text = code
 	is_modified = false
 	_update_status_bar()
+
+## Gutter clicked (for breakpoints)
+func _on_gutter_clicked(line: int, gutter: int) -> void:
+	if gutter != BREAKPOINT_GUTTER or not debugger:
+		return
+
+	# Toggle breakpoint
+	var is_active = debugger.toggle_breakpoint(current_file, line)
+
+	if is_active:
+		# Add breakpoint icon
+		code_edit.set_line_gutter_icon(line, BREAKPOINT_GUTTER, _create_breakpoint_icon())
+	else:
+		# Remove breakpoint icon
+		code_edit.set_line_gutter_icon(line, BREAKPOINT_GUTTER, null)
+
+## Create breakpoint icon
+func _create_breakpoint_icon() -> Texture2D:
+	var size = 16
+	var image = Image.create(size, size, false, Image.FORMAT_RGBA8)
+
+	# Draw red circle
+	for y in range(size):
+		for x in range(size):
+			var dx = x - size / 2.0
+			var dy = y - size / 2.0
+			var dist = sqrt(dx * dx + dy * dy)
+			if dist <= size / 2.0:
+				image.set_pixel(x, y, Color.RED)
+
+	return ImageTexture.create_from_image(image)
+
+## Debugger callbacks
+func _on_breakpoint_hit(line: int, file: String) -> void:
+	if file == current_file:
+		_highlight_execution_line(line)
+
+func _on_execution_paused() -> void:
+	# Could show a paused indicator in the UI
+	pass
+
+func _on_execution_resumed() -> void:
+	# Clear execution line highlighting
+	_clear_execution_line()
+
+func _on_execution_line_changed(file: String, line: int) -> void:
+	if file == current_file:
+		_highlight_execution_line(line)
+
+## Highlight the current execution line
+func _highlight_execution_line(line: int) -> void:
+	# Remove previous highlight
+	_clear_execution_line()
+
+	# Set background color for the execution line
+	code_edit.set_line_background_color(line, EXECUTION_LINE_COLOR)
+
+## Clear execution line highlighting
+func _clear_execution_line() -> void:
+	# Clear all line background colors
+	for i in range(code_edit.get_line_count()):
+		code_edit.set_line_background_color(i, Color(0, 0, 0, 0))
