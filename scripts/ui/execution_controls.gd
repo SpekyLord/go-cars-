@@ -13,7 +13,7 @@ signal speed_changed(speed: float)
 @onready var stop_button: Button = $HBox/StopButton
 @onready var step_button: Button = $HBox/StepButton
 @onready var speed_slider: HSlider = $HBox/SpeedSlider
-@onready var speed_label: Label = $HBox/SpeedLabel
+@onready var speed_value_label: Label = $HBox/SpeedValue
 @onready var line_label: Label = $HBox/LineLabel
 @onready var status_label: Label = $HBox/StatusLabel
 

@@ -1,0 +1,66 @@
+[gd_scene load_steps=2 format=3 uid="uid://b3m9k7n2p4qst"]
+
+[ext_resource type="Script" path="res://scripts/ui/execution_controls.gd" id="1_exec_controls"]
+
+[node name="ExecutionControls" type="PanelContainer"]
+custom_minimum_size = Vector2(500, 40)
+offset_right = 500.0
+offset_bottom = 40.0
+script = ExtResource("1_exec_controls")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="HBox"]
+layout_mode = 2
+text = "▶ Play"
+tooltip_text = "Start/Resume Execution (F5)"
+
+[node name="PauseButton" type="Button" parent="HBox"]
+layout_mode = 2
+text = "⏸ Pause"
+tooltip_text = "Pause Execution (Space)"
+
+[node name="StopButton" type="Button" parent="HBox"]
+layout_mode = 2
+text = "⏹ Stop"
+tooltip_text = "Stop Execution"
+
+[node name="StepButton" type="Button" parent="HBox"]
+layout_mode = 2
+text = "⏭ Step"
+tooltip_text = "Execute One Line (F10)"
+
+[node name="VSeparator" type="VSeparator" parent="HBox"]
+layout_mode = 2
+
+[node name="SpeedLabel" type="Label" parent="HBox"]
+layout_mode = 2
+text = "Speed:"
+
+[node name="SpeedSlider" type="HSlider" parent="HBox"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+min_value = 0.1
+max_value = 4.0
+step = 0.1
+value = 1.0
+
+[node name="SpeedValue" type="Label" parent="HBox"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+text = "1.0x"
+
+[node name="VSeparator2" type="VSeparator" parent="HBox"]
+layout_mode = 2
+
+[node name="LineLabel" type="Label" parent="HBox"]
+layout_mode = 2
+text = "Line: -"
+
+[node name="VSeparator3" type="VSeparator" parent="HBox"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="HBox"]
+layout_mode = 2
+text = "Ready"

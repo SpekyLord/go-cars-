@@ -1,0 +1,118 @@
+[gd_scene load_steps=2 format=3 uid="uid://d7k2m8n9v5wxy"]
+
+[ext_resource type="Script" path="res://scripts/ui/metrics_panel.gd" id="1_metrics"]
+
+[node name="MetricsPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(300, 400)
+offset_right = 300.0
+offset_bottom = 400.0
+script = ExtResource("1_metrics")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Performance Metrics"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBox"]
+layout_mode = 2
+
+[node name="Grid" type="GridContainer" parent="VBox"]
+layout_mode = 2
+columns = 2
+
+[node name="StepsLabel" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "Steps:"
+
+[node name="StepsValue" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "0"
+
+[node name="StepsRatingLabel" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "Rating:"
+
+[node name="StepsRating" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "N/A"
+
+[node name="TimeLabel" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "Time:"
+
+[node name="TimeValue" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "0.00 s"
+
+[node name="LOCLabel" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "Lines of Code:"
+
+[node name="LOCValue" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "0"
+
+[node name="LOCRatingLabel" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "Code Rating:"
+
+[node name="LOCRating" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "N/A"
+
+[node name="DistanceLabel" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "Distance:"
+
+[node name="DistanceValue" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "0.0 units"
+
+[node name="TurnsLabel" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "Turns:"
+
+[node name="TurnsValue" type="Label" parent="VBox/Grid"]
+layout_mode = 2
+text = "0"
+
+[node name="HSeparator2" type="HSeparator" parent="VBox"]
+layout_mode = 2
+
+[node name="ScoreSection" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="ScoreLabel" type="Label" parent="VBox/ScoreSection"]
+layout_mode = 2
+text = "Overall Score"
+horizontal_alignment = 1
+
+[node name="ScoreValue" type="Label" parent="VBox/ScoreSection"]
+layout_mode = 2
+text = "0 / 100"
+horizontal_alignment = 1
+
+[node name="Stars" type="HBoxContainer" parent="VBox/ScoreSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="HSeparator3" type="HSeparator" parent="VBox"]
+layout_mode = 2
+
+[node name="CommandsSection" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CommandsLabel" type="Label" parent="VBox/CommandsSection"]
+layout_mode = 2
+text = "Commands Used"
+
+[node name="CommandsTree" type="Tree" parent="VBox/CommandsSection"]
+layout_mode = 2
+size_flags_vertical = 3
+columns = 2
+column_titles_visible = true
+hide_root = true
