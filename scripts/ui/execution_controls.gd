@@ -84,6 +84,6 @@ func _on_line_executed(line: int, _vars: Dictionary) -> void:
 		line_label.text = "Line: %d" % (line + 1)
 
 func _on_speed_changed(value: float) -> void:
-	if speed_label:
-		speed_label.text = "%.1fx" % value
+	if speed_value_label:
+		speed_value_label.text = "%.1fx" % value
 	speed_changed.emit(value)

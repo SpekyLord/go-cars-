@@ -23,6 +23,7 @@ var file_explorer: FileExplorer
 var code_edit: CodeEdit
 var status_bar: HBoxContainer
 var status_label: Label
+var metrics_label: Label
 
 ## Virtual filesystem reference
 var virtual_fs: Variant = null  # VirtualFileSystem instance
@@ -40,6 +41,14 @@ var error_highlighter: Variant = null
 var execution_tracer: Variant = null
 var performance_metrics: Variant = null
 
+## Hover tooltip
+var hover_tooltip: PanelContainer = null
+var hover_timer: Timer = null
+var last_hover_word: String = ""
+
+## Store breakpoints locally if no debugger is connected
+var local_breakpoints: Dictionary = {}  # line -> bool
+
 ## Current file
 var current_file: String = "main.py"
 var is_modified: bool = false
@@ -50,7 +59,7 @@ var current_speed: float = 1.0
 
 ## Debugger constants
 const BREAKPOINT_GUTTER: int = 1
-const EXECUTION_LINE_COLOR: Color = Color(1.0, 1.0, 0.0, 0.2)  # Yellow highlight
+const EXECUTION_LINE_COLOR: Color = Color(1.0, 1.0, 0.0, 0.35)  # Brighter yellow highlight
 
 func _init() -> void:
 	window_title = "Code Editor"
@@ -134,6 +143,18 @@ func _setup_editor_ui() -> void:
 	code_edit.gutters_draw_fold_gutter = true  # Enable code folding arrows
 	code_edit.wrap_mode = TextEdit.LINE_WRAPPING_NONE
 
+	# Enable indent-based code folding (required for Python-style folding)
+	code_edit.indent_automatic = true
+	code_edit.indent_size = 4
+	code_edit.indent_use_spaces = true
+
+	# Enable folding via delimiters and indentation
+	code_edit.add_comment_delimiter("#", "", true)  # Single line comment
+	code_edit.add_string_delimiter("\"", "\"", false)
+	code_edit.add_string_delimiter("'", "'", false)
+	code_edit.add_string_delimiter("\"\"\"", "\"\"\"", false)  # Multi-line strings can fold
+	code_edit.add_string_delimiter("'''", "'''", false)
+
 	# Add breakpoint gutter
 	code_edit.add_gutter(BREAKPOINT_GUTTER)
 	code_edit.set_gutter_name(BREAKPOINT_GUTTER, "breakpoints")
@@ -151,7 +172,20 @@ func _setup_editor_ui() -> void:
 	status_label = Label.new()
 	status_label.name = "StatusLabel"
 	status_label.text = "Ln 1, Col 1 | main.py | ✓ Saved"
+	status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	status_bar.add_child(status_label)
+
+	# Spacer to push metrics to the right
+	var spacer = Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	status_bar.add_child(spacer)
+
+	# Performance metrics label (right-aligned)
+	metrics_label = Label.new()
+	metrics_label.name = "MetricsLabel"
+	metrics_label.text = "Steps: 0 | LOC: 0"
+	metrics_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.6))
+	status_bar.add_child(metrics_label)
 
 	# Setup IntelliSense
 	var IntelliSenseClass = load("res://scripts/ui/intellisense_manager.gd")
@@ -185,6 +219,9 @@ func _setup_editor_ui() -> void:
 	performance_metrics = PerformanceMetricsClass.new()
 	print("CodeEditorWindow: Performance metrics initialized")
 
+	# Setup hover tooltip
+	_setup_hover_tooltip(content)
+
 	# Connect signals
 	run_button.pressed.connect(_on_run_pressed)
 	pause_button.pressed.connect(_on_pause_pressed)
@@ -193,6 +230,7 @@ func _setup_editor_ui() -> void:
 	code_edit.text_changed.connect(_on_text_changed)
 	code_edit.caret_changed.connect(_update_status_bar)
 	code_edit.gutter_clicked.connect(_on_gutter_clicked)
+	code_edit.mouse_exited.connect(_on_code_edit_mouse_exited)
 
 func _input(event: InputEvent) -> void:
 	# Only handle input when window is visible
@@ -309,6 +347,9 @@ func _load_file(file_path: String) -> void:
 		intellisense.parse_file_symbols(file_path, content)
 		intellisense.set_current_file(file_path)
 
+	# Update LOC metrics
+	update_metrics()
+
 ## Save current file
 func _save_file() -> void:
 	if virtual_fs == null or current_file == "":
@@ -341,6 +382,9 @@ func _on_text_changed() -> void:
 	if fold_manager:
 		fold_manager.analyze_folds(code_edit.text)
 
+	# Update performance metrics (LOC count) in real-time
+	update_metrics()
+
 func _update_status_bar() -> void:
 	var line = code_edit.get_caret_line() + 1
 	var col = code_edit.get_caret_column() + 1
@@ -351,12 +395,24 @@ func _on_run_pressed() -> void:
 	# Auto-save before running
 	if is_modified:
 		_save_file()
+
+	# Visual feedback: highlight first line when execution starts
+	if code_edit.get_line_count() > 0:
+		_highlight_execution_line(0)
+
+	# Update metrics to show execution started
+	on_execution_started()
+
 	code_run_requested.emit(code_edit.text)
 
 func _on_pause_pressed() -> void:
 	code_pause_requested.emit()
 
 func _on_reset_pressed() -> void:
+	# Clear execution highlight
+	_clear_execution_line()
+	# Reset metrics display
+	update_metrics()
 	code_reset_requested.emit()
 
 func _on_speed_selected(index: int) -> void:
@@ -374,6 +430,74 @@ func set_code(code: String) -> void:
 	is_modified = false
 	_update_status_bar()
 
+## Highlight execution line (for execution visualization)
+## Call this with the current line number (0-indexed) when code is executing
+func highlight_line(line: int) -> void:
+	_highlight_execution_line(line)
+
+## Clear execution visualization
+func clear_highlight() -> void:
+	_clear_execution_line()
+
+## Update performance metrics display
+func update_metrics(steps: int = -1, loc: int = -1, time_ms: float = -1) -> void:
+	if not metrics_label:
+		return
+
+	# If steps is -1, calculate LOC from current code
+	if steps < 0 and loc < 0:
+		# Just count lines of code
+		var code = code_edit.text
+		var lines = code.split("\n")
+		var code_lines = 0
+		for line in lines:
+			var stripped = line.strip_edges()
+			if not stripped.is_empty() and not stripped.begins_with("#"):
+				code_lines += 1
+		loc = code_lines
+
+	# Build metrics text
+	var parts: Array[String] = []
+
+	if steps >= 0:
+		parts.append("Steps: %d" % steps)
+	if loc >= 0:
+		parts.append("LOC: %d" % loc)
+	if time_ms >= 0:
+		parts.append("Time: %.1fms" % time_ms)
+
+	if parts.is_empty():
+		metrics_label.text = ""
+	else:
+		metrics_label.text = " | ".join(parts)
+
+## Called when code execution starts
+func on_execution_started() -> void:
+	if performance_metrics:
+		performance_metrics.reset()
+		performance_metrics.lines_of_code = _count_lines_of_code()
+	update_metrics(0, _count_lines_of_code())
+
+## Called when code execution ends
+func on_execution_ended() -> void:
+	if performance_metrics:
+		update_metrics(
+			performance_metrics.execution_steps,
+			performance_metrics.lines_of_code,
+			performance_metrics.total_time_ms
+		)
+
+## Count non-empty, non-comment lines
+func _count_lines_of_code() -> int:
+	var code = code_edit.text
+	var lines = code.split("\n")
+	var count = 0
+	for line in lines:
+		var stripped = line.strip_edges()
+		if not stripped.is_empty() and not stripped.begins_with("#"):
+			count += 1
+	return count
+
 ## Gutter clicked (for breakpoints and folding)
 func _on_gutter_clicked(line: int, gutter: int) -> void:
 	# Handle code folding (gutter 0 is the folding gutter)
@@ -381,12 +505,23 @@ func _on_gutter_clicked(line: int, gutter: int) -> void:
 		fold_manager.toggle_fold(line)
 		return
 
-	# Handle breakpoints
-	if gutter != BREAKPOINT_GUTTER or not debugger:
+	# Handle breakpoints - works with or without debugger
+	if gutter != BREAKPOINT_GUTTER:
 		return
 
-	# Toggle breakpoint
-	var is_active = debugger.toggle_breakpoint(current_file, line)
+	var is_active: bool
+
+	if debugger:
+		# Use debugger if available
+		is_active = debugger.toggle_breakpoint(current_file, line)
+	else:
+		# Toggle local breakpoint
+		if local_breakpoints.has(line):
+			local_breakpoints.erase(line)
+			is_active = false
+		else:
+			local_breakpoints[line] = true
+			is_active = true
 
 	if is_active:
 		# Add breakpoint icon
@@ -394,6 +529,20 @@ func _on_gutter_clicked(line: int, gutter: int) -> void:
 	else:
 		# Remove breakpoint icon
 		code_edit.set_line_gutter_icon(line, BREAKPOINT_GUTTER, null)
+
+## Get all breakpoints
+func get_breakpoints() -> Array:
+	if debugger:
+		return debugger.get_breakpoints(current_file)
+	else:
+		return local_breakpoints.keys()
+
+## Check if a line has a breakpoint
+func has_breakpoint(line: int) -> bool:
+	if debugger:
+		return debugger.has_breakpoint(current_file, line)
+	else:
+		return local_breakpoints.has(line)
 
 ## Create breakpoint icon
 func _create_breakpoint_icon() -> Texture2D:
@@ -424,8 +573,13 @@ func _on_execution_resumed() -> void:
 	# Clear execution line highlighting
 	_clear_execution_line()
 
-func _on_execution_line_changed(file: String, line: int) -> void:
-	if file == current_file:
+func _on_execution_line_changed(file_or_line, line: int = -1) -> void:
+	# Handle both (file, line) and (line) signatures
+	if line == -1:
+		# Called with just line number
+		_highlight_execution_line(file_or_line as int)
+	elif file_or_line == current_file:
+		# Called with file and line
 		_highlight_execution_line(line)
 
 ## Highlight the current execution line
@@ -441,3 +595,177 @@ func _clear_execution_line() -> void:
 	# Clear all line background colors
 	for i in range(code_edit.get_line_count()):
 		code_edit.set_line_background_color(i, Color(0, 0, 0, 0))
+
+## Setup hover tooltip UI
+func _setup_hover_tooltip(parent: Control) -> void:
+	# Create tooltip panel
+	hover_tooltip = PanelContainer.new()
+	hover_tooltip.name = "HoverTooltip"
+	hover_tooltip.visible = false
+	hover_tooltip.z_index = 150
+	hover_tooltip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var vbox = VBoxContainer.new()
+	vbox.name = "VBoxContainer"
+	vbox.add_theme_constant_override("separation", 4)
+	hover_tooltip.add_child(vbox)
+
+	var signature_label = Label.new()
+	signature_label.name = "SignatureLabel"
+	signature_label.add_theme_color_override("font_color", Color(0.6, 0.9, 0.6))
+	vbox.add_child(signature_label)
+
+	var doc_label = Label.new()
+	doc_label.name = "DocLabel"
+	doc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	doc_label.custom_minimum_size = Vector2(200, 0)
+	doc_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	vbox.add_child(doc_label)
+
+	parent.add_child(hover_tooltip)
+
+	# Create hover timer
+	hover_timer = Timer.new()
+	hover_timer.one_shot = true
+	hover_timer.wait_time = 0.5  # 500ms delay before showing tooltip
+	hover_timer.timeout.connect(_on_hover_timer_timeout)
+	add_child(hover_timer)
+
+	print("CodeEditorWindow: Hover tooltip initialized")
+
+## Process mouse motion for hover tooltips
+func _process(_delta: float) -> void:
+	if not visible or not code_edit:
+		return
+
+	# Check if mouse is over code_edit
+	var mouse_pos = code_edit.get_local_mouse_position()
+	if not code_edit.get_rect().has_point(mouse_pos + code_edit.position):
+		return
+
+	# Get the word under the mouse cursor
+	var line_col = _get_line_col_at_pos(mouse_pos)
+	if line_col.x < 0 or line_col.y < 0:
+		return
+
+	var word = _get_word_at_position(line_col.x, line_col.y)
+
+	if word != last_hover_word:
+		last_hover_word = word
+		if hover_tooltip:
+			hover_tooltip.visible = false
+		if word != "" and hover_timer:
+			hover_timer.start()
+
+## Get line and column from mouse position
+func _get_line_col_at_pos(pos: Vector2) -> Vector2i:
+	if not code_edit:
+		return Vector2i(-1, -1)
+
+	# Calculate line from Y position using line height
+	var line_height = code_edit.get_line_height()
+	var scroll_offset = code_edit.get_v_scroll()
+	var line = int((pos.y / line_height) + scroll_offset)
+
+	if line < 0 or line >= code_edit.get_line_count():
+		return Vector2i(-1, -1)
+
+	# Estimate column based on X position
+	var line_text = code_edit.get_line(line)
+	var font = code_edit.get_theme_font("font")
+	var font_size = code_edit.get_theme_font_size("font_size")
+	var char_width = 8.0  # Default fallback
+	if font and font_size > 0:
+		char_width = font.get_char_size(ord("m"), font_size).x
+	if char_width <= 0:
+		char_width = 8.0
+	var col = int(pos.x / char_width)
+	col = clamp(col, 0, line_text.length())
+
+	return Vector2i(line, col)
+
+## Get word at specific line and column
+func _get_word_at_position(line: int, col: int) -> String:
+	if not code_edit:
+		return ""
+
+	var line_text = code_edit.get_line(line)
+	if col >= line_text.length():
+		return ""
+
+	# Find word boundaries
+	var start = col
+	var end = col
+
+	# Move start backwards
+	while start > 0 and (line_text[start - 1].is_valid_identifier() or line_text[start - 1] == "_"):
+		start -= 1
+
+	# Move end forwards
+	while end < line_text.length() and (line_text[end].is_valid_identifier() or line_text[end] == "_"):
+		end += 1
+
+	if start == end:
+		return ""
+
+	return line_text.substr(start, end - start)
+
+## Timer timeout - show tooltip if word has documentation
+func _on_hover_timer_timeout() -> void:
+	if last_hover_word == "":
+		return
+
+	# Look up the word in GameCommands
+	var GameCommandsClass = load("res://scripts/ui/game_commands.gd")
+	var cmd = GameCommandsClass.find_by_name(last_hover_word)
+
+	if cmd.is_empty():
+		# Check if it's an object
+		if last_hover_word in ["car", "stoplight", "boat"]:
+			cmd = {
+				"signature": last_hover_word,
+				"doc": "Game object - type '.' to see available methods"
+			}
+		else:
+			return
+
+	_show_hover_tooltip(cmd)
+
+## Show the hover tooltip
+func _show_hover_tooltip(cmd: Dictionary) -> void:
+	if not hover_tooltip or not code_edit:
+		return
+
+	var signature_label = hover_tooltip.get_node_or_null("VBoxContainer/SignatureLabel")
+	var doc_label = hover_tooltip.get_node_or_null("VBoxContainer/DocLabel")
+
+	if signature_label:
+		signature_label.text = cmd.get("signature", "")
+	if doc_label:
+		doc_label.text = cmd.get("doc", "")
+
+	# Position tooltip near mouse
+	var mouse_pos = code_edit.get_local_mouse_position()
+	var global_mouse = code_edit.global_position + mouse_pos
+	var tooltip_pos = global_mouse
+	tooltip_pos.y -= hover_tooltip.size.y + 10  # Above the mouse
+
+	# Keep on screen
+	var viewport = get_viewport()
+	if viewport:
+		var screen_size = viewport.get_visible_rect().size
+		if tooltip_pos.x + hover_tooltip.size.x > screen_size.x:
+			tooltip_pos.x = screen_size.x - hover_tooltip.size.x
+		if tooltip_pos.y < 0:
+			tooltip_pos.y = global_mouse.y + 20  # Below instead
+
+	hover_tooltip.global_position = tooltip_pos
+	hover_tooltip.visible = true
+
+## Mouse exited code edit
+func _on_code_edit_mouse_exited() -> void:
+	if hover_tooltip:
+		hover_tooltip.visible = false
+	if hover_timer:
+		hover_timer.stop()
+	last_hover_word = ""

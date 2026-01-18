@@ -137,14 +137,44 @@ func on_text_changed() -> void:
 
 	var line_text = code_edit.get_line(caret_line)
 
+	# Check for dot trigger (car. stoplight. boat.)
+	if caret_col > 0 and line_text.substr(caret_col - 1, 1) == ".":
+		# Get the object before the dot
+		var obj_end = caret_col - 1
+		var obj_start = _find_word_start(line_text, obj_end)
+		var obj_name = line_text.substr(obj_start, obj_end - obj_start)
+
+		if obj_name in ["car", "stoplight", "boat"]:
+			_show_object_methods(obj_name)
+			return
+
 	# Get the word being typed
 	var word_start = _find_word_start(line_text, caret_col)
 	var current_word = line_text.substr(word_start, caret_col - word_start)
 
-	# Signature help disabled - VSCode style (only show autocomplete)
-	# Hide signature popup if it's showing
-	if signature_popup:
-		signature_popup.hide()
+	# Check if there's a dot before the word (car.go typing "g")
+	if word_start > 1 and line_text.substr(word_start - 1, 1) == ".":
+		var obj_end = word_start - 1
+		var obj_start = _find_word_start(line_text, obj_end)
+		var obj_name = line_text.substr(obj_start, obj_end - obj_start)
+
+		if obj_name in ["car", "stoplight", "boat"]:
+			_show_object_methods(obj_name, current_word)
+			return
+
+	# Check if we're inside a function call for parameter hints
+	var func_context = _get_function_context(line_text, caret_col)
+	if func_context.function_name != "":
+		var func_data = _GameCommandsClass.find_by_name(func_context.function_name)
+		if not func_data.is_empty():
+			_show_signature_help(func_data, func_context.param_index)
+		else:
+			if signature_popup:
+				signature_popup.hide()
+	else:
+		# Hide signature popup if not in function context
+		if signature_popup:
+			signature_popup.hide()
 
 	# Show suggestions if typing
 	if current_word.length() >= _EditorConfigClass.autocomplete_trigger_length:
@@ -178,6 +208,37 @@ func _trigger_suggestions() -> void:
 	var current_word = line_text.substr(word_start, caret_col - word_start)
 
 	_show_suggestions_for(current_word if current_word.length() > 0 else "")
+
+func _show_signature_help(func_data: Dictionary, param_index: int) -> void:
+	if not signature_popup:
+		return
+
+	# Get caret screen position (ABOVE the current line)
+	var caret_draw = code_edit.get_caret_draw_pos()
+	var global_pos = code_edit.get_global_transform() * caret_draw
+
+	signature_popup.show_signature(func_data, param_index, global_pos)
+
+func _show_object_methods(obj_name: String, prefix: String = "") -> void:
+	var suggestions: Array[Dictionary] = []
+
+	# Get methods for this object
+	suggestions.append_array(_GameCommandsClass.get_methods_for_object(obj_name, prefix))
+
+	if suggestions.is_empty():
+		if autocomplete_popup:
+			autocomplete_popup.hide()
+		return
+
+	# Get caret screen position (VSCode style - position UNDER current line)
+	var caret_draw = code_edit.get_caret_draw_pos()
+	var line_height = code_edit.get_line_height()
+
+	# Position is caret X, but Y is moved down by one line height
+	var local_pos = Vector2(caret_draw.x, caret_draw.y + line_height)
+	var global_pos = code_edit.get_global_transform() * local_pos
+
+	autocomplete_popup.show_suggestions(suggestions, prefix, global_pos)
 
 func _show_suggestions_for(prefix: String) -> void:
 	var suggestions: Array[Dictionary] = []

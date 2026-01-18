@@ -9,11 +9,11 @@ var body: Array[String]      # Lines of code
 var tab_stops: Array[Dictionary] = []  # {index, line, column, placeholder, linked_to}
 var scope: String = "python" # Language scope
 
-func _init(p: String, n: String, desc: String, b: Array[String]) -> void:
+func _init(p: String = "", n: String = "", desc: String = "", b: Array = []) -> void:
 	prefix = p
 	name = n
 	description = desc
-	body = b
+	body.assign(b)
 	_parse_tab_stops()
 
 func _parse_tab_stops() -> void:

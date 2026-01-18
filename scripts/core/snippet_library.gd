@@ -75,6 +75,11 @@ static func _static_init() -> void:
 
 	# Game-Specific Snippets (using short API names)
 	snippets.append(Snippet.new(
+		"ifroad", "If Road Check", "Check if road ahead and move",
+		["if car.front_road():", "\tcar.go()"]
+	))
+
+	snippets.append(Snippet.new(
 		"moveloop", "Movement Loop", "Loop with movement commands",
 		["for ${1:i} in range(${2:5}):", "\tcar.go()", "\t${3:pass}"]
 	))

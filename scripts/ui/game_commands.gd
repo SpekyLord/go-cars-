@@ -128,3 +128,27 @@ static func find_by_name(name: String) -> Dictionary:
 		if cmd.name == name:
 			return cmd
 	return {}
+
+## Get methods available for a specific game object
+static func get_methods_for_object(obj_name: String, prefix: String = "") -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	var prefix_lower = prefix.to_lower()
+
+	# Define which categories belong to which object
+	var object_categories = {
+		"car": ["movement", "speed", "sensor", "state", "utility"],
+		"stoplight": ["traffic"],
+		"boat": ["boat"]
+	}
+
+	var valid_categories = object_categories.get(obj_name, [])
+
+	for cmd in commands:
+		if cmd.category in valid_categories:
+			if prefix_lower.is_empty() or cmd.name.to_lower().begins_with(prefix_lower):
+				results.append(cmd)
+
+	# Sort alphabetically
+	results.sort_custom(func(a, b): return a.name < b.name)
+
+	return results

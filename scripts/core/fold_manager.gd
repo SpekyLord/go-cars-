@@ -25,6 +25,9 @@ const FOLD_STARTERS = {
 
 func _init(editor: CodeEdit) -> void:
 	code_edit = editor
+	# Enable folding in CodeEdit
+	if code_edit:
+		code_edit.gutters_draw_fold_gutter = true
 
 func analyze_folds(content: String) -> void:
 	fold_regions.clear()
@@ -104,12 +107,20 @@ func _create_fold_region(start: int, end: int, indent: int, type: String, lines:
 	fold_regions.append(region)
 
 func toggle_fold(line: int) -> void:
+	# First check our internal fold regions
 	var region = get_fold_at_line(line)
 	if region:
 		if region.is_folded:
 			unfold(region)
 		else:
 			fold(region)
+		return
+
+	# If no internal region, try CodeEdit's built-in folding
+	if code_edit and code_edit.can_fold_line(line):
+		code_edit.fold_line(line)
+	elif code_edit and code_edit.is_line_folded(line):
+		code_edit.unfold_line(line)
 
 func fold(region: FoldRegion) -> void:
 	if region.is_folded:
@@ -118,9 +129,14 @@ func fold(region: FoldRegion) -> void:
 	region.is_folded = true
 	folded_lines[region.start_line] = region
 
-	# Hide lines in CodeEdit
-	for i in range(region.start_line + 1, region.end_line + 1):
-		code_edit.set_line_as_hidden(i, true)
+	# Use CodeEdit's native folding if possible
+	if code_edit and code_edit.can_fold_line(region.start_line):
+		code_edit.fold_line(region.start_line)
+	else:
+		# Fallback to hiding lines
+		for i in range(region.start_line + 1, region.end_line + 1):
+			if i < code_edit.get_line_count():
+				code_edit.set_line_as_hidden(i, true)
 
 	folds_updated.emit()
 
@@ -131,9 +147,14 @@ func unfold(region: FoldRegion) -> void:
 	region.is_folded = false
 	folded_lines.erase(region.start_line)
 
-	# Show lines in CodeEdit
-	for i in range(region.start_line + 1, region.end_line + 1):
-		code_edit.set_line_as_hidden(i, false)
+	# Use CodeEdit's native unfolding if available
+	if code_edit and code_edit.is_line_folded(region.start_line):
+		code_edit.unfold_line(region.start_line)
+	else:
+		# Fallback to showing lines
+		for i in range(region.start_line + 1, region.end_line + 1):
+			if i < code_edit.get_line_count():
+				code_edit.set_line_as_hidden(i, false)
 
 	folds_updated.emit()
 
