@@ -223,7 +223,14 @@ func _load_window_state() -> void:
 	if settings.has("code_editor"):
 		var ce = settings["code_editor"]
 		if ce.has("position"):
-			code_editor_window.global_position = Vector2(ce["position"][0], ce["position"][1])
+			var saved_pos = Vector2(ce["position"][0], ce["position"][1])
+			# Recenter if position is at origin or off-screen (bad saved state)
+			var viewport_size = code_editor_window.get_viewport_rect().size
+			if saved_pos == Vector2.ZERO or saved_pos.x < 0 or saved_pos.y < 0 or saved_pos.x > viewport_size.x or saved_pos.y > viewport_size.y:
+				# Recenter the window
+				code_editor_window.global_position = (viewport_size - code_editor_window.default_size) / 2
+			else:
+				code_editor_window.global_position = saved_pos
 		if ce.has("size"):
 			code_editor_window.size = Vector2(ce["size"][0], ce["size"][1])
 
@@ -231,7 +238,14 @@ func _load_window_state() -> void:
 	if settings.has("readme"):
 		var rm = settings["readme"]
 		if rm.has("position"):
-			readme_window.global_position = Vector2(rm["position"][0], rm["position"][1])
+			var saved_pos = Vector2(rm["position"][0], rm["position"][1])
+			# Recenter if position is at origin or off-screen (bad saved state)
+			var viewport_size = readme_window.get_viewport_rect().size
+			if saved_pos == Vector2.ZERO or saved_pos.x < 0 or saved_pos.y < 0 or saved_pos.x > viewport_size.x or saved_pos.y > viewport_size.y:
+				# Recenter the window
+				readme_window.global_position = (viewport_size - readme_window.default_size) / 2
+			else:
+				readme_window.global_position = saved_pos
 		if rm.has("size"):
 			readme_window.size = Vector2(rm["size"][0], rm["size"][1])
 
@@ -239,7 +253,14 @@ func _load_window_state() -> void:
 	if settings.has("skill_tree"):
 		var st = settings["skill_tree"]
 		if st.has("position"):
-			skill_tree_window.global_position = Vector2(st["position"][0], st["position"][1])
+			var saved_pos = Vector2(st["position"][0], st["position"][1])
+			# Recenter if position is at origin or off-screen (bad saved state)
+			var viewport_size = skill_tree_window.get_viewport_rect().size
+			if saved_pos == Vector2.ZERO or saved_pos.x < 0 or saved_pos.y < 0 or saved_pos.x > viewport_size.x or saved_pos.y > viewport_size.y:
+				# Recenter the window
+				skill_tree_window.global_position = (viewport_size - skill_tree_window.default_size) / 2
+			else:
+				skill_tree_window.global_position = saved_pos
 		if st.has("size"):
 			skill_tree_window.size = Vector2(st["size"][0], st["size"][1])
 

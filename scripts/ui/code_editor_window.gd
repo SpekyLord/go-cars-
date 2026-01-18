@@ -33,6 +33,13 @@ var debugger: Variant = null  # Debugger instance
 ## IntelliSense manager
 var intellisense: Variant = null
 
+## Advanced features
+var snippet_handler: Variant = null
+var fold_manager: Variant = null
+var error_highlighter: Variant = null
+var execution_tracer: Variant = null
+var performance_metrics: Variant = null
+
 ## Current file
 var current_file: String = "main.py"
 var is_modified: bool = false
@@ -124,6 +131,7 @@ func _setup_editor_ui() -> void:
 	code_edit.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	code_edit.syntax_highlighter = _create_python_highlighter()
 	code_edit.gutters_draw_line_numbers = true
+	code_edit.gutters_draw_fold_gutter = true  # Enable code folding arrows
 	code_edit.wrap_mode = TextEdit.LINE_WRAPPING_NONE
 
 	# Add breakpoint gutter
@@ -151,6 +159,32 @@ func _setup_editor_ui() -> void:
 	intellisense.setup_popups(content)
 	intellisense.set_current_file(current_file)
 
+	# Setup Snippet Handler
+	var SnippetHandlerClass = load("res://scripts/core/snippet_handler.gd")
+	snippet_handler = SnippetHandlerClass.new(code_edit)
+	print("CodeEditorWindow: Snippet handler initialized")
+
+	# Setup Fold Manager
+	var FoldManagerClass = load("res://scripts/core/fold_manager.gd")
+	fold_manager = FoldManagerClass.new(code_edit)
+	print("CodeEditorWindow: Fold manager initialized")
+
+	# Setup Error Highlighter (includes linter)
+	var ErrorHighlighterClass = load("res://scripts/ui/error_highlighter.gd")
+	error_highlighter = ErrorHighlighterClass.new(code_edit)
+	error_highlighter.setup_error_panel(vbox)  # Add error panel below editor
+	print("CodeEditorWindow: Error highlighter initialized")
+
+	# Setup Execution Tracer
+	var ExecutionTracerClass = load("res://scripts/core/execution_tracer.gd")
+	execution_tracer = ExecutionTracerClass.new(code_edit)
+	print("CodeEditorWindow: Execution tracer initialized")
+
+	# Setup Performance Metrics
+	var PerformanceMetricsClass = load("res://scripts/core/performance_metrics.gd")
+	performance_metrics = PerformanceMetricsClass.new()
+	print("CodeEditorWindow: Performance metrics initialized")
+
 	# Connect signals
 	run_button.pressed.connect(_on_run_pressed)
 	pause_button.pressed.connect(_on_pause_pressed)
@@ -170,6 +204,14 @@ func _input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
+		# Tab: Try snippet expansion first
+		if event.keycode == KEY_TAB and snippet_handler:
+			var text_before_caret = code_edit.get_line(code_edit.get_caret_line()).substr(0, code_edit.get_caret_column())
+			var word_match = text_before_caret.rfind(" ")
+			var trigger = text_before_caret.substr(word_match + 1) if word_match != -1 else text_before_caret
+			if snippet_handler.try_expand(trigger.strip_edges()):
+				get_viewport().set_input_as_handled()
+				return
 		# Ctrl+N: New file
 		if event.keycode == KEY_N and event.ctrl_pressed:
 			file_explorer._on_new_file_pressed()
@@ -235,6 +277,22 @@ func set_debugger(dbg: Variant) -> void:
 		debugger.execution_resumed.connect(_on_execution_resumed)
 		debugger.execution_line_changed.connect(_on_execution_line_changed)
 
+## Connect to simulation engine for execution visualization
+func connect_to_simulation(sim_engine: Variant) -> void:
+	if not sim_engine:
+		return
+
+	# Connect execution tracer if available
+	if execution_tracer and sim_engine.has_signal("execution_started"):
+		sim_engine.execution_started.connect(func(): execution_tracer.start_execution(code_edit.text))
+		sim_engine.execution_ended.connect(func(success): execution_tracer.stop_execution())
+
+	# Connect execution line highlighting
+	if sim_engine.has_signal("execution_line"):
+		sim_engine.execution_line.connect(_on_execution_line_changed)
+
+	print("CodeEditorWindow: Connected to simulation engine")
+
 ## Load a file into the editor
 func _load_file(file_path: String) -> void:
 	if virtual_fs == null:
@@ -275,6 +333,14 @@ func _on_text_changed() -> void:
 	if intellisense:
 		intellisense.on_text_changed()
 
+	# Trigger linting (error checking)
+	if error_highlighter:
+		error_highlighter.lint_content(code_edit.text)
+
+	# Update code folding regions
+	if fold_manager:
+		fold_manager.analyze_folds(code_edit.text)
+
 func _update_status_bar() -> void:
 	var line = code_edit.get_caret_line() + 1
 	var col = code_edit.get_caret_column() + 1
@@ -308,8 +374,14 @@ func set_code(code: String) -> void:
 	is_modified = false
 	_update_status_bar()
 
-## Gutter clicked (for breakpoints)
+## Gutter clicked (for breakpoints and folding)
 func _on_gutter_clicked(line: int, gutter: int) -> void:
+	# Handle code folding (gutter 0 is the folding gutter)
+	if gutter == 0 and fold_manager:
+		fold_manager.toggle_fold(line)
+		return
+
+	# Handle breakpoints
 	if gutter != BREAKPOINT_GUTTER or not debugger:
 		return
 

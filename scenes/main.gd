@@ -880,8 +880,11 @@ func _input(event: InputEvent) -> void:
 				simulation_engine.slow_down()
 				call_deferred("_update_speed_label")
 			KEY_F1:
-				# F1 - Toggle help panel
-				_on_toggle_help_pressed()
+				# F1 - Toggle help panel (use new floating window if available)
+				if use_new_ui and window_manager:
+					window_manager.call("_on_readme_requested")
+				else:
+					_on_toggle_help_pressed()
 
 	# Handle tile editing (only when editing is enabled)
 	if is_editing_enabled:
@@ -1186,6 +1189,11 @@ func _setup_new_ui() -> void:
 	if simulation_engine and simulation_engine._python_interpreter:
 		simulation_engine._python_interpreter.call("set_module_loader", module_loader)
 
+	# Connect code editor to simulation engine for execution visualization
+	var code_editor_window = window_manager.code_editor_window
+	if code_editor_window and simulation_engine:
+		code_editor_window.connect_to_simulation(simulation_engine)
+
 	# Hide old UI elements when using new floating window system
 	if code_editor and is_instance_valid(code_editor):
 		code_editor.visible = false
@@ -1195,8 +1203,15 @@ func _setup_new_ui() -> void:
 	var instructions_label = $UI.get_node_or_null("InstructionsLabel")
 	if instructions_label:
 		instructions_label.visible = false
+	# Hide the old help panel
+	if help_panel and is_instance_valid(help_panel):
+		help_panel.visible = false
+	# Hide the toggle help button
+	var toggle_help_button = $UI.get_node_or_null("ToggleHelpButton")
+	if toggle_help_button:
+		toggle_help_button.visible = false
 
-	print("New UI system enabled - Press Ctrl+1 for Code Editor, Ctrl+2 for README, Ctrl+3 for Skill Tree")
+	print("New UI system enabled - Press Ctrl+1 for Code Editor, Ctrl+2 for README (F1), Ctrl+3 for Skill Tree")
 
 func _on_window_manager_code_run(code: String) -> void:
 	"""Handle code execution from new floating window UI"""

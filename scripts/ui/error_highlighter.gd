@@ -33,6 +33,12 @@ func _init(editor: CodeEdit) -> void:
 	code_edit.set_gutter_type(GUTTER_ERROR, CodeEdit.GUTTER_TYPE_ICON)
 	code_edit.set_gutter_width(GUTTER_ERROR, 20)
 
+func setup_error_panel(parent: Control) -> void:
+	"""Setup error panel UI (optional - for showing error list)"""
+	# This is optional - error highlighting works without a panel
+	# If you want an error panel, it would be added here
+	pass
+
 func lint_content(content: String) -> void:
 	linter.lint(content)
 

@@ -771,7 +771,7 @@ func turn(turn_direction: String) -> void:
 
 
 ## Move a specific number of tiles
-func move(tiles: int) -> void:
+func move(tiles: int = 1) -> void:
 	if tiles <= 0:
 		return
 	_command_queue.append({"type": "move", "tiles": tiles})
