@@ -120,6 +120,7 @@ var _current_tile: Vector2i = Vector2i(-1, -1)   # Tile we're currently on
 var _entry_direction: String = ""    # Direction we entered current tile from
 var _last_exit_direction: String = "" # Direction we exited the previous tile (for diagonal transitions)
 var _use_simple_movement: bool = false # After turning, use simple movement until entering new tile
+var _current_move_dir: Vector2 = Vector2.RIGHT  # Stable movement direction for grid calculations
 
 # Auto-navigate mode - car automatically follows road
 var auto_navigate: bool = false
@@ -626,8 +627,8 @@ func _move_along_path(delta: float) -> void:
 	var to_target = target - global_position
 	var dist = to_target.length()
 
-	# Check if reached waypoint (tight threshold for precise path following)
-	if dist < 5.0:
+	# Check if reached waypoint (threshold increased to prevent fast car overshoot)
+	if dist < 15.0:
 		_path_index += 1
 		if _path_index >= _current_path.size():
 			# Path complete
@@ -642,6 +643,7 @@ func _move_along_path(delta: float) -> void:
 
 	# Move toward waypoint
 	var move_dir = to_target.normalized()
+	_current_move_dir = move_dir  # Save stable movement direction for grid calculations
 
 	# Smoothly rotate toward waypoint (visual only)
 	var target_rotation = move_dir.angle() + PI / 2
@@ -881,8 +883,9 @@ func _exec_move(tiles: int) -> void:
 
 ## Get the grid position of the tile the car is currently on (compensating for lane offset)
 func _get_current_grid_pos() -> Vector2i:
-	# Lane offset is perpendicular to direction (90° clockwise)
-	var offset_dir = direction.rotated(PI / 2)
+	# Use stable movement direction for lane offset (not the lerping visual direction)
+	# This prevents grid position from jumping during rotation smoothing
+	var offset_dir = _current_move_dir.rotated(PI / 2)
 	var center_pos = global_position + (offset_dir.normalized() * LANE_OFFSET)
 	return Vector2i(int(center_pos.x / TILE_SIZE), int(center_pos.y / TILE_SIZE))
 
@@ -1181,6 +1184,7 @@ func distance_to_intersection() -> float:
 func reset(start_pos: Vector2, start_dir: Vector2 = Vector2.RIGHT) -> void:
 	global_position = start_pos
 	direction = start_dir.normalized()
+	_current_move_dir = direction  # Initialize stable movement direction
 	# Car sprite faces UP, so add PI/2 to make it face the direction
 	rotation = direction.angle() + PI / 2
 	_is_moving = false
@@ -1343,11 +1347,12 @@ func _process_turn(delta: float) -> void:
 		# After turning, pretend we "entered" from behind our new facing direction
 		_entry_direction = RoadTile.get_opposite_direction(_last_exit_direction)
 
-		# Use simple movement until we enter a new tile
-		# Guideline paths are based on entry direction which doesn't match after turning
-		_use_simple_movement = true
+		# After turning, immediately acquire new guideline path for current tile
+		# Don't use simple movement - stay on guidelines to prevent oscillation
+		_use_simple_movement = false
 		_current_path.clear()
 		_path_index = 0
+		_acquire_path_for_current_tile()
 
 		# Turn command completed - process next command
 		_command_completed()
