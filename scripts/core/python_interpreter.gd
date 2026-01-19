@@ -139,15 +139,13 @@ func step() -> bool:
 	return _execution_stack.size() > 0 and _is_running
 
 
-## Check if the car is busy (turning, waiting, etc.)
+## Check if the car is busy (waiting, etc.)
+## Note: turn() is NOT checked here - the vehicle's command queue handles turn sequencing
 func _is_car_busy() -> bool:
 	if "car" in _game_objects:
 		var car = _game_objects["car"]
 		if car != null and is_instance_valid(car):
-			# Check if car is turning
-			if car.has_method("turning") and car.turning():
-				return true
-			# Check if car is waiting
+			# Check if car is waiting (wait() command needs to block interpreter)
 			if car.has_method("is_waiting") and car.is_waiting:
 				return true
 	return false

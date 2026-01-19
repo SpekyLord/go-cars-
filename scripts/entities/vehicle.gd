@@ -1058,6 +1058,9 @@ func _get_diagonal_rights(entry: String) -> Array:
 ## With guidelines: checks if current tile has a straight-through exit
 ## Without guidelines: checks adjacent tile for connection
 func front_road() -> bool:
+	# Can't evaluate roads while turning - prevents multiple turn queuing
+	if _is_turning:
+		return false
 	if _road_checker == null:
 		return false
 
@@ -1090,6 +1093,9 @@ func front_road() -> bool:
 ## With guidelines: checks if current tile has a left turn exit (cardinal or diagonal)
 ## Without guidelines: checks adjacent tile for connection
 func left_road() -> bool:
+	# Can't evaluate roads while turning - prevents multiple turn queuing
+	if _is_turning:
+		return false
 	if _road_checker == null:
 		return false
 
@@ -1137,6 +1143,9 @@ func left_road() -> bool:
 ## With guidelines: checks if current tile has a right turn exit (cardinal or diagonal)
 ## Without guidelines: checks adjacent tile for connection
 func right_road() -> bool:
+	# Can't evaluate roads while turning - prevents multiple turn queuing
+	if _is_turning:
+		return false
 	if _road_checker == null:
 		return false
 
@@ -1196,6 +1205,9 @@ func front_crash() -> bool:
 
 ## Check if the car is at a dead end (no road in any direction) (short name)
 func dead_end() -> bool:
+	# Can't evaluate dead end while turning - prevents loop early termination
+	if _is_turning:
+		return false
 	if _road_checker == null:
 		return false
 	return not front_road() and not left_road() and not right_road()
