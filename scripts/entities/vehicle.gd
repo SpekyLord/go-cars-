@@ -431,14 +431,16 @@ func _move(_delta: float) -> void:
 	# Apply both user speed multiplier and vehicle type speed multiplier
 	var actual_speed = speed * speed_multiplier * type_speed_mult
 	velocity = direction * actual_speed
-	move_and_slide()
+	# Direct position update instead of move_and_slide() to avoid physics-based sliding
+	global_position += velocity * get_physics_process_delta_time()
 
-	# Check for collisions with other vehicles
-	for i in range(get_slide_collision_count()):
-		var collision = get_slide_collision(i)
-		if collision.get_collider() is Vehicle:
-			var other_vehicle = collision.get_collider() as Vehicle
-
+	# Check for collisions with other vehicles (manual distance check)
+	var vehicles = get_tree().get_nodes_in_group("vehicles")
+	for other_vehicle in vehicles:
+		if other_vehicle == self:
+			continue
+		var dist = global_position.distance_to(other_vehicle.global_position)
+		if dist < 40:  # Collision threshold (roughly car width)
 			# If we hit a crashed car, just this car crashes
 			if other_vehicle.vehicle_state == 0:
 				_on_crash()
@@ -624,8 +626,8 @@ func _move_along_path(delta: float) -> void:
 	var to_target = target - global_position
 	var dist = to_target.length()
 
-	# Check if reached waypoint
-	if dist < 15.0:
+	# Check if reached waypoint (tight threshold for precise path following)
+	if dist < 5.0:
 		_path_index += 1
 		if _path_index >= _current_path.size():
 			# Path complete
@@ -641,20 +643,26 @@ func _move_along_path(delta: float) -> void:
 	# Move toward waypoint
 	var move_dir = to_target.normalized()
 
-	# Update direction and rotation
-	direction = move_dir
-	rotation = lerp_angle(rotation, direction.angle() + PI / 2, 0.3)  # Smooth visual rotation
+	# Smoothly rotate toward waypoint (visual only)
+	var target_rotation = move_dir.angle() + PI / 2
+	rotation = lerp_angle(rotation, target_rotation, 0.3)
 
-	# Apply speed
+	# Keep direction in sync with visual rotation (so car faces where it appears to face)
+	direction = Vector2.UP.rotated(rotation)
+
+	# Move toward waypoint using move_dir (NOT direction)
+	# This ensures car moves toward waypoint while visually rotating smoothly
 	var actual_speed = speed * speed_multiplier * type_speed_mult
-	velocity = direction * actual_speed
-	move_and_slide()
+	velocity = move_dir * actual_speed
+	global_position += velocity * delta
 
-	# Check for collisions
-	for i in range(get_slide_collision_count()):
-		var collision = get_slide_collision(i)
-		if collision.get_collider() is Vehicle:
-			var other_vehicle = collision.get_collider() as Vehicle
+	# Check for collisions with other vehicles (manual distance check)
+	var vehicles = get_tree().get_nodes_in_group("vehicles")
+	for other_vehicle in vehicles:
+		if other_vehicle == self:
+			continue
+		var collision_dist = global_position.distance_to(other_vehicle.global_position)
+		if collision_dist < 40:  # Collision threshold (roughly car width)
 			if other_vehicle.vehicle_state == 0:
 				_on_crash()
 				return
@@ -1323,20 +1331,10 @@ func _process_turn(delta: float) -> void:
 		_turn_progress = 1.0
 		_is_turning = false
 
-		# Store old direction before updating (for lane offset adjustment)
-		var old_direction = direction
-
 		# Snap to exact target rotation
 		rotation = _turn_target_rotation
 		# Since rotation includes PI/2 offset (sprite faces UP), use UP.rotated instead
 		direction = Vector2.UP.rotated(rotation)
-
-		# Adjust position for new lane offset
-		# Lane offset is perpendicular to direction (90° clockwise)
-		# When direction changes, we need to move from old lane to new lane
-		var old_offset = old_direction.rotated(PI / 2).normalized() * LANE_OFFSET
-		var new_offset = direction.rotated(PI / 2).normalized() * LANE_OFFSET
-		global_position = global_position - old_offset + new_offset
 
 		# Update exit direction to match new facing - critical for correct entry detection on next tile
 		_last_exit_direction = _vector_to_connection_direction(direction)
