@@ -98,7 +98,8 @@ var car_destination: Vector2 = Vector2(1368, 504 + LANE_OFFSET)  # Tile (9,3) ce
 var is_spawning_cars: bool = false
 var next_car_id: int = 2  # Start from 2 since car1 is the test vehicle
 
-
+var level_menu_panel: Panel = null
+var level_menu_visible: bool = true
 func _ready() -> void:
 	# Create background container (behind roads)
 	background_container = Node2D.new()
@@ -182,7 +183,9 @@ func _ready() -> void:
 	# Setup new UI system if enabled
 	if use_new_ui:
 		_setup_new_ui()
-
+	# Create level selection menu
+	_create_level_menu()
+	_update_status("Ready - Select a level to play")
 	_update_status("Ready - Enter code and press 'Run Code' (F5)")
 	_update_speed_label()
 	_update_hearts_label()
@@ -1278,3 +1281,131 @@ func _on_window_manager_speed_changed(speed: float) -> void:
 	simulation_engine.speed_multiplier = speed
 	Engine.time_scale = speed  # Apply immediately
 	_update_speed_label()
+
+
+# ============================================
+# Level Selection Menu
+# ============================================
+
+func _create_level_menu() -> void:
+	# Create the main panel
+	level_menu_panel = Panel.new()
+	level_menu_panel.name = "LevelMenuPanel"
+	level_menu_panel.custom_minimum_size = Vector2(500, 400)
+	level_menu_panel.anchor_left = 0.5
+	level_menu_panel.anchor_right = 0.5
+	level_menu_panel.anchor_top = 0.5
+	level_menu_panel.anchor_bottom = 0.5
+	level_menu_panel.offset_left = -250
+	level_menu_panel.offset_right = 250
+	level_menu_panel.offset_top = -200
+	level_menu_panel.offset_bottom = 200
+
+	# Style the panel (dark theme)
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.15, 0.15, 0.18, 0.98)
+	panel_style.border_color = Color(0.3, 0.3, 0.35, 1.0)
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(12)
+	level_menu_panel.add_theme_stylebox_override("panel", panel_style)
+
+	# Create VBoxContainer for layout
+	var vbox = VBoxContainer.new()
+	vbox.anchor_right = 1.0
+	vbox.anchor_bottom = 1.0
+	vbox.offset_left = 20
+	vbox.offset_right = -20
+	vbox.offset_top = 20
+	vbox.offset_bottom = -20
+	vbox.add_theme_constant_override("separation", 15)
+	level_menu_panel.add_child(vbox)
+
+	# Title label
+	var title = Label.new()
+	title.text = "SELECT LEVEL"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color(0.9, 0.9, 0.95))
+	vbox.add_child(title)
+
+	# Subtitle
+	var subtitle = Label.new()
+	subtitle.text = "Choose a level to play"
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 16)
+	subtitle.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
+	vbox.add_child(subtitle)
+
+	# Spacer
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 10)
+	vbox.add_child(spacer)
+
+	# Level data: [id, name, description]
+	var levels = [
+		["T1", "First Drive", "Learn car.go()"],
+		["T2", "Stop Sign", "Learn car.stop()"],
+		["C1", "Smallville", "Variables"],
+		["C2", "Red Light", "If statements"],
+		["W1", "Ferry Dock", "While loops"]
+	]
+
+	# Create button for each level
+	for level_data in levels:
+		var level_id = level_data[0]
+		var level_name = level_data[1]
+		var level_desc = level_data[2]
+
+		var btn = Button.new()
+		btn.text = "%s: %s - %s" % [level_id, level_name, level_desc]
+		btn.custom_minimum_size = Vector2(0, 50)
+		btn.add_theme_font_size_override("font_size", 18)
+
+		# Style button
+		var btn_style = StyleBoxFlat.new()
+		btn_style.bg_color = Color(0.2, 0.2, 0.24, 1.0)
+		btn_style.border_color = Color(0.3, 0.3, 0.35, 1.0)
+		btn_style.set_border_width_all(1)
+		btn_style.set_corner_radius_all(8)
+		btn_style.content_margin_left = 15
+		btn_style.content_margin_right = 15
+		btn.add_theme_stylebox_override("normal", btn_style)
+
+		var btn_hover = StyleBoxFlat.new()
+		btn_hover.bg_color = Color(0.25, 0.25, 0.30, 1.0)
+		btn_hover.border_color = Color(0.4, 0.4, 0.5, 1.0)
+		btn_hover.set_border_width_all(1)
+		btn_hover.set_corner_radius_all(8)
+		btn_hover.content_margin_left = 15
+		btn_hover.content_margin_right = 15
+		btn.add_theme_stylebox_override("hover", btn_hover)
+
+		btn.pressed.connect(_on_level_button_pressed.bind(level_id))
+		vbox.add_child(btn)
+
+	# Add to UI layer
+	$UI.add_child(level_menu_panel)
+	level_menu_visible = true
+
+
+func _on_level_button_pressed(level_id: String) -> void:
+	# Hide menu
+	level_menu_panel.hide()
+	level_menu_visible = false
+
+	# Load and start the level
+	if level_manager.load_level(level_id):
+		level_manager.start_level()
+		_update_status("Level %s loaded - Ready" % level_id)
+	else:
+		_update_status("Failed to load level %s" % level_id)
+
+	# Reset vehicle position
+	if is_instance_valid(test_vehicle):
+		test_vehicle.reset(car_spawn_position, Vector2.RIGHT)
+
+
+func _show_level_menu() -> void:
+	if level_menu_panel:
+		level_menu_panel.show()
+		level_menu_visible = true

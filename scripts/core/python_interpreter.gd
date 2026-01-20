@@ -1101,13 +1101,13 @@ func _get_python_type_name(value: Variant) -> String:
 			return "dict"
 		TYPE_OBJECT:
 			if value.has_method("get_class"):
-				var class_name = value.get_class()
+				var cls_name = value.get_class()
 				# Return simplified names for game objects
-				if "Vehicle" in class_name:
+				if "Vehicle" in cls_name:
 					return "Car"
-				if "Stoplight" in class_name:
+				if "Stoplight" in cls_name:
 					return "Stoplight"
-				return class_name
+				return cls_name
 			return "object"
 		_:
 			return "object"
