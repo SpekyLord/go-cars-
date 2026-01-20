@@ -558,18 +558,17 @@ func _follow_guideline_path(delta: float) -> void:
 			_on_off_road_crash()
 			return
 
-	# Check for tile transition - do we need a new path?
-	var current_grid = _get_current_grid_pos()
-	if current_grid != _current_tile:
-		_on_enter_new_tile(current_grid)
-
 	# After turning, use simple movement until entering a new tile
 	if _use_simple_movement:
 		_move(delta)
 		return
 
-	# If no path, get one
+	# Only check for tile transition when we have no path
+	# During path following, trust the waypoints (prevents false transitions)
 	if _current_path.is_empty():
+		var current_grid = _get_current_grid_pos()
+		if current_grid != _current_tile:
+			_on_enter_new_tile(current_grid)
 		_acquire_path_for_current_tile()
 
 	# If still no path (dead end or error), fall back to old movement
@@ -589,16 +588,12 @@ func _on_enter_new_tile(new_tile: Vector2i) -> void:
 	# Resume guideline movement on new tile
 	_use_simple_movement = false
 
-	# Determine entry direction based on where we came from
+	# ALWAYS use _last_exit_direction for entry calculation (more stable)
+	# The grid-based calculation is unreliable due to lane offset swings
 	if _last_exit_direction != "":
-		# Use opposite of last exit direction (handles diagonals correctly)
 		_entry_direction = RoadTile.get_opposite_direction(_last_exit_direction)
-	elif old_tile != Vector2i(-1, -1):
-		# Fallback to grid-based calculation (for cardinal directions)
-		var diff = old_tile - new_tile
-		_entry_direction = _grid_offset_to_direction(diff)
 	else:
-		# First tile - determine from our current facing direction
+		# First tile only - use facing direction
 		_entry_direction = _get_opposite_direction(_vector_to_connection_direction(direction))
 
 	# Clear path to force acquisition of new one
@@ -935,6 +930,9 @@ func _exec_go() -> void:
 	_is_moving = true
 	# Track the direction we're moving so we don't turn back to it
 	_last_move_direction = direction
+	# Initialize exit direction if not set (ensures stable entry direction calculation)
+	if _last_exit_direction == "":
+		_last_exit_direction = _vector_to_connection_direction(direction)
 	# go() runs indefinitely, so mark command as complete immediately
 	# (the car keeps moving until stop() is called)
 	_command_completed()
@@ -1315,7 +1313,7 @@ func reset(start_pos: Vector2, start_dir: Vector2 = Vector2.RIGHT) -> void:
 	# Reset guideline path following
 	_current_path.clear()
 	_path_index = 0
-	_last_exit_direction = ""
+	_last_exit_direction = _vector_to_connection_direction(direction)  # Initialize with starting direction
 	_use_simple_movement = false
 	# Reset last move direction tracking (used in fallback road detection)
 	_last_move_direction = Vector2.ZERO
