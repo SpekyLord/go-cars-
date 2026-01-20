@@ -18,8 +18,9 @@ signal command_executed(object_name: String, method_name: String, args: Array)
 # ============================================
 # Constants
 # ============================================
-const MAX_LOOP_ITERATIONS: int = 10000
-const MAX_EXECUTION_TIME_MS: int = 10000  # 10 seconds
+# Removed for presentation mode - players can press R to reset
+# const MAX_LOOP_ITERATIONS: int = 10000
+# const MAX_EXECUTION_TIME_MS: int = 10000  # 10 seconds
 
 # ============================================
 # State
@@ -338,11 +339,11 @@ func _execute_while_step(context: Dictionary) -> void:
 	context["iterations"] += 1
 	_current_line = context.get("line", _current_line)
 
-	# Check iteration limit
-	if context["iterations"] > MAX_LOOP_ITERATIONS:
-		_add_error("RuntimeError: maximum loop iterations exceeded", _current_line)
-		_execution_stack.pop_back()
-		return
+	# Iteration limit disabled for presentation mode
+	# if context["iterations"] > MAX_LOOP_ITERATIONS:
+	# 	_add_error("RuntimeError: maximum loop iterations exceeded", _current_line)
+	# 	_execution_stack.pop_back()
+	# 	return
 
 	# Evaluate condition
 	var condition_result = _evaluate_expression(context["condition"])
@@ -548,9 +549,10 @@ func _execute_while_stmt(stmt: Dictionary) -> void:
 			return
 
 		iterations += 1
-		if iterations > MAX_LOOP_ITERATIONS:
-			_add_error("RuntimeError: maximum loop iterations exceeded", _current_line)
-			return
+		# Iteration limit disabled for presentation mode
+		# if iterations > MAX_LOOP_ITERATIONS:
+		# 	_add_error("RuntimeError: maximum loop iterations exceeded", _current_line)
+		# 	return
 
 		var condition = _evaluate_expression(stmt["condition"])
 		if _errors.size() > 0:
@@ -952,9 +954,9 @@ func _is_truthy(value: Variant) -> bool:
 		return value.length() > 0
 	return true
 
+# Disabled for presentation mode - always returns false
 func _check_timeout() -> bool:
-	var elapsed = Time.get_ticks_msec() - _execution_start_time
-	return elapsed > MAX_EXECUTION_TIME_MS
+	return false  # Players can press R to reset
 
 func _add_error(message: String, line: int) -> void:
 	var error = "%s (line %d)" % [message, line]

@@ -568,10 +568,11 @@ func _on_interpreter_execution_line(line_number: int) -> void:
 
 func _on_interpreter_execution_error(error: String, line: int) -> void:
 	execution_error_occurred.emit(error, line)
-	# Check if it's an infinite loop
-	if error.find("infinite loop") >= 0:
-		infinite_loop_detected.emit()
-		_on_level_failed("Infinite loop detected at line %d" % line)
+	# Infinite loop auto-fail disabled for presentation mode
+	# Players can press R to reset manually
+	# if error.find("infinite loop") >= 0:
+	# 	infinite_loop_detected.emit()
+	# 	_on_level_failed("Infinite loop detected at line %d" % line)
 
 
 # ============================================

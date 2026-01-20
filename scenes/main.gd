@@ -637,7 +637,8 @@ func _on_car_ran_red_light(vehicle_id: String, stoplight_id: String) -> void:
 	_update_hearts_label()
 	_update_status("%s ran a red light! (-1 heart)" % vehicle_id)
 	if hearts <= 0:
-		_on_level_failed("Ran too many red lights!")
+		_update_status("GAME OVER - Press R to Reset")
+		status_label.add_theme_color_override("font_color", Color.RED)
 
 
 func _on_execution_line_changed(line_number: int) -> void:
@@ -732,7 +733,8 @@ func _lose_heart() -> void:
 	hearts -= 1
 	_update_hearts_label()
 	if hearts <= 0:
-		_on_level_failed("Out of hearts!")
+		_update_status("GAME OVER - Press R to Reset")
+		status_label.add_theme_color_override("font_color", Color.RED)
 
 
 func _show_victory_popup(stars: int) -> void:
