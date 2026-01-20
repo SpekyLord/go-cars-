@@ -22,6 +22,9 @@ signal command_executed(object_name: String, method_name: String, args: Array)
 # const MAX_LOOP_ITERATIONS: int = 10000
 # const MAX_EXECUTION_TIME_MS: int = 10000  # 10 seconds
 
+# Proximity threshold for stoplight state checks (matches Vehicle's detection range)
+const STOPLIGHT_PROXIMITY_RANGE: float = 100.0
+
 # ============================================
 # State
 # ============================================
@@ -796,6 +799,22 @@ func _evaluate_member_expr(expr: Dictionary) -> Variant:
 	_add_error("AttributeError: object has no attribute '%s'" % property, _current_line)
 	return null
 
+
+## Check if the current car is near a stoplight (for proximity-aware state checks)
+func _is_car_near_stoplight(stoplight: Variant) -> bool:
+	# Get the current car from game objects
+	if not "car" in _game_objects:
+		return true  # No car context, return global state
+	var car = _game_objects["car"]
+	if car == null or not is_instance_valid(car):
+		return true  # Invalid car, return global state
+	if stoplight == null or not is_instance_valid(stoplight):
+		return true  # Invalid stoplight, return global state
+	# Check distance
+	var distance = car.global_position.distance_to(stoplight.global_position)
+	return distance <= STOPLIGHT_PROXIMITY_RANGE
+
+
 func _call_method(obj: Variant, obj_name: String, method: String, args: Array) -> Variant:
 	# Emit command signal for the simulation engine
 	command_executed.emit(obj_name, method, args)
@@ -808,6 +827,12 @@ func _call_method(obj: Variant, obj_name: String, method: String, args: Array) -
 	if not obj.has_method(method):
 		_add_error("AttributeError: '%s' object has no method '%s'" % [obj_name, method], _current_line)
 		return null
+
+	# PROXIMITY CHECK: For stoplight state queries, check car proximity first
+	# Car must be within range for stoplight to "affect" it
+	if obj_name == "stoplight" and method in ["is_red", "is_green", "is_yellow"]:
+		if not _is_car_near_stoplight(obj):
+			return false  # Car too far - stoplight state doesn't matter
 
 	# Call the method based on argument count
 	var result: Variant = null
