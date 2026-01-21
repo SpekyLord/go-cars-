@@ -481,10 +481,11 @@ func _get_direction_from_offset(offset: Vector2i) -> String:
 	return ""
 
 
-## Check if two grid positions are adjacent (including diagonals)
+## Check if two grid positions are adjacent (cardinals only)
 func _is_adjacent(pos1: Vector2i, pos2: Vector2i) -> bool:
 	var diff = pos2 - pos1
-	return abs(diff.x) <= 1 and abs(diff.y) <= 1 and diff != Vector2i.ZERO
+	# Only cardinal directions: exactly one axis differs by 1, other is 0
+	return (abs(diff.x) == 1 and diff.y == 0) or (abs(diff.y) == 1 and diff.x == 0)
 
 
 ## Select a road tile and show selection indicator
