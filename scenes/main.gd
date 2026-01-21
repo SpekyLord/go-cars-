@@ -18,7 +18,6 @@ enum BackgroundTile {
 @onready var speed_label: Label = $UI/SpeedLabel
 @onready var hearts_label: Label = $UI/HeartsLabel
 @onready var road_cards_label: Label = $UI/RoadCardsLabel
-@onready var test_vehicle: Vehicle = $GameWorld/TestVehicle
 @onready var test_stoplight: Stoplight = $GameWorld/TestStoplight
 @onready var roads_container: Node2D = $GameWorld/Roads
 
@@ -96,7 +95,7 @@ var car_spawn_direction: Vector2 = Vector2.RIGHT
 var car_spawn_rotation: float = PI / 2  # 90 degrees - car faces right
 var car_destination: Vector2 = Vector2(1368, 504 + LANE_OFFSET)  # Tile (9,3) center, offset down
 var is_spawning_cars: bool = false
-var next_car_id: int = 2  # Start from 2 since car1 is the test vehicle
+var next_car_id: int = 1  # Start from 1 (no test vehicle)
 
 var level_menu_panel: Panel = null
 var level_menu_visible: bool = true
@@ -121,17 +120,6 @@ func _ready() -> void:
 	level_manager.level_completed.connect(_on_level_manager_completed)
 	level_manager.level_failed.connect(_on_level_manager_failed)
 
-	# Register vehicle with simulation engine
-	simulation_engine.register_vehicle(test_vehicle)
-
-	# Pass road checker reference to vehicle for road detection
-	test_vehicle.set_road_checker(self)
-
-	# Set destination and connect signals for test vehicle
-	test_vehicle.destination = car_destination
-	test_vehicle.reached_destination.connect(_on_car_reached_destination)
-	test_vehicle.crashed.connect(_on_car_crashed)
-
 	# Register stoplight if it exists
 	if test_stoplight:
 		simulation_engine.register_stoplight(test_stoplight)
@@ -149,11 +137,6 @@ func _ready() -> void:
 	simulation_engine.level_failed.connect(_on_level_failed)
 	simulation_engine.execution_line_changed.connect(_on_execution_line_changed)
 	simulation_engine.execution_error_occurred.connect(_on_execution_error)
-
-	# Connect vehicle signals if vehicle exists
-	if test_vehicle:
-		test_vehicle.ran_red_light.connect(_on_car_ran_red_light)
-		test_vehicle.off_road_crash.connect(_on_car_off_road)
 
 	# Connect result popup buttons
 	retry_button.pressed.connect(_on_retry_pressed)
@@ -183,10 +166,16 @@ func _ready() -> void:
 	# Setup new UI system if enabled
 	if use_new_ui:
 		_setup_new_ui()
-	# Create level selection menu
-	_create_level_menu()
-	_update_status("Ready - Select a level to play")
-	_update_status("Ready - Enter code and press 'Run Code' (F5)")
+
+	# Load level from GameState (set by level selector)
+	if GameState.selected_level_id != "":
+		if level_manager.load_level(GameState.selected_level_id):
+			level_manager.start_level()
+			_update_status("Level %s - Ready" % GameState.selected_level_id)
+		else:
+			_update_status("Failed to load level")
+	else:
+		_update_status("Ready - Enter code and press Run")
 	_update_speed_label()
 	_update_hearts_label()
 	_update_road_cards_label()
@@ -573,16 +562,10 @@ func _on_run_button_pressed() -> void:
 	for grid_pos in road_tiles:
 		road_tiles[grid_pos].mark_paths_dirty()
 
-	# Reset vehicle position before running (check if vehicle still exists)
-	if is_instance_valid(test_vehicle):
-		if test_vehicle.vehicle_state == 1:  # Only reset if not crashed
-			test_vehicle.reset(car_spawn_position, Vector2.RIGHT)
-		else:
-			# Vehicle is crashed, spawn a new one
-			_respawn_test_vehicle()
-	else:
-		# Vehicle was freed, spawn a new one
-		_respawn_test_vehicle()
+	# Spawn an initial car if there are no cars
+	var vehicles = get_tree().get_nodes_in_group("vehicles")
+	if vehicles.size() == 0:
+		_spawn_new_car()
 
 	# Execute the code
 	simulation_engine.execute_code(code)
@@ -811,14 +794,11 @@ func _on_retry_pressed() -> void:
 	is_spawning_cars = false
 	_clear_line_highlight()
 
-	# Clear ALL spawned cars (crashed and active) except we'll respawn test vehicle
+	# Clear ALL spawned cars
 	_clear_all_spawned_cars()
 
 	# Reset car ID counter
-	next_car_id = 2
-
-	# Always respawn the test vehicle fresh
-	_respawn_test_vehicle()
+	next_car_id = 1
 
 	if test_stoplight:
 		test_stoplight.reset()
@@ -853,14 +833,11 @@ func _do_fast_retry() -> void:
 	for grid_pos in road_tiles:
 		road_tiles[grid_pos].mark_paths_dirty()
 
-	# Clear ALL spawned cars (crashed and active) except we'll respawn test vehicle
+	# Clear ALL spawned cars
 	_clear_all_spawned_cars()
 
 	# Reset car ID counter
-	next_car_id = 2
-
-	# Always respawn the test vehicle fresh
-	_respawn_test_vehicle()
+	next_car_id = 1
 
 	if test_stoplight:
 		test_stoplight.reset()
@@ -1142,68 +1119,6 @@ func _clear_all_spawned_cars() -> void:
 		simulation_engine.unregister_vehicle(vehicle.vehicle_id)
 		vehicle.queue_free()
 
-	# Clear the test_vehicle reference
-	test_vehicle = null
-
-
-func _respawn_test_vehicle() -> void:
-	# Load a random car scene from the 8 available
-	var car_scenes = [
-		"res://scenes/entities/car_sedan.tscn",
-		"res://scenes/entities/car_estate.tscn",
-		"res://scenes/entities/car_sport.tscn",
-		"res://scenes/entities/car_micro.tscn",
-		"res://scenes/entities/car_pickup.tscn",
-		"res://scenes/entities/car_jeepney.tscn",
-		"res://scenes/entities/car_jeepney_2.tscn",
-		"res://scenes/entities/car_bus.tscn"
-	]
-	var random_index = randi() % car_scenes.size()
-	var vehicle_scene = load(car_scenes[random_index])
-	if vehicle_scene == null:
-		_update_status("Error: Could not load vehicle scene")
-		return
-
-	# Remove old test_vehicle if it exists but is crashed
-	if is_instance_valid(test_vehicle):
-		simulation_engine.unregister_vehicle(test_vehicle.vehicle_id)
-		test_vehicle.queue_free()
-
-	# Create new vehicle instance
-	test_vehicle = vehicle_scene.instantiate()
-	test_vehicle.vehicle_id = "car1"
-
-	# Set position and direction (car sprite faces UP, so rotation PI/2 makes it face RIGHT)
-	test_vehicle.global_position = car_spawn_position
-	test_vehicle.direction = car_spawn_direction
-	test_vehicle.rotation = car_spawn_rotation
-
-	# Set destination
-	test_vehicle.destination = car_destination
-
-	# Set random color based on vehicle type and rarity
-	test_vehicle.set_random_color()
-
-	# Add to scene
-	$GameWorld.add_child(test_vehicle)
-
-	# Set road checker reference
-	test_vehicle.set_road_checker(self)
-
-	# Register with simulation engine
-	simulation_engine.register_vehicle(test_vehicle)
-
-	# Connect signals
-	test_vehicle.reached_destination.connect(_on_car_reached_destination)
-	test_vehicle.crashed.connect(_on_car_crashed)
-	test_vehicle.off_road_crash.connect(_on_car_off_road)
-	test_vehicle.ran_red_light.connect(_on_car_ran_red_light)
-
-	# Make aware of stoplight
-	if test_stoplight:
-		test_vehicle.add_stoplight(test_stoplight)
-
-	_update_status("Spawned %s" % test_vehicle.get_vehicle_type_name())
 
 ## ============================================
 ## NEW UI SYSTEM INTEGRATION (Phase 9)
@@ -1256,14 +1171,14 @@ func _on_window_manager_code_run(code: String) -> void:
 		_update_status("Error: No code entered")
 		return
 
-	# Reset vehicle position before running
-	if is_instance_valid(test_vehicle):
-		if test_vehicle.vehicle_state == 1:
-			test_vehicle.reset(car_spawn_position, Vector2.RIGHT)
-		else:
-			_respawn_test_vehicle()
-	else:
-		_respawn_test_vehicle()
+	# Force all road tiles to recalculate paths
+	for grid_pos in road_tiles:
+		road_tiles[grid_pos].mark_paths_dirty()
+
+	# Spawn an initial car if there are no cars
+	var vehicles = get_tree().get_nodes_in_group("vehicles")
+	if vehicles.size() == 0:
+		_spawn_new_car()
 
 	# Execute the code
 	simulation_engine.execute_code(code)
@@ -1281,131 +1196,3 @@ func _on_window_manager_speed_changed(speed: float) -> void:
 	simulation_engine.speed_multiplier = speed
 	Engine.time_scale = speed  # Apply immediately
 	_update_speed_label()
-
-
-# ============================================
-# Level Selection Menu
-# ============================================
-
-func _create_level_menu() -> void:
-	# Create the main panel
-	level_menu_panel = Panel.new()
-	level_menu_panel.name = "LevelMenuPanel"
-	level_menu_panel.custom_minimum_size = Vector2(500, 400)
-	level_menu_panel.anchor_left = 0.5
-	level_menu_panel.anchor_right = 0.5
-	level_menu_panel.anchor_top = 0.5
-	level_menu_panel.anchor_bottom = 0.5
-	level_menu_panel.offset_left = -250
-	level_menu_panel.offset_right = 250
-	level_menu_panel.offset_top = -200
-	level_menu_panel.offset_bottom = 200
-
-	# Style the panel (dark theme)
-	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.15, 0.15, 0.18, 0.98)
-	panel_style.border_color = Color(0.3, 0.3, 0.35, 1.0)
-	panel_style.set_border_width_all(2)
-	panel_style.set_corner_radius_all(12)
-	level_menu_panel.add_theme_stylebox_override("panel", panel_style)
-
-	# Create VBoxContainer for layout
-	var vbox = VBoxContainer.new()
-	vbox.anchor_right = 1.0
-	vbox.anchor_bottom = 1.0
-	vbox.offset_left = 20
-	vbox.offset_right = -20
-	vbox.offset_top = 20
-	vbox.offset_bottom = -20
-	vbox.add_theme_constant_override("separation", 15)
-	level_menu_panel.add_child(vbox)
-
-	# Title label
-	var title = Label.new()
-	title.text = "SELECT LEVEL"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 32)
-	title.add_theme_color_override("font_color", Color(0.9, 0.9, 0.95))
-	vbox.add_child(title)
-
-	# Subtitle
-	var subtitle = Label.new()
-	subtitle.text = "Choose a level to play"
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_font_size_override("font_size", 16)
-	subtitle.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
-	vbox.add_child(subtitle)
-
-	# Spacer
-	var spacer = Control.new()
-	spacer.custom_minimum_size = Vector2(0, 10)
-	vbox.add_child(spacer)
-
-	# Level data: [id, name, description]
-	var levels = [
-		["T1", "First Drive", "Learn car.go()"],
-		["T2", "Stop Sign", "Learn car.stop()"],
-		["C1", "Smallville", "Variables"],
-		["C2", "Red Light", "If statements"],
-		["W1", "Ferry Dock", "While loops"]
-	]
-
-	# Create button for each level
-	for level_data in levels:
-		var level_id = level_data[0]
-		var level_name = level_data[1]
-		var level_desc = level_data[2]
-
-		var btn = Button.new()
-		btn.text = "%s: %s - %s" % [level_id, level_name, level_desc]
-		btn.custom_minimum_size = Vector2(0, 50)
-		btn.add_theme_font_size_override("font_size", 18)
-
-		# Style button
-		var btn_style = StyleBoxFlat.new()
-		btn_style.bg_color = Color(0.2, 0.2, 0.24, 1.0)
-		btn_style.border_color = Color(0.3, 0.3, 0.35, 1.0)
-		btn_style.set_border_width_all(1)
-		btn_style.set_corner_radius_all(8)
-		btn_style.content_margin_left = 15
-		btn_style.content_margin_right = 15
-		btn.add_theme_stylebox_override("normal", btn_style)
-
-		var btn_hover = StyleBoxFlat.new()
-		btn_hover.bg_color = Color(0.25, 0.25, 0.30, 1.0)
-		btn_hover.border_color = Color(0.4, 0.4, 0.5, 1.0)
-		btn_hover.set_border_width_all(1)
-		btn_hover.set_corner_radius_all(8)
-		btn_hover.content_margin_left = 15
-		btn_hover.content_margin_right = 15
-		btn.add_theme_stylebox_override("hover", btn_hover)
-
-		btn.pressed.connect(_on_level_button_pressed.bind(level_id))
-		vbox.add_child(btn)
-
-	# Add to UI layer
-	$UI.add_child(level_menu_panel)
-	level_menu_visible = true
-
-
-func _on_level_button_pressed(level_id: String) -> void:
-	# Hide menu
-	level_menu_panel.hide()
-	level_menu_visible = false
-
-	# Load and start the level
-	if level_manager.load_level(level_id):
-		level_manager.start_level()
-		_update_status("Level %s loaded - Ready" % level_id)
-	else:
-		_update_status("Failed to load level %s" % level_id)
-
-	# Reset vehicle position
-	if is_instance_valid(test_vehicle):
-		test_vehicle.reset(car_spawn_position, Vector2.RIGHT)
-
-
-func _show_level_menu() -> void:
-	if level_menu_panel:
-		level_menu_panel.show()
-		level_menu_visible = true
