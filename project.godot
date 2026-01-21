@@ -15,6 +15,10 @@ run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
+[gui]
+
+theme/custom_font="uid://ch0ekdq0n620f"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
