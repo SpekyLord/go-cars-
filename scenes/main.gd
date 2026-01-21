@@ -110,6 +110,10 @@ var next_car_id: int = 1  # Start from 1 (no test vehicle)
 var level_menu_panel: Panel = null
 var level_menu_visible: bool = true
 func _ready() -> void:
+	# Set music to very low volume during gameplay
+	if MusicManager:
+		MusicManager.set_game_volume()
+	
 	# Create background container (behind roads)
 	background_container = Node2D.new()
 	background_container.name = "Background"
@@ -195,22 +199,8 @@ func _ready() -> void:
 	add_child(background_audio)
 	background_audio.play(1.0)  # Start at 1 second
 	
-	# Setup alternating background music
-	background_music = AudioStreamPlayer.new()
-	background_music.volume_db = -25.0
-	add_child(background_music)
-	
-	# Load both music tracks
-	bg_music_tracks.append(load("res://assets/audio/BGMUSIC.mp3"))
-	bg_music_tracks.append(load("res://assets/audio/BGMUSIC2.mp3"))
-	
-	# Start with first track
-	background_music.stream = bg_music_tracks[0]
-	background_music.play()
-	current_music_index = 0
-	
-	# Connect finished signal to switch tracks
-	background_music.finished.connect(_on_background_music_finished)
+	# Background music is now handled by MusicManager autoload
+	# No longer creating local background_music player
 	
 	# Setup car engine sound (plays when code with movement runs)
 	engine_audio = AudioStreamPlayer.new()
@@ -713,13 +703,6 @@ func _on_car_off_road(car_id: String) -> void:
 
 
 ## Switch to next background music track when current one finishes
-func _on_background_music_finished() -> void:
-	# Alternate between the two tracks
-	current_music_index = (current_music_index + 1) % bg_music_tracks.size()
-	background_music.stream = bg_music_tracks[current_music_index]
-	background_music.play()
-
-
 func _on_level_completed(stars: int) -> void:
 	_update_status("Level Complete! Stars: %s" % stars)
 	_show_victory_popup(stars)

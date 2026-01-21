@@ -4,6 +4,10 @@ extends Control
 ## Full-screen menu for selecting which level to play
 
 func _ready() -> void:
+	# Lower music volume for level selector
+	if MusicManager:
+		MusicManager.lower_volume()
+	
 	# Set to full screen
 	anchor_right = 1.0
 	anchor_bottom = 1.0

@@ -130,5 +130,11 @@ func _do_open_toggle() -> void:
 
 	if show_node:
 		show_node.visible = true
+		# Lower music volume when showing sub-menus
+		if MusicManager:
+			MusicManager.lower_volume()
 	if hide_node:
 		hide_node.visible = false
+		# Restore music volume when hiding sub-menus (going back to main menu)
+		if MusicManager:
+			MusicManager.restore_volume()
