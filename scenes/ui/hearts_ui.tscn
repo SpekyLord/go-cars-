@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://hearts_ui_gocars"]
+
+[ext_resource type="Script" path="res://scenes/ui/hearts_ui.gd" id="1_hearts_script"]
+
+[node name="HeartsUI" type="Control"]
+custom_minimum_size = Vector2(200, 40)
+offset_right = 200.0
+offset_bottom = 40.0
+script = ExtResource("1_hearts_script")
+
+[node name="HeartCount" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0
+text = "3"
