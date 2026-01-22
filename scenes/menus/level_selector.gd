@@ -69,20 +69,22 @@ func _ready() -> void:
 	spacer.custom_minimum_size = Vector2(0, 20)
 	vbox.add_child(spacer)
 
-	# Level data: [id, name, description]
+	# Level data: [id, name, description, is_tilemap]
 	# Levels with [BUILD] have road editing enabled
+	# is_tilemap = true means it uses the new TileMap-based level system
 	var levels = [
-		["T1", "First Drive", "Learn car.go()"],
-		["T2", "Stop Sign", "Learn car.stop()"],
-		["T3", "Turn Ahead", "Turns [BUILD]"],
-		["T5", "Traffic Jam", "Multi-car [BUILD]"],
-		["C1", "Smallville", "Variables"],
-		["C2", "Red Light", "If statements"],
-		["C3", "Jaro Crossroads", "elif/else [BUILD]"],
-		["C5", "Molo Mansion", "Comparisons [BUILD]"],
-		["W1", "Ferry Dock", "While loops"],
-		["W3", "Fort San Pedro", "For loops [BUILD]"],
-		["W5", "Guimaras Ferry", "Break [BUILD]"]
+		["level_01", "Level 1", "TileMap Tutorial", true],
+		["T1", "First Drive", "Learn car.go()", false],
+		["T2", "Stop Sign", "Learn car.stop()", false],
+		["T3", "Turn Ahead", "Turns [BUILD]", false],
+		["T5", "Traffic Jam", "Multi-car [BUILD]", false],
+		["C1", "Smallville", "Variables", false],
+		["C2", "Red Light", "If statements", false],
+		["C3", "Jaro Crossroads", "elif/else [BUILD]", false],
+		["C5", "Molo Mansion", "Comparisons [BUILD]", false],
+		["W1", "Ferry Dock", "While loops", false],
+		["W3", "Fort San Pedro", "For loops [BUILD]", false],
+		["W5", "Guimaras Ferry", "Break [BUILD]", false]
 	]
 
 	# Create buttons for each level
@@ -90,9 +92,16 @@ func _ready() -> void:
 		var level_id = level_data[0]
 		var level_name = level_data[1]
 		var level_desc = level_data[2]
+		var is_tilemap = level_data[3]
 
 		var btn = Button.new()
-		btn.text = "%s: %s - %s" % [level_id, level_name, level_desc]
+
+		# Show best time if available
+		var btn_text = "%s: %s - %s" % [level_id, level_name, level_desc]
+		if GameData and GameData.has_best_time(level_id):
+			var best_time = GameData.get_best_time(level_id)
+			btn_text += " [Best: %s]" % _format_time(best_time)
+		btn.text = btn_text
 		btn.custom_minimum_size = Vector2(0, 55)
 		btn.add_theme_font_size_override("font_size", 18)
 
@@ -126,13 +135,26 @@ func _ready() -> void:
 		btn_pressed.content_margin_right = 20
 		btn.add_theme_stylebox_override("pressed", btn_pressed)
 
-		btn.pressed.connect(_on_level_pressed.bind(level_id))
+		btn.pressed.connect(_on_level_pressed.bind(level_id, is_tilemap))
 		vbox.add_child(btn)
 
 
-func _on_level_pressed(level_id: String) -> void:
+func _on_level_pressed(level_id: String, is_tilemap: bool) -> void:
 	# Store selected level in GameState autoload
 	GameState.selected_level_id = level_id
 
-	# Change to main game scene
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	# Change to appropriate game scene based on level type
+	if is_tilemap:
+		get_tree().change_scene_to_file("res://scenes/main_tilemap.tscn")
+	else:
+		get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+
+## Format time as MM:SS.ms
+func _format_time(time: float) -> String:
+	if time < 0:
+		return "--:--.--"
+	var minutes = int(time / 60)
+	var seconds = int(time) % 60
+	var milliseconds = int((time - int(time)) * 100)
+	return "%02d:%02d.%02d" % [minutes, seconds, milliseconds]

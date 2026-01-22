@@ -66,24 +66,31 @@ GoCars/
 │   ├── sprites/
 │   ├── audio/
 │   ├── fonts/
-│   └── tiles/             # Tileset images for map editor
-│       ├── RoadTilesDebug64x64.png   # Debug tileset (17x16 tiles)
-│       ├── RoadTilesDebug32x32.png   # Debug tileset 32px version
-│       ├── RoadTiles64x64.png        # Production tileset
-│       └── RoadTiles32x32.png        # Production tileset 32px
+│   └── tiles/             # Tileset images and resources
+│       ├── gocarstilesSheet.png      # Main tileset (5x5, 144x144 per tile)
+│       ├── road_tileset.tres         # TileSet resource for TileMapLayers
+│       └── Old Assets/               # Deprecated tilesets
 ├── scenes/
-│   ├── main.tscn
+│   ├── main.tscn                     # Main game scene (old RoadTile system)
+│   ├── main_tilemap.gd               # Main game script (TileMap system)
+│   ├── levelmaps/                    # Level scene files (auto-loaded)
+│   │   └── level_01.tscn             # Level 1 template
 │   ├── map_editor/
-│   │   └── map_editor.tscn    # Level/map editor scene
-│   └── levels/
+│   │   ├── road_tile.tscn            # Old road tile scene
+│   │   └── road_tile.gd              # Old road tile script
+│   └── entities/                     # Vehicle and other entity scenes
 ├── scripts/
 │   ├── core/              # Python parser, interpreter, simulation engine
+│   │   └── level_loader.gd           # Auto-loads levels from levelmaps/
+│   ├── map_editor/
+│   │   ├── road_tilemap_layer.gd     # TileMapLayer script with guideline paths
+│   │   └── road_tile_proxy.gd        # Wrapper for Vehicle compatibility
 │   ├── entities/          # Vehicle, stoplight, boat
 │   ├── ui/                # Code editor, file explorer, HUD
 │   └── systems/           # Save manager, score manager
 ├── tests/                 # Test files (.test.gd)
 └── data/
-	└── levels/            # Level configuration files
+	└── levels/            # Level configuration files (JSON)
 ```
 
 ---
@@ -613,88 +620,99 @@ Based on PRD priorities:
 
 ---
 
-## Map Editor
+## Level Creation System (TileMap-Based)
 
-The Map Editor (`scenes/map_editor/map_editor.tscn`) allows creating levels visually.
+Levels are created using Godot's TileMapLayer system. Each level is a scene file in `scenes/levelmaps/`.
 
-### Controls
-- **WASD / Arrow Keys**: Move camera
-- **Mouse Wheel**: Zoom in/out (0.25x - 3x)
-- **Left Click**: Paint selected terrain
-- **Right Click**: Erase (paint grass)
-- **1 / Grass Button**: Select grass terrain
-- **2 / Road Button**: Select road terrain
+### Creating a New Level
 
-### Tileset System
+1. **Copy an existing level**: Duplicate `scenes/levelmaps/level_01.tscn`
+2. **Rename it**: e.g., `level_02.tscn`, `level_03.tscn`, etc.
+3. **Open in Godot Editor**: Double-click to open
+4. **Paint tiles on RoadLayer**: Use the TileMap painting tools
+5. **Save**: The level auto-loads from the folder
 
-The map editor uses a 17-column x 16-row tileset (`RoadTilesDebug64x64.png`) with auto-tiling:
+Levels are automatically detected from `scenes/levelmaps/` and sorted alphabetically.
 
-#### Columns (Main Tile Type - Cardinal Connections)
-Roads automatically connect to adjacent roads in cardinal directions:
+### Level Structure
 
-| Column | Index | Description |
-|--------|-------|-------------|
-| c1 | 0 | Grass |
-| c2 | 1 | Road (isolated, no connections) |
-| c3 | 2 | Road connects South |
-| c4 | 3 | Road connects North |
-| c5 | 4 | Road connects East |
-| c6 | 5 | Road connects West |
-| c7 | 6 | Road connects South + North |
-| c8 | 7 | Road connects East + West |
-| c9 | 8 | Road connects South + East |
-| c10 | 9 | Road connects South + West |
-| c11 | 10 | Road connects North + East |
-| c12 | 11 | Road connects North + West |
-| c13 | 12 | Road connects South + North + East |
-| c14 | 13 | Road connects South + East + West |
-| c15 | 14 | Road connects North + East + West |
-| c16 | 15 | Road connects South + North + West |
-| c17 | 16 | Road connects all four (4-way intersection) |
+Each level scene has:
+- **BackgroundLayer** (TileMapLayer): For grass, water, decorations (z_index = -10)
+- **RoadLayer** (TileMapLayer + RoadTileMapLayer script): For roads and parking tiles
+- **LevelInfo** (Node): Optional metadata
 
-#### Rows (Sub Type - Diagonal Road Detection)
-Rows are selected based on which diagonal tiles contain roads (for corner decorations):
+### New Tileset Layout (5×5 grid, 144×144 per tile)
 
-| Row | Index | Diagonal Roads Present |
-|-----|-------|------------------------|
-| r1 | 0 | None (basic tile) |
-| r2 | 1 | NW only |
-| r3 | 2 | NE only |
-| r4 | 3 | SW only |
-| r5 | 4 | SE only |
-| r6 | 5 | NW + SW |
-| r7 | 6 | NE + NW |
-| r8 | 7 | NE + SE |
-| r9 | 8 | SW + SE |
-| r10 | 9 | NW + SE |
-| r11 | 10 | SW + NE |
-| r12 | 11 | NW + NE + SW |
-| r13 | 12 | NW + NE + SE |
-| r14 | 13 | NE + SW + SE |
-| r15 | 14 | NW + SW + SE |
-| r16 | 15 | All four diagonals |
+The tileset `assets/tiles/gocarstilesSheet.png` has 25 tiles:
 
-#### How Auto-Tiling Works
-1. When placing a road, the system checks cardinal neighbors (N, S, E, W) to determine the column
-2. It also checks diagonal neighbors (NW, NE, SW, SE) to determine the row
-3. All affected tiles (placed tile + 8 neighbors) are updated automatically
-4. Priority: More specific diagonal patterns (r16) are checked before less specific ones (r1)
+| Row | Col 0 | Col 1 | Col 2 | Col 3 | Col 4 |
+|-----|-------|-------|-------|-------|-------|
+| **0** | Road (no connection) | Road E | Road EW | Road W | Spawn Parking S |
+| **1** | Road S | Road SE | Road SEW | Road SW | Spawn Parking N |
+| **2** | Road SN | Road SNE | Road SNEW | Road SNW | Dest Parking S |
+| **3** | Road N | Road NE | Road NEW | Road NW | Dest Parking N |
+| **4** | Spawn Parking E | Spawn Parking W | Dest Parking E | Dest Parking W | (None) |
 
-### Map Editor Code Location
-- Scene: `scenes/map_editor/map_editor.tscn`
-- Script: `scenes/map_editor/map_editor.gd`
+**Connection Key:**
+- **E** = East (right)
+- **W** = West (left)
+- **N** = North (top)
+- **S** = South (bottom)
+
+### Spawn Parking Tiles (Green borders)
+Cars spawn from these tiles and drive out through the connection:
+- **Spawn Parking S** (r0/c4): Car exits through bottom
+- **Spawn Parking N** (r1/c4): Car exits through top
+- **Spawn Parking E** (r4/c0): Car exits through right
+- **Spawn Parking W** (r4/c1): Car exits through left
+
+### Destination Parking Tiles (Red borders)
+Cars enter these tiles and stop:
+- **Dest Parking S** (r2/c4): Car enters from bottom
+- **Dest Parking N** (r3/c4): Car enters from top
+- **Dest Parking E** (r4/c2): Car enters from right
+- **Dest Parking W** (r4/c3): Car enters from left
+
+### Level Files Location
+- **Levels folder**: `scenes/levelmaps/`
+- **TileSet resource**: `assets/tiles/road_tileset.tres`
+- **Tileset image**: `assets/tiles/gocarstilesSheet.png`
+- **Road layer script**: `scripts/map_editor/road_tilemap_layer.gd`
+- **Level loader**: `scripts/core/level_loader.gd`
+- **Main scene (TileMap version)**: `scenes/main_tilemap.gd`
 
 ---
 
 ## Implemented Game Mechanics
 
-### RoadTile Scene System
-The main game scene uses RoadTile scenes for roads with manual connections:
-- **RoadTile scenes**: Each road tile is an Area2D with connection sprites
-- **Manual connections**: Roads only connect when explicitly linked by player
-- **Connection sprites**: 8-directional connection visuals (432x432 each)
-- **Main sprite**: 144x144 road tile at center
+### TileMap-Based Road System (NEW)
+The game now uses Godot's TileMapLayer for roads:
+- **TileMapLayer**: Native Godot tilemap for efficient rendering
+- **RoadTileMapLayer script**: Adds guideline path calculations
+- **RoadTileProxy**: Wrapper for Vehicle compatibility
 - **Grid size**: 144x144 pixels per tile
+- **Files**: `scripts/map_editor/road_tilemap_layer.gd`, `scripts/map_editor/road_tile_proxy.gd`
+
+### Guideline Path System
+Cars follow pre-calculated paths through road tiles based on tile type:
+- **Through-paths**: Each tile type has predefined paths based on connections
+- **Lane driving**: Paths include lane offset (25px) for right-hand traffic
+- **Smooth turns**: Turn paths include corner waypoints for natural movement
+- **4-directional**: Supports cardinal directions (top/bottom/left/right)
+- **Path caching**: Paths cached per grid position for performance
+
+**How it works:**
+1. When a car enters a tile, it determines entry direction from where it came
+2. The tile type determines available exits based on its connections
+3. Car chooses exit based on queued turn commands or straight-through
+4. Car follows waypoint path from entry edge to exit edge
+5. On reaching exit, car transitions to next tile
+
+**Key functions in `road_tile.gd`:**
+- `get_available_exits(entry_dir)` - Returns array of valid exit directions
+- `get_guideline_path(entry_dir, exit_dir)` - Returns array of world-position waypoints
+- `add_connection(direction)` / `remove_connection(direction)` - Modify connections
+- `mark_paths_dirty()` - Force path recalculation on next access
 
 ### Road Selection and Editing System
 Players edit roads through a selection-based system:
@@ -753,46 +771,74 @@ Cars do NOT disappear when they crash - they become permanent obstacles:
   - Crashed cars always stay on the map as obstacles
 
 ### Automatic Car Spawning
-Cars automatically spawn at regular intervals after running code:
-- **Interval**: Every 15 seconds after simulation starts
-- **Location**: Spawn road tile (0,3), offset up for lane driving
-- **Destination**: Destination road tile (9,3), offset up for lane driving
-- **Vehicle types**: Random selection from 7 types (Sedan, Estate, Micro, Sport, Pickup, Jeepney, Motorbike)
+Cars spawn automatically so players can see what they're dealing with:
+- **Initial spawn**: One car spawns at each spawn parking tile when level loads (before running code)
+- **Continuous spawning**: After "Run Code" is pressed, new cars spawn every 15 seconds
+- **Location**: Spawn parking tiles defined in the level's RoadLayer
+- **Destination**: Destination parking tiles defined in the level's RoadLayer
+- **Vehicle types**: Random selection from 8 types (Sedan, Estate, Sport, Micro, Pickup, Jeepney_1, Jeepney_2, Bus)
 - **Naming**: car1, car2, car3, car4, etc.
 - **Code Execution**: Each new car automatically runs the current code
-- **Control**: Spawning starts when "Run Code" is pressed, stops on reset
+- **Control**: Continuous spawning starts when "Run Code" is pressed, stops on reset
 - **Strategy**: Your code must handle multiple cars and navigate around crashed cars
 
 ### Car Color Palettes with Rarity System
-Cars spawn with random colors based on a rarity system:
+Vehicles spawn with random colors based on a rarity system using shader-based palette swapping.
 
 **15 Colors organized by rarity:**
 | Rarity | Colors | Spawn Chance |
 |--------|--------|--------------|
-| Common | Red, Blue, Black, White, Gray | 60% |
-| Uncommon | Beige, Brown, Green, Orange, Yellow | 30% |
-| Rare | Purple, Pink, Cyan, Lime, Magenta | 10% |
+| Common | White, Gray, Black, Red, Beige | 60% |
+| Uncommon | Green, Blue, Cyan, Orange, Brown | 30% |
+| Rare | Lime, Magenta, Pink, Purple, Yellow | 10% |
+
+**Vehicle Type Color Rules:**
+| Vehicle Type | Color Selection |
+|--------------|-----------------|
+| Cars (Sedan, Estate, Sport, Micro, Pickup) | Rarity-weighted (60% Common, 30% Uncommon, 10% Rare) |
+| Jeepneys (Jeepney_1, Jeepney_2) | Equal chance for all 15 colors |
+| Bus | Always White |
 
 **How it works:**
-- When a car spawns, the system first rolls for rarity (60%/30%/10%)
-- Then picks a random color from that rarity tier
-- Default color is Red (Common)
+- When `set_random_color()` is called, the system checks vehicle type first
+- Cars roll for rarity (60%/30%/10%), then pick random color from that tier
+- Jeepneys pick any of the 15 colors with equal probability
+- Buses are always white
+- Default color is White (Common)
 - Uses shader-based palette swapping for efficient rendering
+- Each vehicle gets a duplicated material so colors don't affect other vehicles
 
-**API functions:**
-- `set_color_palette(ColorPalette.BLUE)` - Set specific color by enum
+**API functions (in `scripts/entities/vehicle.gd`):**
+- `set_random_color()` - Assign random color based on vehicle type and rarity rules
+- `set_color_palette(VehicleColor.BLUE)` - Set specific color by enum
 - `set_color_palette_index(index)` - Set color by index (0-14)
-- `set_random_color()` - Assign random color based on rarity weights
-- `get_color_palette()` - Get current color enum
+- `get_color_palette()` - Get current color enum (VehicleColor)
 - `get_color_palette_index()` - Get current color index (0-14)
 - `get_palette_count()` - Get total number of colors (15)
-- `get_color_name()` - Get color name string ("Blue", "Magenta", etc.)
-- `get_color_rarity()` - Get rarity enum (COMMON, UNCOMMON, RARE)
+- `get_color_name()` - Get color name string ("WHITE", "BLUE", "MAGENTA", etc.)
+- `get_color_rarity()` - Get rarity enum (ColorRarity.COMMON/UNCOMMON/RARE)
 - `get_color_rarity_name()` - Get rarity name string ("Common", "Uncommon", "Rare")
 
+**Enums (in `scripts/entities/vehicle.gd`):**
+```gdscript
+enum VehicleColor {
+    WHITE, GRAY, BLACK, RED, BEIGE,      # Common (indices 0-4)
+    GREEN, BLUE, CYAN, ORANGE, BROWN,    # Uncommon (indices 5-9)
+    LIME, MAGENTA, PINK, PURPLE, YELLOW  # Rare (indices 10-14)
+}
+
+enum ColorRarity { COMMON, UNCOMMON, RARE }
+```
+
 **Files:**
-- Shader: `shaders/palette_swap.gdshader`
-- Palette textures: `assets/cars/Cars Color Palette/gocars palette-*.png`
+- Shader: `shaders/palette_swap.tres` (VisualShader resource)
+- Palette textures: `assets/cars/Cars Color Palette/gocars palette-*.png` (15 PNG files)
+- Vehicle script: `scripts/entities/vehicle.gd` (contains all color palette code)
+
+**Where `set_random_color()` is called:**
+- `scenes/main.gd` in `_spawn_new_car()` - when spawning new cars during gameplay
+- `scenes/main.gd` in `_respawn_test_vehicle()` - when respawning the test vehicle
+- `scripts/core/level_manager.gd` in `_spawn_vehicle()` - when loading level vehicles
 
 ### Lane Driving System
 Cars drive on the left side of the road to avoid head-on collisions:
@@ -810,10 +856,11 @@ UI panel in top-right corner allows manual stoplight control:
 
 ### Road-Only Movement
 Cars must stay on road tiles:
-- **Valid roads**: Columns 1-16 (any road tile)
-- **Invalid terrain**: Column 0 (grass)
-- **Detection methods**: `is_front_road()`, `is_left_road()`, `is_right_road()`
-- **Penalty**: Moving onto grass triggers crash and heart loss
+- **Valid roads**: Any road tile placed using the RoadTile system
+- **Invalid terrain**: Grass, water, or any area without a road tile
+- **Detection methods**: `front_road()`, `left_road()`, `right_road()` (short API names)
+- **Penalty**: Moving onto non-road areas triggers crash and heart loss
+- **Guideline system**: Cars follow pre-calculated paths through tiles based on connections
 
 ---
 
@@ -822,20 +869,65 @@ Cars must stay on road tiles:
 | Feature | Status | Description |
 |---------|--------|-------------|
 | RoadTile Scene System | ✅ | Manual road connections with connection sprites |
+| Guideline Path System | ✅ | Cars follow pre-calculated paths through tiles |
 | Road Selection System | ✅ | Click roads to select, click adjacent to place/connect |
 | Preview Tiles | ✅ | Shows ghost preview of where road will be placed |
 | Protected Roads | ✅ | Spawn and destination roads cannot be removed |
 | Road Cards System | ✅ | Consumable resource for map editing |
 | Hearts System | ✅ | Lives with crash penalties |
 | Live Map Editing | ✅ | Edit roads during gameplay |
-| Crashed Cars as Obstacles | ✅ | Cars stay on map when crashed (darkened) |
-| Automatic Car Spawning | ✅ | New car every 15 seconds |
-| Car Color Palettes | ✅ | 15 colors with rarity system (Common/Uncommon/Rare) |
-| Lane Driving | ✅ | Cars offset to left side of road |
-| Smaller Hitboxes | ✅ | Cars don't collide as easily |
+| Crashed Cars as Obstacles | ✅ | Cars stay on map when crashed (crashed sprite) |
+| Automatic Car Spawning | ✅ | New car every 15 seconds (8 vehicle types) |
+| Car Color Palettes | ✅ | 15 colors with rarity system + vehicle type rules |
+| Lane Driving | ✅ | Cars offset for right-hand traffic (25px) |
+| Collision Detection | ✅ | Manual distance-based collision (40px threshold) |
 | Short API Names | ✅ | `front_road()`, `at_end()`, etc. |
 | Stoplight Control Panel | ✅ | Manual stoplight control UI |
 | Red Light Violations | ✅ | Running red lights costs hearts |
+| Vehicle Types | ✅ | 8 types with different speeds/sizes |
+| Level Timer | ✅ | Timer starts on level load, stops on win |
+| Best Times | ✅ | Saves and displays best completion times |
+| HeartsUI Component | ✅ | Animated heart sprites with configurable count |
+| Multiple Destinations | ✅ | Cars can reach any destination parking spot |
+| Multi-car Start | ✅ | All spawned cars start moving when Run clicked |
+
+---
+
+## HeartsUI Component
+
+The HeartsUI component displays animated hearts for the level's lives system.
+
+### Required Asset
+Place your heart sprite sheet at: `assets/ui/heart.png`
+
+**Sprite Layout (4 columns, 1 row):**
+- Column 0: Full heart
+- Column 1: Transition frame 1
+- Column 2: Transition frame 2
+- Column 3: Broken heart
+
+### Using in Levels
+1. Add `HeartsUI` scene instance to your level scene
+2. Set the `HeartCount` child Label's text to the number of hearts (e.g., "3", "5", "10")
+3. The hearts will automatically animate when lost
+
+**Example level_01.tscn:**
+```
+[node name="HeartsUI" parent="." instance=ExtResource("3_hearts_ui")]
+
+[node name="HeartCount" parent="HeartsUI" index="0"]
+text = "3"
+```
+
+### HeartsUI Script API
+```gdscript
+hearts_ui.lose_heart()       # Animate losing one heart
+hearts_ui.gain_heart()       # Restore one heart
+hearts_ui.reset_hearts()     # Reset all hearts to max
+hearts_ui.get_hearts()       # Get current heart count
+hearts_ui.get_max_hearts()   # Get maximum hearts
+hearts_ui.set_max_hearts(n)  # Set new max and reset
+```
 
 ---
 

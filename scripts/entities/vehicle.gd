@@ -181,6 +181,9 @@ const VEHICLE_CONFIG: Dictionary = {
 @export var speed: float = 200.0  # Base pixels per second
 @export var destination: Vector2 = Vector2.ZERO
 
+# Multiple destinations support - car can reach ANY of these
+var _all_destinations: Array = []  # Array of Vector2 positions
+
 # Vehicle state (0 = crashed, 1 = normal/active)
 var vehicle_state: int = 1
 
@@ -752,7 +755,16 @@ func _grid_offset_to_direction(offset: Vector2i) -> String:
 
 
 func _check_destination() -> void:
-	if destination != Vector2.ZERO:
+	# Check against all destinations (multiple parking spots)
+	if not _all_destinations.is_empty():
+		for dest in _all_destinations:
+			var distance = global_position.distance_to(dest)
+			if distance < DESTINATION_THRESHOLD:
+				stop()
+				reached_destination.emit(vehicle_id)
+				return
+	# Fallback to single destination for backwards compatibility
+	elif destination != Vector2.ZERO:
 		var distance = global_position.distance_to(destination)
 		if distance < DESTINATION_THRESHOLD:
 			stop()
@@ -1213,15 +1225,44 @@ func set_destination(dest: Vector2) -> void:
 	destination = dest
 
 
+## Set all possible destinations (multiple parking spots)
+## Car will be considered "at end" when reaching ANY of these
+func set_all_destinations(destinations: Array) -> void:
+	_all_destinations.clear()
+	for dest in destinations:
+		if dest is Vector2:
+			_all_destinations.append(dest)
+		elif dest is Dictionary and dest.has("position"):
+			_all_destinations.append(dest["position"])
+
+
 ## Check if vehicle has reached its destination (short name)
+## Works with multiple destinations - returns true if at ANY destination
 func at_end() -> bool:
+	# Check against all destinations
+	if not _all_destinations.is_empty():
+		for dest in _all_destinations:
+			if global_position.distance_to(dest) < DESTINATION_THRESHOLD:
+				return true
+		return false
+	# Fallback to single destination
 	if destination == Vector2.ZERO:
 		return false
 	return global_position.distance_to(destination) < DESTINATION_THRESHOLD
 
 
-## Get distance to destination (short name)
+## Get distance to nearest destination (short name)
+## Works with multiple destinations - returns distance to closest one
 func dist() -> float:
+	# Check against all destinations, return closest
+	if not _all_destinations.is_empty():
+		var min_dist: float = -1.0
+		for dest in _all_destinations:
+			var d = global_position.distance_to(dest)
+			if min_dist < 0 or d < min_dist:
+				min_dist = d
+		return min_dist
+	# Fallback to single destination
 	if destination == Vector2.ZERO:
 		return -1.0
 	return global_position.distance_to(destination)

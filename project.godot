@@ -22,6 +22,7 @@ theme/custom_font="uid://ch0ekdq0n620f"
 
 GameState="*res://scripts/systems/game_state.gd"
 MusicManager="*res://scripts/systems/music_manager.gd"
+GameData="*res://scripts/core/game_data.gd"
 
 [rendering]
 
