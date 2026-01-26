@@ -20,7 +20,7 @@ Dialogue script for 5 tutorial stages. Character assets already exist - this is 
 ```
 STEP 1: Welcome
 [Character appears]
-"Welcome to GoCars! I'm Coach Wheels, and I'll teach you how to code cars!"
+"Welcome to GoCars! I'm Maki, and I'll teach you how to code cars!"
 "In this game, you write REAL Python code to control vehicles."
 
 STEP 2: Point at Car
@@ -246,7 +246,7 @@ STEP 10: Success
           |
      [R]--[R]
      |
-[D]--[R]--[R]
+[D]--[R]
 ```
 - Spawn: (0, 0)
 - Many turns required
