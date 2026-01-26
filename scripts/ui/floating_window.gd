@@ -484,6 +484,11 @@ func close() -> void:
 func open() -> void:
 	visible = true
 	_bring_to_front()
+	
+	# Notify tutorial manager if this is the code editor
+	if TutorialManager and TutorialManager.is_active():
+		if self is CodeEditorWindow:
+			TutorialManager.notify_action("open_code_editor")
 
 ## Set window title
 func set_window_title(new_title: String) -> void:

@@ -1,0 +1,51 @@
+[gd_scene load_steps=3 format=3 uid="uid://btuthighlight00"]
+
+[ext_resource type="Script" path="res://scripts/ui/tutorial_highlight.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://c8h3mfg1hqfis" path="res://assets/fonts/pixel.ttf" id="2_font"]
+
+[node name="TutorialHighlight" type="CanvasLayer"]
+layer = 99
+script = ExtResource("1_script")
+
+[node name="DarkOverlay" type="ColorRect" parent="."]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+mouse_filter = 2
+
+[node name="SpotlightRect" type="ColorRect" parent="."]
+modulate = Color(1, 1, 1, 0)
+offset_right = 100.0
+offset_bottom = 100.0
+color = Color(1, 1, 1, 0)
+mouse_filter = 2
+
+[node name="PointerArrow" type="Label" parent="."]
+modulate = Color(1, 1, 1, 0)
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 48
+text = "▼"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HintLabel" type="Label" parent="."]
+modulate = Color(1, 1, 1, 0)
+offset_right = 200.0
+offset_bottom = 50.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "Click here!"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3

@@ -362,6 +362,9 @@ func _load_level(index: int) -> void:
 	# Spawn initial cars at game start (before player runs code)
 	_spawn_initial_cars()
 
+	# Start tutorial if this level has one
+	_start_tutorial_if_available()
+
 
 func _load_level_by_name(level_name: String) -> void:
 	var paths = level_loader.get_level_paths()
@@ -598,6 +601,9 @@ func _on_run_button_pressed() -> void:
 	if code.strip_edges().is_empty():
 		_update_status("Error: No code entered")
 		return
+
+	# Notify tutorial system that player pressed Run
+	_notify_tutorial_action("run_code")
 
 	# Mark paths dirty
 	if road_layer:
@@ -1936,3 +1942,96 @@ func _can_select_tile(grid_pos: Vector2i) -> bool:
 func _can_remove_tile(grid_pos: Vector2i) -> bool:
 	var permission = _get_build_permission(grid_pos)
 	return permission >= 2  # Only permission 2 allows removal
+
+
+# ============================================
+# Tutorial System Integration
+# ============================================
+
+## Start tutorial if this level has one
+func _start_tutorial_if_available() -> void:
+	if not TutorialManager:
+		print("TutorialManager not found")
+		return
+
+	# Get level name from current_level_id (e.g., "level_00", "level_01")
+	var level_name = current_level_id
+	if level_name.is_empty():
+		return
+
+	# Check if this level has a tutorial
+	if TutorialManager.has_tutorial(level_name):
+		print("Starting tutorial for level: %s" % level_name)
+
+		# Connect to TutorialManager signals if not already connected
+		_connect_tutorial_signals()
+
+		# Start the tutorial - pass self as parent for dialogue box
+		TutorialManager.start_tutorial(level_name, self)
+	else:
+		print("No tutorial for level: %s" % level_name)
+
+## Connect to TutorialManager signals
+func _connect_tutorial_signals() -> void:
+	if not TutorialManager:
+		return
+
+	# Disconnect first to avoid duplicate connections
+	if TutorialManager.wait_for_action.is_connected(_on_tutorial_wait_for_action):
+		TutorialManager.wait_for_action.disconnect(_on_tutorial_wait_for_action)
+	if TutorialManager.force_event.is_connected(_on_tutorial_force_event):
+		TutorialManager.force_event.disconnect(_on_tutorial_force_event)
+	if TutorialManager.highlight_requested.is_connected(_on_tutorial_highlight_requested):
+		TutorialManager.highlight_requested.disconnect(_on_tutorial_highlight_requested)
+	if TutorialManager.highlight_cleared.is_connected(_on_tutorial_highlight_cleared):
+		TutorialManager.highlight_cleared.disconnect(_on_tutorial_highlight_cleared)
+	if TutorialManager.tutorial_completed.is_connected(_on_tutorial_completed):
+		TutorialManager.tutorial_completed.disconnect(_on_tutorial_completed)
+
+	# Connect signals
+	TutorialManager.wait_for_action.connect(_on_tutorial_wait_for_action)
+	TutorialManager.force_event.connect(_on_tutorial_force_event)
+	TutorialManager.highlight_requested.connect(_on_tutorial_highlight_requested)
+	TutorialManager.highlight_cleared.connect(_on_tutorial_highlight_cleared)
+	TutorialManager.tutorial_completed.connect(_on_tutorial_completed)
+
+## Called when tutorial is waiting for a player action
+func _on_tutorial_wait_for_action(action_type: String) -> void:
+	print("Tutorial waiting for action: %s" % action_type)
+	# The tutorial will wait until we call TutorialManager.notify_action()
+
+## Called when tutorial wants to force an event (like a crash demo)
+func _on_tutorial_force_event(event_type: String) -> void:
+	print("Tutorial forcing event: %s" % event_type)
+	# Handle forced events like crash demos
+	match event_type.to_lower():
+		"crash", "car crashes":
+			# Force a crash on the current car for demo purposes
+			var vehicles = get_tree().get_nodes_in_group("vehicles")
+			if vehicles.size() > 0:
+				var vehicle = vehicles[0]
+				if vehicle.has_method("crash"):
+					vehicle.crash()
+		"red light violation":
+			# Force a red light violation demo
+			pass
+
+## Called when tutorial wants to highlight a UI element
+func _on_tutorial_highlight_requested(target: String) -> void:
+	print("Tutorial highlight requested: %s" % target)
+	# TODO: Implement highlighting system
+	# For now, just log the request
+
+## Called when tutorial highlight should be cleared
+func _on_tutorial_highlight_cleared() -> void:
+	print("Tutorial highlight cleared")
+	# TODO: Clear any active highlights
+
+## Called when tutorial is completed
+func _on_tutorial_completed(level_id: String) -> void:
+	print("Tutorial completed: %s" % level_id)
+
+## Notify TutorialManager of player actions
+func _notify_tutorial_action(action: String) -> void:
+	if TutorialManager and TutorialManager.is_active():
+		TutorialManager.notify_action(action)

@@ -11,6 +11,9 @@ var best_times: Dictionary = {}
 # Level completion status
 var completed_levels: Dictionary = {}
 
+# Tutorial completion status (level_name -> bool)
+var completed_tutorials: Dictionary = {}
+
 # Intro cutscene state (session-only, resets on game restart)
 var has_played_intro: bool = false
 
@@ -52,6 +55,24 @@ func is_level_completed(level_id: String) -> bool:
 	return completed_levels.get(level_id, false)
 
 
+## Mark tutorial as completed for a level
+func mark_tutorial_completed(level_name: String) -> void:
+	completed_tutorials[level_name] = true
+	save_data()
+	print("GameData: Tutorial completed for %s" % level_name)
+
+
+## Check if tutorial has been completed for a level
+func has_completed_tutorial(level_name: String) -> bool:
+	return completed_tutorials.get(level_name, false)
+
+
+## Reset tutorial completion for a level (for testing)
+func reset_tutorial(level_name: String) -> void:
+	completed_tutorials.erase(level_name)
+	save_data()
+
+
 ## Format time as MM:SS.ms
 func format_time(time: float) -> String:
 	if time < 0:
@@ -66,7 +87,8 @@ func format_time(time: float) -> String:
 func save_data() -> void:
 	var data = {
 		"best_times": best_times,
-		"completed_levels": completed_levels
+		"completed_levels": completed_levels,
+		"completed_tutorials": completed_tutorials
 	}
 
 	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
@@ -92,12 +114,14 @@ func load_data() -> void:
 			if data is Dictionary:
 				best_times = data.get("best_times", {})
 				completed_levels = data.get("completed_levels", {})
+				completed_tutorials = data.get("completed_tutorials", {})
 
 
 ## Clear all saved data
 func clear_data() -> void:
 	best_times.clear()
 	completed_levels.clear()
+	completed_tutorials.clear()
 	save_data()
 
 

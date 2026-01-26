@@ -482,6 +482,10 @@ func _on_text_changed() -> void:
 	is_modified = true
 	_update_status_bar()
 
+	# Notify tutorial manager (player is typing code)
+	if TutorialManager and TutorialManager.is_active():
+		TutorialManager.notify_action("type_code")
+
 	# Trigger IntelliSense
 	if intellisense:
 		intellisense.on_text_changed()
