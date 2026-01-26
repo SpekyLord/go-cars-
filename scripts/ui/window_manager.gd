@@ -17,6 +17,7 @@ var toolbar: Variant = null
 var code_editor_window: Variant = null
 var readme_window: Variant = null
 var skill_tree_window: Variant = null
+var file_explorer: Variant = null
 
 ## Virtual filesystem
 var virtual_fs: Variant = null
@@ -282,3 +283,31 @@ func _load_window_state() -> void:
 ## Called when windows are closed or moved - save state
 func _on_window_changed() -> void:
 	save_window_state()
+
+## Reset all window positions to defaults
+func reset_all_window_positions() -> void:
+	var viewport_size = ui_container.get_viewport().get_visible_rect().size
+	
+	# Reset code editor window
+	if code_editor_window and is_instance_valid(code_editor_window):
+		code_editor_window.position = Vector2(50, 50)
+		if code_editor_window.has_method("reset_size"):
+			code_editor_window.reset_size()
+	
+	# Reset file explorer
+	if file_explorer and is_instance_valid(file_explorer):
+		file_explorer.position = Vector2(50, 200)
+	
+	# Reset readme window
+	if readme_window and is_instance_valid(readme_window):
+		var default_pos = (viewport_size - readme_window.default_size) / 2
+		readme_window.global_position = default_pos
+	
+	# Reset skill tree window
+	if skill_tree_window and is_instance_valid(skill_tree_window):
+		var default_pos = (viewport_size - skill_tree_window.default_size) / 2
+		skill_tree_window.global_position = default_pos
+	
+	# Save the reset state
+	save_window_state()
+	print("All window positions reset to defaults")

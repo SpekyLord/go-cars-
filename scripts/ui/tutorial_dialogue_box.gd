@@ -10,7 +10,6 @@ signal continue_pressed()
 signal skip_pressed()
 
 ## Node references
-@onready var dim_overlay: ColorRect = $DimOverlay
 @onready var dialogue_panel: Panel = $DialoguePanel
 @onready var character_portrait: TextureRect = $DialoguePanel/HBoxContainer/CharacterPortrait
 @onready var speaker_name: Label = $DialoguePanel/HBoxContainer/VBoxContainer/SpeakerName
@@ -92,11 +91,9 @@ func hide_dialogue() -> void:
 	# Fade out
 	var tween = create_tween()
 	tween.tween_property(dialogue_panel, "modulate:a", 0.0, 0.2)
-	tween.tween_property(dim_overlay, "modulate:a", 0.0, 0.2)
-	tween.tween_callback(func():
+	tween.tween_callback(  func():
 		visible = false
 		dialogue_panel.modulate.a = 1.0
-		dim_overlay.modulate.a = 1.0
 	)
 
 ## Show character with appear animation

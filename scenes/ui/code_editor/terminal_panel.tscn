@@ -38,7 +38,7 @@ text = "PROBLEMS"
 custom_minimum_size = Vector2(80, 24)
 layout_mode = 2
 toggle_mode = true
-text = "DEBUGs"
+text = "DEBUG"
 
 [node name="Spacer" type="Control" parent="MainVBox/HeaderContainer"]
 layout_mode = 2

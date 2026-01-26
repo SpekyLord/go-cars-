@@ -35,6 +35,9 @@ var menu_button: Button = null  # Created dynamically
 @onready var toggle_help_button: Button = $UI/ToggleHelpButton
 @onready var menu_button_ui: Button = $UI/MenuButton
 
+# Menu panel (created dynamically)
+var menu_panel: Panel = null
+
 # Background audio
 var background_audio: AudioStreamPlayer = null
 var engine_audio: AudioStreamPlayer = null
@@ -149,7 +152,10 @@ func _ready() -> void:
 	toggle_help_button.pressed.connect(_on_toggle_help_pressed)
 
 	# Connect menu button
-	menu_button_ui.pressed.connect(_on_menu_pressed)
+	menu_button_ui.pressed.connect(_on_menu_button_pressed)
+	
+	# Create menu panel
+	_create_menu_panel()
 
 	# Note: Stoplights are spawned from tiles when level is loaded
 
@@ -1667,6 +1673,9 @@ func _on_window_manager_code_run(code: String) -> void:
 	if code.strip_edges().is_empty():
 		_update_status("Error: No code entered")
 		return
+	
+	# Notify tutorial system
+	_notify_tutorial_action("run_code")
 
 	if road_layer:
 		road_layer.mark_paths_dirty()
@@ -1774,6 +1783,65 @@ func _create_menu_button() -> void:
 func _on_menu_pressed() -> void:
 	_hide_result_popup()
 	get_tree().change_scene_to_file("res://scenes/ui/Main_Menu/CampaignMenu.tscn")
+
+
+# ============================================
+# Menu Panel
+# ============================================
+
+## Create the menu panel with options
+func _create_menu_panel() -> void:
+	# Load and instantiate the menu panel scene
+	var menu_panel_scene = load("res://scenes/ui/menu_panel.tscn")
+	if menu_panel_scene:
+		menu_panel = menu_panel_scene.instantiate()
+		$UI.add_child(menu_panel)
+		
+		# Connect signals
+		menu_panel.back_to_levels_pressed.connect(_on_menu_back_to_levels)
+		menu_panel.reset_windows_pressed.connect(_on_menu_reset_windows)
+		menu_panel.close_pressed.connect(_on_menu_close)
+		
+		print("Menu panel loaded from scene")
+	else:
+		push_error("Failed to load menu panel scene")
+
+## Open the menu panel
+func _on_menu_button_pressed() -> void:
+	if menu_panel and menu_panel.has_method("toggle"):
+		menu_panel.toggle()
+
+## Back to levels
+func _on_menu_back_to_levels() -> void:
+	if menu_panel:
+		menu_panel.hide_panel()
+	get_tree().change_scene_to_file("res://scenes/ui/Main_Menu/CampaignMenu.tscn")
+
+## Reset window positions
+func _on_menu_reset_windows() -> void:
+	if menu_panel:
+		menu_panel.hide_panel()
+	
+	# Reset windows via window manager if using new UI
+	if window_manager and window_manager.has_method("reset_all_window_positions"):
+		window_manager.reset_all_window_positions()
+		print("Window positions reset")
+	elif window_manager:
+		# Manual reset for individual windows
+		if window_manager.code_editor_window:
+			window_manager.code_editor_window.position = Vector2(50, 50)
+		if window_manager.file_explorer:
+			window_manager.file_explorer.position = Vector2(50, 200)
+		if window_manager.readme_window:
+			window_manager.readme_window.position = Vector2(500, 50)
+		if window_manager.skill_tree_window:
+			window_manager.skill_tree_window.position = Vector2(500, 300)
+		print("Window positions manually reset")
+
+## Close menu panel
+func _on_menu_close() -> void:
+	if menu_panel:
+		menu_panel.hide_panel()
 
 
 # ============================================

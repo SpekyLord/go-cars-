@@ -112,7 +112,6 @@ func _setup_ui() -> void:
 	# Tab bar (OUTPUT | PROBLEMS | DEBUG CONSOLE)
 	tab_bar = HBoxContainer.new()
 	tab_bar.name = "TabBar"
-	tab_bar.add_theme_constant_override("separation", 0)
 	header_container.add_child(tab_bar)
 
 	# Create tabs
@@ -124,9 +123,6 @@ func _setup_ui() -> void:
 		tab_button.toggle_mode = true
 		tab_button.button_pressed = (tab_name == "OUTPUT")
 		tab_button.custom_minimum_size = Vector2(80, 24)
-		tab_button.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
-		tab_button.add_theme_color_override("font_pressed_color", Color(0.9, 0.9, 0.95))
-		tab_button.add_theme_color_override("font_hover_color", Color(0.8, 0.8, 0.85))
 		tab_button.pressed.connect(_on_tab_pressed.bind(tab_name))
 		tab_bar.add_child(tab_button)
 
@@ -142,8 +138,6 @@ func _setup_ui() -> void:
 	collapse_button.flat = true
 	collapse_button.custom_minimum_size = Vector2(28, 24)
 	collapse_button.tooltip_text = "Collapse/Expand terminal"
-	collapse_button.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
-	collapse_button.add_theme_color_override("font_hover_color", Color(0.9, 0.9, 0.95))
 	collapse_button.pressed.connect(_on_collapse_pressed)
 	header_container.add_child(collapse_button)
 
@@ -154,8 +148,6 @@ func _setup_ui() -> void:
 	clear_button.flat = true
 	clear_button.custom_minimum_size = Vector2(50, 24)
 	clear_button.tooltip_text = "Clear terminal output (Ctrl+L)"
-	clear_button.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
-	clear_button.add_theme_color_override("font_hover_color", Color(0.9, 0.9, 0.95))
 	clear_button.pressed.connect(_on_clear_pressed)
 	header_container.add_child(clear_button)
 
@@ -166,15 +158,12 @@ func _setup_ui() -> void:
 	copy_button.flat = true
 	copy_button.custom_minimum_size = Vector2(50, 24)
 	copy_button.tooltip_text = "Copy all output to clipboard"
-	copy_button.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65))
-	copy_button.add_theme_color_override("font_hover_color", Color(0.9, 0.9, 0.95))
 	copy_button.pressed.connect(_on_copy_pressed)
 	header_container.add_child(copy_button)
 
 	# Separator
 	separator = HSeparator.new()
 	separator.name = "Separator"
-	separator.add_theme_color_override("separation_color", Color(0.25, 0.25, 0.3))
 	main_vbox.add_child(separator)
 
 	# Scroll container for output
@@ -193,24 +182,14 @@ func _setup_ui() -> void:
 	output_text.selection_enabled = true
 	output_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	output_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	output_text.add_theme_color_override("default_color", Color(0.85, 0.85, 0.9))
-	output_text.add_theme_font_size_override("normal_font_size", 13)
 	scroll_container.add_child(output_text)
 
 	# Connect meta clicked for clickable error links
 	output_text.meta_clicked.connect(_on_meta_clicked)
 
 func _apply_style() -> void:
-	# Apply dark terminal-like style
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.1, 0.12, 1.0)  # Dark background
-	style.border_color = Color(0.2, 0.2, 0.25, 1.0)
-	style.border_width_top = 1
-	style.content_margin_left = 8
-	style.content_margin_right = 8
-	style.content_margin_top = 4
-	style.content_margin_bottom = 4
-	add_theme_stylebox_override("panel", style)
+	# Style can now be customized through the scene file
+	pass
 
 ## Print a message with specified type
 func print_message(message: String, type: MessageType = MessageType.PRINT) -> void:

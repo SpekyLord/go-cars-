@@ -84,6 +84,13 @@ func start_tutorial(level_name: String, parent_node: Node) -> bool:
 	if not highlight_overlay and highlight_scene:
 		highlight_overlay = highlight_scene.instantiate()
 		parent_node.add_child(highlight_overlay)
+	
+	# Verify all tutorial targets can be found
+	if highlight_overlay and highlight_overlay.has_method("verify_tutorial_targets"):
+		var verification = highlight_overlay.verify_tutorial_targets(current_tutorial.steps)
+		print("TutorialManager: Target verification - Found: %d, Missing: %d" % [
+			verification.found.size(), verification.missing.size()
+		])
 
 	# Show skip button if already completed
 	if dialogue_box and GameData.has_completed_tutorial(level_name):
@@ -128,6 +135,10 @@ func advance_step() -> void:
 ## Process a tutorial step
 func _process_step(step) -> void:
 	print("TutorialManager: Processing step - action: %s, target: %s" % [step.action, step.target])
+	
+	# Clear highlight unless this step needs one
+	if step.action != "point" and step.action != "point_and_wait":
+		_clear_highlight()
 	
 	# Handle action
 	match step.action:
@@ -237,6 +248,10 @@ func notify_action(action_type: String) -> void:
 		print("TutorialManager: Action '%s' completed" % action_type)
 		is_waiting_for_action = false
 		pending_wait_action = ""
+		
+		# Clear any highlight from previous step
+		_clear_highlight()
+		
 		advance_step()
 
 ## Check if performed action matches waited action

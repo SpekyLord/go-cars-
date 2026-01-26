@@ -48,6 +48,50 @@ func _ready() -> void:
 	
 	print("TutorialHighlight: Ready - layer=%d, viewport_size=%s" % [layer, viewport_size])
 
+## Verify all tutorial targets exist in the scene
+## Returns a dictionary with 'found' and 'missing' arrays
+func verify_tutorial_targets(tutorial_steps: Array) -> Dictionary:
+	var found_targets = []
+	var missing_targets = []
+	var checked_targets = {}  # Track duplicates
+	
+	print("\n=== Tutorial Target Verification ===")
+	
+	for step in tutorial_steps:
+		# Skip if step doesn't have required properties
+		if not step or not "action" in step or not "target" in step:
+			continue
+		
+		var action = step.action
+		if action == "point" or action == "point_and_wait":
+			var target_name = step.target
+			
+			# Skip if already checked
+			if target_name in checked_targets:
+				continue
+			
+			checked_targets[target_name] = true
+			
+			# Try to find the target
+			var target = _find_target(target_name)
+			if target:
+				found_targets.append(target_name)
+				print("  ✓ Found: %s -> %s" % [target_name, target.name])
+			else:
+				missing_targets.append(target_name)
+				print("  ✗ Missing: %s" % target_name)
+	
+	print("\nSummary: %d found, %d missing out of %d unique targets" % [
+		found_targets.size(), missing_targets.size(), checked_targets.size()
+	])
+	print("=====================================\n")
+	
+	return {
+		"found": found_targets,
+		"missing": missing_targets,
+		"total": checked_targets.size()
+	}
+
 ## Highlight a target UI element
 func highlight_target(target_name: String, hint: String = "") -> void:
 	print("TutorialHighlight: highlight_target called for: '%s'" % target_name)
@@ -113,13 +157,20 @@ func clear_highlight() -> void:
 
 ## Find target by name or path
 func _find_target(target_name: String) -> Control:
-	# Normalize target name
-	target_name = target_name.to_lower().strip_edges()
+	# Strip edges
+	target_name = target_name.strip_edges()
+	
+	# Check if this is a node path (contains "/")
+	if "/" in target_name:
+		return _find_by_node_path(target_name)
+	
+	# Otherwise, search by name
+	var normalized_target = target_name.to_lower()
 	
 	# Get root node (main scene)
 	var root = get_tree().root
 	
-	# Common target mappings
+	# Common target mappings for simple names
 	var targets = {
 		"run_button": ["RunButton", "run_button"],
 		"pause_button": ["PauseButton", "pause_button"],
@@ -127,17 +178,16 @@ func _find_target(target_name: String) -> Control:
 		"code_editor": ["CodeEditorWindow"],
 		"code_edit": ["CodeEdit"],
 		"toolbar": ["Toolbar"],
-		# Search for button with 'code' AND 'editor' in toolbar - avoid matching the window
-		"code_editor_button": ["Toolbar/HBoxContainer/CodeEditorButton", "BTN_CodeEditor", "code_editor_btn"],
-		"readme_button": ["Toolbar/HBoxContainer/ReadmeButton", "BTN_Readme"],
-		"skill_tree_button": ["Toolbar/HBoxContainer/SkillTreeButton", "BTN_SkillTree"],
+		"code_editor_button": ["BTN_CodeEditor", "code_editor_btn"],
+		"readme_button": ["BTN_Readme"],
+		"skill_tree_button": ["BTN_SkillTree"],
 		"file_explorer": ["FileExplorer", "file_explorer"],
 		"speed_controls": ["SpeedButton", "speed_button"],
 	}
 	
 	# Try to find mapped target
-	if target_name in targets:
-		for path in targets[target_name]:
+	if normalized_target in targets:
+		for path in targets[normalized_target]:
 			var target = _find_node_by_name(root, path)
 			if target:
 				return target
@@ -148,6 +198,42 @@ func _find_target(target_name: String) -> Control:
 		return target
 	
 	return null
+
+## Find node by node path (e.g., "VBoxContainer/ContentContainer/ContentVBox/ControlBar/RunButton")
+func _find_by_node_path(node_path: String) -> Control:
+	# First, find all potential parent windows
+	var root = get_tree().root
+	var windows = []
+	_collect_windows(root, windows)
+	
+	print("TutorialHighlight: Searching for path: %s in %d windows" % [node_path, windows.size()])
+	
+	# Try to find the path relative to each window
+	for window in windows:
+		var target = window.get_node_or_null(NodePath(node_path))
+		if target and target is Control:
+			print("TutorialHighlight: Found target via path in %s: %s" % [window.name, target.name])
+			return target
+	
+	# Also try from root
+	var target = root.get_node_or_null(NodePath(node_path))
+	if target and target is Control:
+		print("TutorialHighlight: Found target via path from root: %s" % target.name)
+		return target
+	
+	print("TutorialHighlight: Path not found: %s" % node_path)
+	return null
+
+## Collect all window nodes (nodes with "Window" in name or specific types)
+func _collect_windows(node: Node, windows: Array) -> void:
+	# Check if this looks like a window/container
+	if node is Control and ("Window" in node.name or "Editor" in node.name or "Panel" in node.name):
+		windows.append(node)
+	
+	# Recurse to children
+	for child in node.get_children():
+		_collect_windows(child, windows)
+
 
 ## Recursively find node by name
 func _find_node_by_name(node: Node, target_name: String) -> Control:
@@ -195,24 +281,50 @@ func _update_spotlight_position() -> void:
 	# Get arrow size for proper centering
 	var arrow_size = Vector2(40, 40)  # PointerArrow's actual size
 	
-	# Position pointer arrow intelligently (above or below based on space)
+	# Position pointer arrow intelligently based on available space
 	var viewport_size = get_viewport().get_visible_rect().size
+	var viewport_center_x = viewport_size.x / 2.0
 	
-	# Center the arrow horizontally on the target
-	var arrow_center_x = target_rect.position.x + (target_rect.size.x / 2.0) - (arrow_size.x / 2.0)
+	# Determine best arrow direction based on target position
+	var arrow_pos: Vector2
+	var arrow_direction: String
 	
-	# Check if there's room above the target (need at least 70 pixels)
-	var arrow_y: float
-	if target_rect.position.y > 70:
-		# Position above target
-		arrow_y = target_rect.position.y - arrow_size.y - 20
-		pointer_arrow.text = "▼"  # Point down
+	# Prioritize vertical positioning for items at top/bottom of screen
+	# Then use horizontal positioning for items on left/right sides
+	
+	if target_rect.position.y < 80:
+		# Target at top of screen (toolbar) - always position arrow below pointing up
+		var arrow_center_x = target_rect.position.x + (target_rect.size.x / 2.0) - (arrow_size.x / 2.0)
+		arrow_pos.x = arrow_center_x
+		arrow_pos.y = target_rect.position.y + target_rect.size.y + 20
+		pointer_arrow.text = "↑"  # Point up
+		arrow_direction = "up"
+	elif target_rect.position.y > viewport_size.y - 150:
+		# Target at bottom of screen - position arrow above pointing down
+		var arrow_center_x = target_rect.position.x + (target_rect.size.x / 2.0) - (arrow_size.x / 2.0)
+		arrow_pos.x = arrow_center_x
+		arrow_pos.y = target_rect.position.y - arrow_size.y - 20
+		pointer_arrow.text = "↓"  # Point down
+		arrow_direction = "down"
+	elif target_rect.position.x < viewport_center_x - 100:
+		# Target on left side - put arrow to the left pointing right
+		arrow_pos.x = target_rect.position.x - arrow_size.x - 20
+		arrow_pos.y = target_rect.position.y + (target_rect.size.y / 2.0) - (arrow_size.y / 2.0)
+		pointer_arrow.text = "→"
+		arrow_direction = "right"
+	elif target_rect.position.x > viewport_center_x + 100:
+		# Target on right side - put arrow to the right pointing left
+		arrow_pos.x = target_rect.position.x + target_rect.size.x + 20
+		arrow_pos.y = target_rect.position.y + (target_rect.size.y / 2.0) - (arrow_size.y / 2.0)
+		pointer_arrow.text = "←"
+		arrow_direction = "left"
 	else:
-		# Not enough room above, position below target
-		arrow_y = target_rect.position.y + target_rect.size.y + 10
-		pointer_arrow.text = "▲"  # Point up
-	
-	var arrow_pos = Vector2(arrow_center_x, arrow_y)
+		# Target in center - use vertical positioning
+		var arrow_center_x = target_rect.position.x + (target_rect.size.x / 2.0) - (arrow_size.x / 2.0)
+		arrow_pos.x = arrow_center_x
+		arrow_pos.y = target_rect.position.y - arrow_size.y - 20
+		pointer_arrow.text = "↓"  # Point down
+		arrow_direction = "down"
 	
 	# Clamp arrow position to stay on screen
 	arrow_pos.x = clamp(arrow_pos.x, 10, viewport_size.x - arrow_size.x - 10)
@@ -320,11 +432,11 @@ func _process(_delta: float) -> void:
 		if pointer_arrow.modulate.a < 1.0:
 			pointer_arrow.modulate.a = 1.0
 		
-		# Debug: Print position periodically to verify tracking
-		var frame_count = Engine.get_process_frames()
-		if frame_count % 60 == 0:  # Every 60 frames (~1 second)
-			var target_rect = current_target.get_global_rect()
-			print("TutorialHighlight: Tracking %s at global pos (%.1f, %.1f), arrow at (%.1f, %.1f)" % [
-				current_target.name, target_rect.position.x, target_rect.position.y,
-				pointer_arrow.position.x, pointer_arrow.position.y
-			])
+		# Debug: Print position periodically to verify tracking (commented out to reduce spam)
+		# var frame_count = Engine.get_process_frames()
+		# if frame_count % 60 == 0:  # Every 60 frames (~1 second)
+		# 	var target_rect = current_target.get_global_rect()
+		# 	print("TutorialHighlight: Tracking %s at global pos (%.1f, %.1f), arrow at (%.1f, %.1f)" % [
+		# 		current_target.name, target_rect.position.x, target_rect.position.y,
+		# 		pointer_arrow.position.x, pointer_arrow.position.y
+		# 	])

@@ -1,13 +1,15 @@
-[gd_scene load_steps=11 format=3 uid="uid://cc0deed1t0r"]
+[gd_scene load_steps=12 format=3 uid="uid://cc0deed1t0r"]
 
 [ext_resource type="Script" uid="uid://bmgmiyp6xksf" path="res://scripts/ui/code_editor_window.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cgbavmtdf15km" path="res://assets/UI/Untitled27_20260121011226.png" id="1_ypdp2"]
 [ext_resource type="Texture2D" uid="uid://bpp4egpvi1amx" path="res://assets/UI/Untitled19.png" id="2_0iwse"]
 [ext_resource type="PackedScene" uid="uid://cf1leexpl0rer" path="res://scenes/ui/code_editor/file_explorer.tscn" id="2_file_explorer"]
 [ext_resource type="PackedScene" uid="uid://cdsh2e12boepr" path="res://scenes/ui/code_editor/terminal_panel.tscn" id="3_terminal_panel"]
 [ext_resource type="Texture2D" uid="uid://cmhpkgys7cirg" path="res://scenes/ui/code_editor/Pause Button.png" id="3_ypdp2"]
 [ext_resource type="Texture2D" uid="uid://ust86fnsqddb" path="res://Untitled21_20260121003628.png" id="4_qly7m"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0ejjt"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qly7m"]
+texture = ExtResource("1_ypdp2")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qtohr"]
 texture = ExtResource("2_0iwse")
@@ -24,7 +26,7 @@ texture = ExtResource("4_qly7m")
 custom_minimum_size = Vector2(700, 500)
 offset_right = 900.0
 offset_bottom = 600.0
-theme_override_styles/panel = SubResource("StyleBoxTexture_0ejjt")
+theme_override_styles/panel = SubResource("StyleBoxTexture_qly7m")
 script = ExtResource("1_script")
 min_size = Vector2(700, 500)
 max_size = Vector2(1600, 1000)
@@ -34,8 +36,6 @@ window_title = "Code Editor"
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
-anchor_left = 0.0
-anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2

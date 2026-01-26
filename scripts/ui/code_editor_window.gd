@@ -127,6 +127,12 @@ func _connect_scene_signals() -> void:
 	if terminal_panel:
 		terminal_panel.error_clicked.connect(_on_terminal_error_clicked)
 		print("CodeEditorWindow: Terminal panel connected from scene")
+	
+	# Set terminal panel to take about 1/3 of the space
+	if main_vsplit and terminal_panel:
+		# Set split offset to show terminal at about 1/3 height (200px from bottom)
+		main_vsplit.split_offset = -30
+		print("CodeEditorWindow: Terminal panel set to 1/3 space")
 
 func _setup_advanced_features() -> void:
 	var content = get_content_container()
@@ -294,7 +300,6 @@ func _setup_editor_ui() -> void:
 	metrics_label = Label.new()
 	metrics_label.name = "MetricsLabel"
 	metrics_label.text = "Steps: 0 | LOC: 0"
-	metrics_label.add_theme_color_override("font_color", Color(0.6, 0.8, 0.6))
 	status_bar.add_child(metrics_label)
 
 	# Setup IntelliSense

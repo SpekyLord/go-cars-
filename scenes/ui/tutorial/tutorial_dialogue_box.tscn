@@ -93,17 +93,17 @@ theme_override_font_sizes/font_size = 18
 text = "Click to continue..."
 
 [node name="SkipButton" type="Button" parent="DialoguePanel"]
-visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -140.0
-offset_top = 12.0
-offset_right = -12.0
-offset_bottom = 40.0
+offset_left = -219.0
+offset_top = -32.19998
+offset_right = -3.0
+offset_bottom = -4.1999817
 grow_horizontal = 0
-theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 16
 text = "Skip Tutorial"

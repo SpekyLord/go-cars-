@@ -180,7 +180,6 @@ func _create_name_popup() -> void:
 
 	# VBox for layout
 	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
 	name_popup.add_child(vbox)
 
 	# Input field
@@ -192,7 +191,6 @@ func _create_name_popup() -> void:
 	# Button container
 	var hbox = HBoxContainer.new()
 	hbox.alignment = BoxContainer.ALIGNMENT_END
-	hbox.add_theme_constant_override("separation", 8)
 	vbox.add_child(hbox)
 
 	# Cancel button
