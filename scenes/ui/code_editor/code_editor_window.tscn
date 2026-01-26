@@ -1,20 +1,18 @@
-[gd_scene load_steps=5 format=3 uid="uid://cc0deed1t0r"]
+[gd_scene load_steps=4 format=3 uid="uid://cc0deed1t0r"]
 
-[ext_resource type="Script" path="res://scripts/ui/code_editor_window.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bmgmiyp6xksf" path="res://scripts/ui/code_editor_window.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://cf1leexpl0rer" path="res://scenes/ui/code_editor/file_explorer.tscn" id="2_file_explorer"]
-[ext_resource type="PackedScene" uid="uid://cterm1nalp4nel" path="res://scenes/ui/code_editor/terminal_panel.tscn" id="3_terminal_panel"]
-[ext_resource type="Script" path="res://scripts/ui/python_syntax_highlighter.gd" id="4_syntax"]
+[ext_resource type="PackedScene" uid="uid://cdsh2e12boepr" path="res://scenes/ui/code_editor/terminal_panel.tscn" id="3_terminal_panel"]
 
 [node name="CodeEditorWindow" type="PanelContainer"]
 custom_minimum_size = Vector2(700, 500)
 offset_right = 900.0
 offset_bottom = 600.0
-mouse_filter = 0
 script = ExtResource("1_script")
-window_title = "Code Editor"
 min_size = Vector2(700, 500)
 max_size = Vector2(1600, 1000)
 default_size = Vector2(900, 600)
+window_title = "Code Editor"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 2
@@ -42,28 +40,28 @@ text = "Code Editor"
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 tooltip_text = "Minimize"
-flat = true
 theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
 theme_override_font_sizes/font_size = 18
 text = "−"
+flat = true
 
 [node name="MaximizeButton" type="Button" parent="VBoxContainer/TitleBar/TitleHBox"]
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 tooltip_text = "Maximize"
-flat = true
 theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
 theme_override_font_sizes/font_size = 14
 text = "□"
+flat = true
 
 [node name="CloseButton" type="Button" parent="VBoxContainer/TitleBar/TitleHBox"]
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 tooltip_text = "Close"
-flat = true
 theme_override_colors/font_color = Color(0.9, 0.4, 0.4, 1)
 theme_override_font_sizes/font_size = 20
 text = "×"
+flat = true
 
 [node name="SpacerRight" type="Control" parent="VBoxContainer/TitleBar/TitleHBox"]
 custom_minimum_size = Vector2(4, 0)
@@ -122,20 +120,15 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-wrap_mode = 0
 scroll_smooth = true
-minimap_draw = false
 caret_blink = true
 caret_blink_interval = 0.5
 gutters_draw_line_numbers = true
-gutters_draw_fold_gutter = false
-indent_size = 4
-indent_automatic = true
+code_completion_enabled = true
 indent_use_spaces = true
+indent_automatic = true
 auto_brace_completion_enabled = true
 auto_brace_completion_highlight_matching = true
-code_completion_enabled = true
-line_folding = false
 
 [node name="TerminalPanel" parent="VBoxContainer/ContentContainer/ContentVBox/MainVSplit" instance=ExtResource("3_terminal_panel")]
 layout_mode = 2

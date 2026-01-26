@@ -48,6 +48,10 @@ var _t_float: Tween
 
 var _splash: TextureRect
 
+# Intro skip state
+var _intro_tween: Tween
+var _is_playing_intro: bool = false
+
 
 # ------------------------------------------------------------------
 # 🔒 FRAME-0 GUARANTEE (no flash, no alpha race)
@@ -70,11 +74,67 @@ func _ready() -> void:
 	# Prep splash node once (hidden, centered, independent)
 	_setup_splash()
 
-	if intro_enabled:
+	# Check if intro should play (first launch only)
+	var should_play_intro = intro_enabled and not GameData.has_intro_been_played()
+
+	if should_play_intro:
 		_play_intro()
 	else:
+		# Skip intro - hide dim overlay and ensure logo is visible
+		var dim := get_node_or_null(intro_dim_path) as ColorRect
+		if dim:
+			dim.visible = false
+
+		# Ensure logo is fully visible at base position
+		modulate.a = 1.0
+		position = _base_pos
+
 		_apply_random_phase()
 		_start_loops()
+
+
+func _input(event: InputEvent) -> void:
+	# Skip intro with Space, Enter, or mouse click
+	if _is_playing_intro:
+		if event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_select") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+			_skip_intro()
+			get_viewport().set_input_as_handled()
+
+
+func _skip_intro() -> void:
+	if not _is_playing_intro:
+		return
+
+	# Kill intro tween
+	if _intro_tween and _intro_tween.is_valid():
+		_intro_tween.kill()
+
+	# Jump to end state immediately
+	_is_playing_intro = false
+	modulate.a = 1.0
+	position = _base_pos
+	scale = _base_scale
+	rotation = 0.0
+
+	# Hide dim overlay
+	var dim := get_node_or_null(intro_dim_path) as ColorRect
+	if dim:
+		dim.visible = false
+
+	# Hide splash
+	if _splash and is_instance_valid(_splash):
+		_splash.visible = false
+
+	# Start wobble loops
+	_apply_random_phase()
+	_start_loops()
+
+	# Mark intro as played
+	GameData.mark_intro_played()
+
+	# Play background music
+	if bg_music_player and is_instance_valid(bg_music_player):
+		bg_music_player.play()
 
 
 func _setup_splash() -> void:
@@ -127,6 +187,7 @@ func _center_splash() -> void:
 
 func _play_intro() -> void:
 	_kill_loops()
+	_is_playing_intro = true
 
 	var dim := get_node_or_null(intro_dim_path) as ColorRect
 	if dim:
@@ -150,6 +211,7 @@ func _play_intro() -> void:
 	var t := create_tween()
 	t.set_trans(Tween.TRANS_SINE)
 	t.set_ease(Tween.EASE_IN_OUT)
+	_intro_tween = t
 
 	# 0) OPTIONAL: splash sequence BEFORE your normal wait/logo fade
 	if splash_enabled and splash_texture != null and _splash and is_instance_valid(_splash):
@@ -193,8 +255,13 @@ func _play_intro() -> void:
 
 	# 6) Start wobble loops
 	t.tween_callback(func():
+		_is_playing_intro = false
 		_apply_random_phase()
 		_start_loops()
+
+		# Mark intro as played (persists to disk)
+		GameData.mark_intro_played()
+
 		# Play background music after logo animation completes
 		if bg_music_player and is_instance_valid(bg_music_player):
 			bg_music_player.play()

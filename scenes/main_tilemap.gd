@@ -30,13 +30,6 @@ var use_new_ui: bool = true
 @onready var next_button: Button = $UI/ResultPopup/NextButton
 var menu_button: Button = null  # Created dynamically
 
-# Stoplight panel elements
-@onready var stoplight_panel: Panel = $UI/StoplightPanel
-@onready var stoplight_red_button: Button = $UI/StoplightPanel/RedButton
-@onready var stoplight_yellow_button: Button = $UI/StoplightPanel/YellowButton
-@onready var stoplight_green_button: Button = $UI/StoplightPanel/GreenButton
-@onready var stoplight_state_label: Label = $UI/StoplightPanel/StateLabel
-
 # Help panel elements
 @onready var help_panel: Panel = $UI/HelpPanel
 @onready var toggle_help_button: Button = $UI/ToggleHelpButton
@@ -143,16 +136,10 @@ func _ready() -> void:
 	# Create menu button for result popup
 	_create_menu_button()
 
-	# Connect stoplight panel buttons
-	stoplight_red_button.pressed.connect(_on_stoplight_red_pressed)
-	stoplight_yellow_button.pressed.connect(_on_stoplight_yellow_pressed)
-	stoplight_green_button.pressed.connect(_on_stoplight_green_pressed)
-
 	# Connect help panel button
 	toggle_help_button.pressed.connect(_on_toggle_help_pressed)
 
 	# Note: Stoplights are spawned from tiles when level is loaded
-	# The stoplight panel will be updated when stoplights are spawned
 
 	# Set initial code
 	code_editor.text = "car.go()"
@@ -577,13 +564,7 @@ func _spawn_stoplights_from_tiles() -> void:
 		# Store reference
 		_spawned_stoplights.append(stoplight)
 
-		# Connect state change signal
-		stoplight.state_changed.connect(_on_stoplight_state_changed)
-
 	print("Spawned %d stoplights from tiles" % _spawned_stoplights.size())
-
-	# Update stoplight panel after spawning
-	_update_stoplight_state_label()
 
 
 # ============================================
@@ -760,57 +741,6 @@ func _on_execution_error(error: String, line: int) -> void:
 
 
 # ============================================
-# Stoplight Panel
-# ============================================
-
-## Get the first spawned stoplight (for stoplight panel control)
-func _get_active_stoplight() -> Stoplight:
-	if _spawned_stoplights.size() > 0 and is_instance_valid(_spawned_stoplights[0]):
-		return _spawned_stoplights[0]
-	return null
-
-
-func _on_stoplight_red_pressed() -> void:
-	var stoplight = _get_active_stoplight()
-	if stoplight:
-		stoplight.set_red()
-		_update_status("Stoplight set to RED")
-	else:
-		_update_status("No stoplight in this level")
-
-
-func _on_stoplight_yellow_pressed() -> void:
-	var stoplight = _get_active_stoplight()
-	if stoplight:
-		stoplight.set_yellow()
-		_update_status("Stoplight set to YELLOW")
-	else:
-		_update_status("No stoplight in this level")
-
-
-func _on_stoplight_green_pressed() -> void:
-	var stoplight = _get_active_stoplight()
-	if stoplight:
-		stoplight.set_green()
-		_update_status("Stoplight set to GREEN")
-	else:
-		_update_status("No stoplight in this level")
-
-
-func _on_stoplight_state_changed(_stoplight_id: String, _new_state: String) -> void:
-	_update_stoplight_state_label()
-
-
-func _update_stoplight_state_label() -> void:
-	var stoplight = _get_active_stoplight()
-	if stoplight:
-		var state = stoplight.get_state()
-		stoplight_state_label.text = "Current: %s" % state.capitalize()
-	else:
-		stoplight_state_label.text = "No stoplight"
-
-
-# ============================================
 # Help Panel
 # ============================================
 
@@ -964,7 +894,6 @@ func _do_fast_retry() -> void:
 	for stoplight in _spawned_stoplights:
 		if is_instance_valid(stoplight) and stoplight.has_method("reset"):
 			stoplight.reset()
-	_update_stoplight_state_label()
 
 	# Reset hearts
 	hearts = initial_hearts

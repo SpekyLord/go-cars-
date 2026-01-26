@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://cqkqswm0ovfss"]
+[gd_scene load_steps=18 format=3 uid="uid://cqkqswm0ovfss"]
 
 [ext_resource type="Texture2D" uid="uid://cwswoagt665ls" path="res://assets/Main_Menu_Assets/PanayIsland.png" id="1_fk1gg"]
 [ext_resource type="Texture2D" uid="uid://brr7ipwciwbal" path="res://assets/Main_Menu_Assets/Water.png" id="1_n0qu6"]
@@ -14,6 +14,7 @@
 [ext_resource type="Script" uid="uid://iae7ttpr2nh1" path="res://scenes/ui/UI_Scripts/TexturebuttonHover.gd" id="10_8gbxi"]
 [ext_resource type="Script" uid="uid://d26xks468twvi" path="res://scenes/ui/UI_Scripts/IdleAnimModule.gd" id="11_w46t7"]
 [ext_resource type="Texture2D" uid="uid://dpqmkhncqsx7l" path="res://assets/Main_Menu_Assets/Vignette.png" id="13_bo8e2"]
+[ext_resource type="Script" uid="uid://deb7yvwmeyup5" path="res://scenes/ui/UI_Scripts/BTN_GlobalFunctions.gd" id="14_back"]
 
 [sub_resource type="Shader" id="Shader_8kxf1"]
 code = "
@@ -601,3 +602,31 @@ grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("13_bo8e2")
 expand_mode = 1
+
+[node name="BackButton" type="TextureButton" parent="."]
+z_index = 10
+layout_mode = 0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = 200.0
+offset_bottom = 110.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("14_back")
+scene_to_load = "res://scenes/ui/Main_Menu/MainMenu.tscn"
+
+[node name="Label" type="Label" parent="BackButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_fonts/font = ExtResource("9_5ywgh")
+theme_override_font_sizes/font_size = 32
+text = "Back"
+horizontal_alignment = 1
+vertical_alignment = 1

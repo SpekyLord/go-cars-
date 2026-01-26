@@ -931,13 +931,6 @@ Cars drive on the left side of the road to avoid head-on collisions:
 - **Allows passing**: Two cars going opposite directions can share the same road
 - **Smaller hitboxes**: Collision shapes reduced to prevent easy crashes
 
-### Stoplight Control Panel
-UI panel in top-right corner allows manual stoplight control:
-- **Set Red** button - Change stoplight to red
-- **Set Yellow** button - Change stoplight to yellow
-- **Set Green** button - Change stoplight to green
-- **State display** - Shows current stoplight color
-
 ### Road-Only Movement
 Cars must stay on road tiles:
 - **Valid roads**: Any road tile placed using the RoadTile system
@@ -966,7 +959,6 @@ Cars must stay on road tiles:
 | Lane Driving | ✅ | Cars offset for right-hand traffic (25px) |
 | Collision Detection | ✅ | Manual distance-based collision (40px threshold) |
 | Short API Names | ✅ | `front_road()`, `at_end()`, etc. |
-| Stoplight Control Panel | ✅ | Manual stoplight control UI |
 | Red Light Violations | ✅ | Running red lights costs hearts |
 | Vehicle Types | ✅ | 8 types with different speeds/sizes |
 | Level Timer | ✅ | Timer starts on level load, stops on win |
@@ -1098,7 +1090,6 @@ while not car.at_end():
 | Connect roads | Left-click adjacent road | FREE - no card cost, just connects |
 | Deselect | Left-click selected road | Exit edit mode |
 | Remove road | Right-click on road | Refunds 1 road card (except spawn/destination) |
-| Control stoplight | Stoplight panel buttons | Red/Yellow/Green buttons in top-right |
 | Run code | Run Code button or F5 | Starts car spawning every 15 seconds |
 | Pause/Resume | Space | Pauses simulation and spawning |
 | Reset level | R | Clears crashed cars, resets hearts, stops spawning |
