@@ -11,6 +11,9 @@ var best_times: Dictionary = {}
 # Level completion status
 var completed_levels: Dictionary = {}
 
+# Intro cutscene state (session-only, resets on game restart)
+var has_played_intro: bool = false
+
 
 func _ready() -> void:
 	load_data()
@@ -96,3 +99,13 @@ func clear_data() -> void:
 	best_times.clear()
 	completed_levels.clear()
 	save_data()
+
+
+## Mark intro as played (session-only, not saved to disk)
+func mark_intro_played() -> void:
+	has_played_intro = true
+
+
+## Check if intro has been played this session
+func has_intro_been_played() -> bool:
+	return has_played_intro
