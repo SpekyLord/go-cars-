@@ -33,6 +33,7 @@ var menu_button: Button = null  # Created dynamically
 # Help panel elements
 @onready var help_panel: Panel = $UI/HelpPanel
 @onready var toggle_help_button: Button = $UI/ToggleHelpButton
+@onready var menu_button_ui: Button = $UI/MenuButton
 
 # Background audio
 var background_audio: AudioStreamPlayer = null
@@ -146,6 +147,9 @@ func _ready() -> void:
 
 	# Connect help panel button
 	toggle_help_button.pressed.connect(_on_toggle_help_pressed)
+
+	# Connect menu button
+	menu_button_ui.pressed.connect(_on_menu_pressed)
 
 	# Note: Stoplights are spawned from tiles when level is loaded
 
