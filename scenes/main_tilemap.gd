@@ -100,6 +100,7 @@ var selection_highlight: ColorRect = null
 var level_timer: float = 0.0
 var timer_running: bool = false
 var level_won: bool = false
+var code_is_running: bool = false  # True when code is executing (cars moving from code)
 var current_level_id: String = ""
 var current_level_display_name: String = ""
 
@@ -210,8 +211,17 @@ func _process(delta: float) -> void:
 			_spawn_new_car()
 
 	# Update level timer
-	if timer_running and not level_won:
-		level_timer += delta
+	# Timer pauses when game is paused
+	if timer_running and not level_won and not get_tree().paused:
+		# Before code runs: timer always at 1x speed
+		# After code runs (cars moving): timer matches game speed
+		if code_is_running:
+			# Code is running - timer matches game speed (use delta as-is)
+			level_timer += delta
+		else:
+			# Code not running - timer always at 1x speed (unscale delta)
+			var unscaled_delta = delta / Engine.time_scale if Engine.time_scale > 0 else delta
+			level_timer += unscaled_delta
 		_update_timer_label()
 
 	# Update preview tile position
@@ -237,17 +247,25 @@ func _update_preview_tile() -> void:
 		_hide_preview()
 		return
 
-	# Hide preview if there's already a road there
-	if road_layer.has_road_at(mouse_grid_pos):
+	var offset = mouse_grid_pos - selected_tile_pos
+	var direction = _get_direction_from_offset(offset)
+	if direction == "":
 		_hide_preview()
 		return
 
-	# Show preview at this position
-	var offset = mouse_grid_pos - selected_tile_pos
-	var direction = _get_direction_from_offset(offset)
-	if direction != "":
-		var connection_dir = _get_opposite_direction(direction)
-		_show_preview(mouse_grid_pos, connection_dir)
+	# Check if there's already a road there - show connection preview
+	if road_layer.has_road_at(mouse_grid_pos):
+		# Check if we can connect to this tile
+		if _can_connect_tiles(selected_tile_pos, mouse_grid_pos, direction):
+			# Show preview of selected tile with new connection
+			_show_connection_preview(selected_tile_pos, direction)
+		else:
+			_hide_preview()
+		return
+
+	# Empty space - show preview of new tile at this position
+	var connection_dir = _get_opposite_direction(direction)
+	_show_preview(mouse_grid_pos, connection_dir)
 
 
 func _setup_audio() -> void:
@@ -328,10 +346,11 @@ func _load_level(index: int) -> void:
 	# Load road building configuration
 	_load_level_build_roads()
 
-	# Reset timer for new level (timer starts when Run Code is pressed)
+	# Reset timer for new level (timer starts when level loads)
 	level_timer = 0.0
-	timer_running = false
+	timer_running = true  # Timer starts immediately on level load
 	level_won = false
+	code_is_running = false  # Code not running yet - timer at 1x speed
 	_update_timer_label()
 
 	# Spawn initial cars at game start (before player runs code)
@@ -608,8 +627,8 @@ func _on_simulation_started() -> void:
 	is_spawning_cars = true
 	car_spawn_timer = 0.0
 
-	# Start timer when code execution begins
-	timer_running = true
+	# Code is now running - timer will match game speed
+	code_is_running = true
 
 	# Play engine sound
 	var code = code_editor.text
@@ -890,6 +909,10 @@ func _hide_result_popup() -> void:
 
 func _on_retry_pressed() -> void:
 	_hide_result_popup()
+	# Reset timer when pressing Retry from game over screen
+	level_timer = 0.0
+	timer_running = true
+	_update_timer_label()
 	_do_fast_retry()
 
 
@@ -945,11 +968,13 @@ func _do_fast_retry() -> void:
 		hearts_ui.reset_hearts()
 	_update_hearts_label()
 
-	# Reset timer (timer starts when Run Code is pressed)
-	level_timer = 0.0
-	timer_running = false
+	# DO NOT reset timer on R key / restart button
+	# Timer only resets from game over screen buttons (Retry/Next Level)
+	# Timer keeps running (was started on level load)
 	level_won = false
-	_update_timer_label()
+
+	# Code stopped running - timer goes back to 1x speed
+	code_is_running = false
 
 	_update_status("Reset - Ready")
 	run_button.disabled = false
@@ -1056,9 +1081,22 @@ func _handle_tile_click() -> void:
 		_deselect_tile()
 		return
 
-	# Case 3: Clicked on another existing road - select it instead
+	# Case 3: Clicked on another existing road
 	if road_layer.has_road_at(grid_pos):
-		# Check if we can select this tile
+		# Check if it's adjacent - try to connect
+		if _is_adjacent(selected_tile_pos, grid_pos):
+			var offset = grid_pos - selected_tile_pos
+			var direction = _get_direction_from_offset(offset)
+			if direction != "" and _can_connect_tiles(selected_tile_pos, grid_pos, direction):
+				# Connect the two tiles (FREE - no card cost)
+				_connect_two_tiles(selected_tile_pos, grid_pos, direction)
+				_update_status("Roads connected at %s (FREE)" % grid_pos)
+				_hide_preview()
+				# Make the target tile the new selected tile
+				_select_tile(grid_pos)
+				return
+
+		# Not adjacent or can't connect - select the new tile instead
 		if not _can_select_tile(grid_pos):
 			_update_status("Cannot select this tile")
 			return
@@ -1125,6 +1163,9 @@ func _handle_tile_remove() -> void:
 	# If removing the selected tile, deselect first
 	if grid_pos == selected_tile_pos:
 		_deselect_tile()
+
+	# Update neighboring tiles first (remove their connections to this tile)
+	_update_neighbors_after_removal(grid_pos)
 
 	# Remove tile and gain a card back
 	road_layer.erase_cell(grid_pos)
@@ -1214,14 +1255,40 @@ func _get_tile_for_connection(connection: String) -> Vector2i:
 	return Vector2i(-1, -1)
 
 
+## Connect two adjacent tiles bidirectionally
+func _connect_two_tiles(tile1_pos: Vector2i, tile2_pos: Vector2i, direction: String) -> void:
+	if road_layer == null:
+		return
+
+	# Add connection from tile1 to tile2
+	_add_connection_to_tile(tile1_pos, direction)
+
+	# Add connection from tile2 to tile1 (opposite direction)
+	var opposite = _get_opposite_direction(direction)
+	_add_connection_to_tile(tile2_pos, opposite)
+
+
 ## Add a connection to an existing tile by upgrading it
 func _add_connection_to_tile(grid_pos: Vector2i, new_connection: String) -> void:
 	if road_layer == null:
 		return
 
+	# Don't modify Build Tile 2 (permission 1) tiles - they are fixed
+	var permission = _get_build_permission(grid_pos)
+	if permission == 1:
+		return
+
 	# Get current tile type
 	var current_type = road_layer.get_tile_type_at(grid_pos)
 	if current_type == RoadTileMapLayer.TileType.NONE:
+		return
+
+	# Skip parking and stoplight tiles - they shouldn't be modified
+	if current_type in RoadTileMapLayer.SPAWN_PARKING_TILES:
+		return
+	if current_type in RoadTileMapLayer.DEST_PARKING_TILES:
+		return
+	if current_type in RoadTileMapLayer.STOPLIGHT_TILES:
 		return
 
 	# Get current connections
@@ -1299,6 +1366,134 @@ func _hide_preview() -> void:
 	if preview_sprite != null:
 		preview_sprite.visible = false
 	preview_grid_pos = Vector2i(-1, -1)
+
+
+## Check if we can connect selected tile to target tile
+## direction is from selected to target
+func _can_connect_tiles(selected_pos: Vector2i, target_pos: Vector2i, direction: String) -> bool:
+	if road_layer == null:
+		return false
+
+	# Check if selected tile is a Build Tile 2 (protected) - can only connect in its connection direction
+	var selected_permission = _get_build_permission(selected_pos)
+	if selected_permission == 1:
+		# Build Tile 2 can only connect in directions it already has
+		var selected_connections = road_layer.get_connections_at(selected_pos)
+		if direction not in selected_connections:
+			return false
+
+	# Check if target tile is a Build Tile 2 (protected)
+	var target_permission = _get_build_permission(target_pos)
+	if target_permission == 1:
+		# Target's connection must match the opposite direction
+		var opposite = _get_opposite_direction(direction)
+		var target_connections = road_layer.get_connections_at(target_pos)
+		if opposite not in target_connections:
+			return false
+
+	# Check if selected tile already has this connection
+	var selected_connections = road_layer.get_connections_at(selected_pos)
+	if direction in selected_connections:
+		return false  # Already connected
+
+	return true
+
+
+## Show preview of selected tile with added connection
+func _show_connection_preview(grid_pos: Vector2i, new_connection: String) -> void:
+	if preview_sprite == null:
+		preview_sprite = Sprite2D.new()
+		preview_sprite.z_index = 4
+		preview_sprite.modulate = Color(1.0, 1.0, 1.0, 0.5)  # Semi-transparent
+		$GameWorld.add_child(preview_sprite)
+
+		# Load tileset texture
+		if tileset_texture == null:
+			tileset_texture = load("res://assets/tiles/gocarstilesSheet.png")
+		preview_sprite.texture = tileset_texture
+		preview_sprite.region_enabled = true
+		preview_sprite.centered = false
+
+	# Get current connections and add new one
+	var current_type = road_layer.get_tile_type_at(grid_pos)
+	var current_connections = RoadTileMapLayer.TILE_CONNECTIONS.get(current_type, []).duplicate()
+	if new_connection not in current_connections:
+		current_connections.append(new_connection)
+
+	# Find tile with these connections
+	var atlas_coords = _find_tile_with_connections(current_connections)
+	if atlas_coords == Vector2i(-1, -1):
+		_hide_preview()
+		return
+
+	# Set the region to show the correct tile
+	preview_sprite.region_rect = Rect2(atlas_coords.x * TILE_SIZE, atlas_coords.y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+	preview_sprite.position = _get_world_from_grid(grid_pos)
+	preview_sprite.visible = true
+	preview_grid_pos = grid_pos
+
+
+## Remove a connection from a tile by downgrading it
+func _remove_connection_from_tile(grid_pos: Vector2i, connection_to_remove: String) -> void:
+	if road_layer == null:
+		return
+
+	# Don't update Build Tile 2 (permission 1) tiles
+	var permission = _get_build_permission(grid_pos)
+	if permission == 1:
+		return
+
+	# Get current tile type
+	var current_type = road_layer.get_tile_type_at(grid_pos)
+	if current_type == RoadTileMapLayer.TileType.NONE:
+		return
+
+	# Skip parking and stoplight tiles
+	if current_type in RoadTileMapLayer.SPAWN_PARKING_TILES:
+		return
+	if current_type in RoadTileMapLayer.DEST_PARKING_TILES:
+		return
+	if current_type in RoadTileMapLayer.STOPLIGHT_TILES:
+		return
+
+	# Get current connections
+	var current_connections = RoadTileMapLayer.TILE_CONNECTIONS.get(current_type, []).duplicate()
+	if connection_to_remove not in current_connections:
+		return  # Doesn't have this connection
+
+	# Remove the connection
+	current_connections.erase(connection_to_remove)
+
+	# If no connections left, set to r0/c0 (ROAD_NONE) instead of deleting
+	if current_connections.is_empty():
+		road_layer.set_cell(grid_pos, 0, Vector2i(0, 0))  # r0/c0 = ROAD_NONE
+		road_layer.mark_paths_dirty()
+		return
+
+	# Find tile type that matches remaining connections
+	var new_atlas = _find_tile_with_connections(current_connections)
+	if new_atlas != Vector2i(-1, -1):
+		road_layer.set_cell(grid_pos, 0, new_atlas)
+		road_layer.mark_paths_dirty()
+
+
+## Update all neighbors when a tile is removed
+func _update_neighbors_after_removal(removed_pos: Vector2i) -> void:
+	# Check all 4 adjacent positions
+	var neighbors = [
+		Vector2i(removed_pos.x + 1, removed_pos.y),  # right
+		Vector2i(removed_pos.x - 1, removed_pos.y),  # left
+		Vector2i(removed_pos.x, removed_pos.y + 1),  # bottom
+		Vector2i(removed_pos.x, removed_pos.y - 1)   # top
+	]
+	var directions = ["left", "right", "top", "bottom"]  # opposite directions
+
+	for i in range(neighbors.size()):
+		var neighbor_pos = neighbors[i]
+		var connection_to_remove = directions[i]
+
+		if road_layer.has_road_at(neighbor_pos):
+			_remove_connection_from_tile(neighbor_pos, connection_to_remove)
 
 
 # ============================================
@@ -1609,7 +1804,7 @@ func _get_build_permission(grid_pos: Vector2i) -> int:
 	# Check the EnableBuilding layer at this position
 	var atlas_coords = enable_building_layer.get_cell_atlas_coords(grid_pos)
 	if atlas_coords == Vector2i(-1, -1):
-		return 0  # No tile = cannot build here
+		return 2  # No tile at this position = full permissions (default)
 
 	# Tile 0 (0,0) = Disable all, Tile 1 (1,0) = Build only, Tile 2 (2,0) = Full permissions
 	if atlas_coords.x == 0:
@@ -1619,7 +1814,7 @@ func _get_build_permission(grid_pos: Vector2i) -> int:
 	elif atlas_coords.x == 2:
 		return 2  # Tile 2: Full permissions
 
-	return 0  # Default: no permissions
+	return 2  # Default: full permissions
 
 
 ## Check if a tile can be selected for editing
