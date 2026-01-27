@@ -27,6 +27,11 @@ class_name LevelSettings
 ## Seconds between car spawns
 @export_range(5.0, 60.0) var spawn_interval: float = 15.0
 
+## Stoplight Configuration
+@export_group("Stoplights")
+## Can players edit stoplight code?
+@export var stoplight_code_editable: bool = false
+
 
 ## Get LevelSettings from a level node (with fallback to defaults)
 ## This is the main entry point for reading level settings

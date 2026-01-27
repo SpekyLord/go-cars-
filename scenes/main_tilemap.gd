@@ -95,6 +95,12 @@ var level_cars_config: Dictionary = {}  # group_name -> Array of {type, color} o
 # Spawned stoplights (from stoplight tiles)
 var _spawned_stoplights: Array = []
 
+# Stoplight hover UI
+var stoplight_code_popup: Variant = null  # StoplightCodePopup instance
+var _hovered_stoplight: Variant = null  # Currently hovered stoplight
+var _pinned_stoplight: Variant = null  # Stoplight pinned by click
+var _popup_pinned: bool = false  # Whether the popup is pinned open
+
 # Tile editing state
 var is_editing_enabled: bool = true
 var is_building_enabled: bool = false  # Whether building roads is enabled for this level
@@ -175,6 +181,9 @@ func _ready() -> void:
 	# Create menu panel
 	_create_menu_panel()
 
+	# Setup stoplight code popup
+	_setup_stoplight_popup()
+
 	# Note: Stoplights are spawned from tiles when level is loaded
 
 	# Set initial code
@@ -248,6 +257,9 @@ func _process(delta: float) -> void:
 
 	# Update preview tile position
 	_update_preview_tile()
+
+	# Check for stoplight hover
+	_check_stoplight_hover()
 
 
 func _update_preview_tile() -> void:
@@ -1066,6 +1078,12 @@ func _is_code_editor_focused() -> bool:
 	return false
 
 func _input(event: InputEvent) -> void:
+	# Handle stoplight pin toggle on mouse click early so UI doesn't consume it
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if _toggle_stoplight_popup_on_click():
+			event.accept()
+			return
+
 	if event is InputEventKey and event.pressed:
 		var ctrl_pressed = event.ctrl_pressed
 
@@ -1119,6 +1137,45 @@ func _unhandled_input(event: InputEvent) -> void:
 			_handle_zoom_in()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_handle_zoom_out()
+
+
+# Toggle pinning/unpinning of stoplight popup on click
+func _toggle_stoplight_popup_on_click() -> bool:
+	if stoplight_code_popup == null or _spawned_stoplights.is_empty():
+		return false
+
+	var mouse_pos = get_global_mouse_position()
+	var click_distance = 55.0  # Slightly larger than hover to make clicks easy
+
+	# Find clicked stoplight
+	var clicked: Variant = null
+	for stoplight in _spawned_stoplights:
+		if stoplight == null or not is_instance_valid(stoplight):
+			continue
+		if mouse_pos.distance_to(stoplight.global_position) <= click_distance:
+			clicked = stoplight
+			break
+
+	if clicked == null:
+		return false
+
+	# Toggle pin state
+	if _popup_pinned and _pinned_stoplight == clicked:
+		# Unpin and hide
+		_popup_pinned = false
+		_pinned_stoplight = null
+		_hovered_stoplight = null
+		stoplight_code_popup.hide_popup()
+	else:
+		# Pin to this stoplight
+		_popup_pinned = true
+		_pinned_stoplight = clicked
+		_hovered_stoplight = clicked
+		var level_settings = LevelSettings.from_node(current_level_node) if current_level_node else null
+		var editable = level_settings.stoplight_code_editable if level_settings else false
+		stoplight_code_popup.show_for_stoplight(clicked, editable)
+
+	return true
 
 
 # ============================================
@@ -2365,3 +2422,63 @@ func _notify_tutorial_action(action: String) -> void:
 			print("Main: TutorialManager not found")
 		elif not TutorialManager.is_active():
 			print("Main: TutorialManager not active")
+
+# ============================================
+# Stoplight Popup UI Functions
+# ============================================
+
+## Setup the stoplight code popup
+func _setup_stoplight_popup() -> void:
+	if stoplight_code_popup != null:
+		return  # Already setup
+	
+	var popup_scene = load("res://scenes/ui/stoplight_code_popup.tscn")
+	if popup_scene == null:
+		push_error("Could not load stoplight_code_popup.tscn")
+		return
+	
+	stoplight_code_popup = popup_scene.instantiate()
+	add_child(stoplight_code_popup)
+	print("Main: Stoplight popup created and added to scene")
+
+
+## Check if mouse is hovering over a stoplight and show popup
+func _check_stoplight_hover() -> void:
+	if stoplight_code_popup == null or _spawned_stoplights.is_empty():
+		return
+
+	# If popup is pinned by click, ignore hover logic
+	if _popup_pinned:
+		return
+	
+	var mouse_pos = get_global_mouse_position()
+	var hover_distance = 40.0  # Hover range
+	var found_stoplight = null
+	
+	# Find closest stoplight within hover range
+	for stoplight in _spawned_stoplights:
+		if stoplight == null or not is_instance_valid(stoplight):
+			continue
+		
+		var distance = mouse_pos.distance_to(stoplight.global_position)
+		# Debug: print distance for first stoplight
+		#print("Stoplight %s distance: %.1f" % [stoplight.stoplight_id, distance])
+		
+		if distance <= hover_distance:
+			found_stoplight = stoplight
+			break
+	
+	# Update popup based on hover state
+	if found_stoplight != _hovered_stoplight:
+		_hovered_stoplight = found_stoplight
+		
+		if _hovered_stoplight != null:
+			# Show popup for hovered stoplight
+			print("Main: Showing popup for stoplight %s" % _hovered_stoplight.stoplight_id)
+			var level_settings = LevelSettings.from_node(current_level_node) if current_level_node else null
+			var editable = level_settings.stoplight_code_editable if level_settings else false
+			stoplight_code_popup.show_for_stoplight(_hovered_stoplight, editable)
+		else:
+			# Hide popup
+			if stoplight_code_popup:
+				stoplight_code_popup.hide_popup()
