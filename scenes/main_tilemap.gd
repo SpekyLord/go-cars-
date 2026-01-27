@@ -1956,13 +1956,16 @@ func _load_level_hearts() -> void:
 				break
 
 	if hearts_ui:
-		# HeartsUI found - use its configuration
-		if hearts_ui.has_method("get_max_hearts"):
-			initial_hearts = hearts_ui.get_max_hearts()
+		# Get level settings for heart count (with backward compatibility)
+		var settings = LevelSettings.from_node(current_level_node)
+
+		# Configure hearts from level settings
+		if hearts_ui.has_method("set_max_hearts"):
+			hearts_ui.set_max_hearts(settings.starting_hearts)
+			initial_hearts = settings.starting_hearts
 			hearts = initial_hearts
-		elif hearts_ui.has_method("set_max_hearts"):
-			# Already initialized from label
-			initial_hearts = hearts_ui.max_hearts if "max_hearts" in hearts_ui else 3
+		else:
+			initial_hearts = settings.starting_hearts
 			hearts = initial_hearts
 
 		# Move hearts UI to our UI layer
@@ -2019,37 +2022,17 @@ func _load_level_build_roads() -> void:
 	if current_level_node == null:
 		return
 
-	# Look for LevelSettings/LevelBuildRoads label
-	var level_settings = current_level_node.get_node_or_null("LevelSettings")
-	if level_settings == null:
-		# No settings node - disable building by default
-		is_building_enabled = false
-		road_cards = 0
-		initial_road_cards = 0
-		_update_road_cards_label()
-		return
+	# Get level settings (with backward compatibility for Label-based config)
+	var settings = LevelSettings.from_node(current_level_node)
 
-	var build_roads_label = level_settings.get_node_or_null("LevelBuildRoads")
-	if build_roads_label and build_roads_label is Label:
-		var build_roads_text = build_roads_label.text.strip_edges()
-		var build_roads_count = int(build_roads_text)
-
-		if build_roads_count <= 0:
-			# 0 = Building disabled, no roads UI
-			is_building_enabled = false
-			road_cards = 0
-			initial_road_cards = 0
-			if road_cards_label:
-				road_cards_label.visible = false
-		else:
-			# 1+ = Building enabled with specified count
-			is_building_enabled = true
-			road_cards = build_roads_count
-			initial_road_cards = build_roads_count
-			if road_cards_label:
-				road_cards_label.visible = true
+	# Configure road building from settings
+	if settings.build_mode_enabled:
+		is_building_enabled = true
+		road_cards = settings.road_cards
+		initial_road_cards = settings.road_cards
+		if road_cards_label:
+			road_cards_label.visible = true
 	else:
-		# No LevelBuildRoads label found - disable building
 		is_building_enabled = false
 		road_cards = 0
 		initial_road_cards = 0
