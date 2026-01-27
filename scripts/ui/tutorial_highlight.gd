@@ -43,6 +43,10 @@ func _ready() -> void:
 	dark_overlay.size = viewport_size
 	dark_overlay.position = Vector2.ZERO
 	
+	# Move pointer arrow and hint label to highlight layer so they appear above floating windows
+	pointer_arrow.reparent(highlight_layer)
+	hint_label.reparent(highlight_layer)
+	
 	# Make sure child elements are visible
 	dark_overlay.visible = true
 	pointer_arrow.visible = true
