@@ -35,10 +35,12 @@
 [sub_resource type="GDScript" id="GDScript_2vtb1"]
 script/source = "extends Control
 
-# Play background music after logo intro animation using persistent MusicManager
+# Fallback music start in case logo animation doesn't trigger it
 func _ready() -> void:
-	await get_tree().create_timer(5.5).timeout
-	MusicManager.play_menu_music()
+	await get_tree().create_timer(6.0).timeout
+	# Only play if music isn't already playing
+	if MusicManager and not MusicManager.music_player.playing:
+		MusicManager.play_menu_music()
 "
 
 [node name="MainMenu" type="Control"]
@@ -231,6 +233,7 @@ texture_normal = ExtResource("7_cy5ox")
 ignore_texture_size = true
 stretch_mode = 0
 script = ExtResource("2_tgsjg")
+quit_game = true
 
 [node name="Text" type="Label" parent="MC_MainMenu/BTN_Quit"]
 z_index = 1

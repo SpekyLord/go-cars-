@@ -117,11 +117,17 @@ func _gui_input(event: InputEvent) -> void:
 # ─────────────────────────────────────────
 
 @export var scene_to_load: String = ""
+@export var quit_game: bool = false
 
 
 
 func _do_open_toggle() -> void:
 	print("TOGGLE:", name, " show=", show_node, " hide=", hide_node)
+
+	# If quit_game is set, quit the application
+	if quit_game:
+		get_tree().quit()
+		return
 
 	# If scene_to_load is set, change scene instead of toggling visibility
 	if scene_to_load != "":

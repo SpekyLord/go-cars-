@@ -132,9 +132,9 @@ func _skip_intro() -> void:
 	# Mark intro as played
 	GameData.mark_intro_played()
 
-	# Play background music
-	if bg_music_player and is_instance_valid(bg_music_player):
-		bg_music_player.play()
+	# Play background music through MusicManager
+	if MusicManager:
+		MusicManager.play_menu_music()
 
 
 func _setup_splash() -> void:
@@ -263,8 +263,8 @@ func _play_intro() -> void:
 		GameData.mark_intro_played()
 
 		# Play background music after logo animation completes
-		if bg_music_player and is_instance_valid(bg_music_player):
-			bg_music_player.play()
+		if MusicManager:
+			MusicManager.play_menu_music()
 	)
 
 
