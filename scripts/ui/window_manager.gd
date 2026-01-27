@@ -50,12 +50,12 @@ func setup(parent_canvas_layer: CanvasLayer) -> void:
 	ui_container = parent_canvas_layer
 
 	# Load window classes/scenes
-	var ToolbarClass = load("res://scripts/ui/toolbar.gd")
+	var ToolbarScene = load("res://scenes/ui/toolbar.tscn")
 	var ReadmeWindowClass = load("res://scripts/ui/readme_window.gd")
 	var SkillTreeWindowClass = load("res://scripts/ui/skill_tree_window.gd")
 
 	# Create toolbar
-	toolbar = ToolbarClass.new()
+	toolbar = ToolbarScene.instantiate()
 	toolbar.name = "Toolbar"
 	ui_container.add_child(toolbar)
 
