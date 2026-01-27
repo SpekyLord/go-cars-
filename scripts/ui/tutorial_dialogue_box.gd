@@ -11,7 +11,7 @@ signal skip_pressed()
 
 ## Node references
 @onready var dialogue_panel: Panel = $DialoguePanel
-@onready var character_portrait: TextureRect = $DialoguePanel/HBoxContainer/CharacterPortrait
+@onready var character_portrait: TextureRect = $DialoguePanel/CharacterPortrait
 @onready var speaker_name: Label = $DialoguePanel/HBoxContainer/VBoxContainer/SpeakerName
 @onready var dialogue_text: RichTextLabel = $DialoguePanel/HBoxContainer/VBoxContainer/DialogueText
 @onready var action_helper: Label = $DialoguePanel/HBoxContainer/VBoxContainer/ActionHelper

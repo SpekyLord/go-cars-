@@ -548,7 +548,7 @@ func _clear_all_cars() -> void:
 func _clear_spawned_stoplights() -> void:
 	for stoplight in _spawned_stoplights:
 		if is_instance_valid(stoplight):
-			simulation_engine.unregister_stoplight(stoplight)
+			simulation_engine.unregister_stoplight(stoplight.stoplight_id)
 			stoplight.queue_free()
 	_spawned_stoplights.clear()
 

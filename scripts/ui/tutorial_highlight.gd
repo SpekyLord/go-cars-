@@ -11,12 +11,16 @@ extends CanvasLayer
 @onready var pointer_arrow: Label = $PointerArrow
 @onready var hint_label: Label = $HintLabel
 
+## High layer for highlighted elements
+var highlight_layer: CanvasLayer = null
+
 ## Tween for animations
 var tween: Tween
 
 ## Target tracking
 var current_target: Control = null
 var is_highlighting: bool = false
+var raised_nodes: Array[Node] = []  # Track nodes whose z-index we've raised
 
 ## Margin around highlighted element
 const SPOTLIGHT_MARGIN: float = 10.0
@@ -28,6 +32,11 @@ const BOUNCE_DURATION: float = 0.6
 func _ready() -> void:
 	# Start hidden (will be shown when highlight_target is called)
 	visible = false
+	
+	# Create a high-layer CanvasLayer for highlighted elements
+	highlight_layer = CanvasLayer.new()
+	highlight_layer.layer = 60
+	get_tree().root.add_child(highlight_layer)
 	
 	# Set dark overlay to cover entire viewport
 	var viewport_size = get_viewport().get_visible_rect().size
@@ -147,6 +156,18 @@ func clear_highlight() -> void:
 	current_target = null
 	
 	print("TutorialHighlight: Clearing highlight")
+	
+	# Restore nodes to their original parents
+	for node in raised_nodes:
+		if is_instance_valid(node) and node.has_meta("original_parent"):
+			var original_parent = node.get_meta("original_parent")
+			var original_index = node.get_meta("original_index")
+			if is_instance_valid(original_parent):
+				node.reparent(original_parent)
+				original_parent.move_child(node, original_index)
+			node.remove_meta("original_parent")
+			node.remove_meta("original_index")
+	raised_nodes.clear()
 	
 	# Stop animations
 	if tween:
@@ -277,6 +298,22 @@ func _update_spotlight_position() -> void:
 	# Position spotlight rect
 	spotlight_rect.position = spotlight_pos
 	spotlight_rect.size = spotlight_size
+	
+	# Move the target to the highlight layer to make it appear above the dark overlay
+	if current_target is Control:
+		# Find the top-level window/panel that contains this target
+		var top_parent = current_target
+		var parent = current_target.get_parent()
+		while parent and parent is Control and parent.get_parent():
+			top_parent = parent
+			parent = parent.get_parent()
+		
+		# Store original parent and move to highlight layer
+		if not top_parent.has_meta("original_parent"):
+			top_parent.set_meta("original_parent", top_parent.get_parent())
+			top_parent.set_meta("original_index", top_parent.get_index())
+			raised_nodes.append(top_parent)
+			top_parent.reparent(highlight_layer)
 	
 	# Get arrow size for proper centering
 	var arrow_size = Vector2(40, 40)  # PointerArrow's actual size
