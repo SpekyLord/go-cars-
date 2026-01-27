@@ -14,6 +14,9 @@ extends CanvasLayer
 ## High layer for highlighted elements
 var highlight_layer: CanvasLayer = null
 
+## Extra high layer for pointer arrow (above everything)
+var arrow_layer: CanvasLayer = null
+
 ## Tween for animations
 var tween: Tween
 
@@ -38,14 +41,19 @@ func _ready() -> void:
 	highlight_layer.layer = 60
 	get_tree().root.add_child(highlight_layer)
 	
+	# Create an even higher layer for the pointer arrow (above highlighted elements)
+	arrow_layer = CanvasLayer.new()
+	arrow_layer.layer = 200
+	get_tree().root.add_child(arrow_layer)
+	
 	# Set dark overlay to cover entire viewport
 	var viewport_size = get_viewport().get_visible_rect().size
 	dark_overlay.size = viewport_size
 	dark_overlay.position = Vector2.ZERO
 	
-	# Move pointer arrow and hint label to highlight layer so they appear above floating windows
-	pointer_arrow.reparent(highlight_layer)
-	hint_label.reparent(highlight_layer)
+	# Move pointer arrow and hint label to the highest layer
+	pointer_arrow.reparent(arrow_layer)
+	hint_label.reparent(arrow_layer)
 	
 	# Make sure child elements are visible
 	dark_overlay.visible = true
