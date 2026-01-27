@@ -29,7 +29,7 @@ func _init() -> void:
 
 ## Initialize default workspace with main.py and README.md
 func _initialize_default_workspace() -> void:
-	create_file("main.py", "# Write your code here\ncar.go()")
+	create_file("main.py", "# Write your code here\n")
 	create_file("README.md", _get_default_readme_content())
 
 ## Create a new file

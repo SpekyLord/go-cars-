@@ -217,7 +217,12 @@ func _input(event: InputEvent) -> void:
 	if not visible:
 		return
 
+	# Don't consume input if a TextEdit or LineEdit has focus (player is typing)
+	var focused_control = get_viewport().gui_get_focus_owner()
+	if focused_control is TextEdit or focused_control is LineEdit or focused_control is CodeEdit:
+		return
+
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_SPACE or event.keycode == KEY_ENTER:
+		if event.keycode == KEY_SPACE:
 			_handle_click()
 			get_viewport().set_input_as_handled()

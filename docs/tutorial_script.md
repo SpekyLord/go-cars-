@@ -70,9 +70,9 @@ STEP 10: Shortcuts Summary
 STEP 11: First Code Challenge
 [Arrow points to VBoxContainer/ContentContainer/ContentVBox/EditorContainer/CodeEdit]
 "Now let's make the car move!"
-"In the code editor, type exactly: car.go()"
-"This is a Python command that tells the car to start driving forward automatically."
-"The car will keep moving until it reaches the destination or crashes."
+"Type this command in the code editor: car.go()"
+"car.go() tells the car to start driving forward."
+"The car will keep moving until it reaches the destination."
 [WAIT: Player types car.go()]
 
 STEP 12: Run the Code
@@ -129,13 +129,18 @@ STEP 4: Challenge Setup
 "2. Turn at corners"
 "3. Reach the destination!"
 
-STEP 5: Guide First Move
-[Arrow points to code editor]
+STEP 5: Open Code Editor First
+[Arrow points to code_editor_button]
+"First, open the Code Editor by clicking this button!"
+[WAIT: Player clicks to open code editor]
+
+STEP 6: Guide First Move
+[Arrow points to VBoxContainer/ContentContainer/ContentVBox/EditorContainer/CodeEdit]
 "Start by typing: car.move(2)"
 "This moves the car to the first corner."
 [WAIT: Player types car.move(2)]
 
-STEP 6: First Turn
+STEP 7: First Turn
 "Now add a turn: car.turn('right')"
 [WAIT: Player adds the turn]
 

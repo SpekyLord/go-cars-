@@ -79,6 +79,9 @@ func _ready() -> void:
 		_setup_scene_nodes()
 	else:
 		_setup_editor_ui()
+	
+	# Add click handler to the window to detect clicks outside code editor
+	gui_input.connect(_on_window_gui_input)
 
 ## Setup when loaded from scene file
 func _setup_scene_nodes() -> void:
@@ -254,6 +257,7 @@ func _setup_editor_ui() -> void:
 	code_edit.indent_automatic = true
 	code_edit.indent_size = 4
 	code_edit.indent_use_spaces = true
+	code_edit.caret_blink = true
 
 	# String and comment delimiters for syntax highlighting (not folding)
 	code_edit.add_comment_delimiter("#", "", true)  # Single line comment
@@ -337,6 +341,8 @@ func _setup_editor_ui() -> void:
 	code_edit.text_changed.connect(_on_text_changed)
 	code_edit.caret_changed.connect(_update_status_bar)
 	code_edit.gutter_clicked.connect(_on_gutter_clicked)
+	code_edit.focus_entered.connect(_on_code_edit_focus_entered)
+	code_edit.focus_exited.connect(_on_code_edit_focus_exited)
 
 func _input(event: InputEvent) -> void:
 	# Only handle input when window is visible
@@ -501,6 +507,24 @@ func _on_text_changed() -> void:
 
 	# Update performance metrics (LOC count) in real-time
 	update_metrics()
+
+func _on_code_edit_focus_entered() -> void:
+	# Enable caret blinking when focused
+	code_edit.caret_blink = true
+
+func _on_code_edit_focus_exited() -> void:
+	# Disable caret blinking when not focused
+	code_edit.caret_blink = false
+
+func _on_window_gui_input(event: InputEvent) -> void:
+	# If user clicks anywhere in the window (but not on code_edit), remove focus from code_edit
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if code_edit and code_edit.has_focus():
+			# Check if click is outside the code editor area
+			var code_edit_rect = code_edit.get_global_rect()
+			var click_pos = get_global_mouse_position()
+			if not code_edit_rect.has_point(click_pos):
+				code_edit.release_focus()
 
 func _update_status_bar() -> void:
 	var line = code_edit.get_caret_line() + 1
