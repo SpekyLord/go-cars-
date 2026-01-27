@@ -1,4 +1,4 @@
-extends Control
+extends TextureButton
 
 @export var hover_scale: Vector2 = Vector2(1.08, 1.08)
 @export var in_time: float = 0.08

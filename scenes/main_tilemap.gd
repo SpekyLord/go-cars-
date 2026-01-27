@@ -36,7 +36,7 @@ var menu_button: Button = null  # Created dynamically
 @onready var menu_button_ui: Button = $UI/MenuButton
 
 # Menu panel (created dynamically)
-var menu_panel: Panel = null
+var menu_panel: CanvasLayer = null
 
 # Background audio
 var background_audio: AudioStreamPlayer = null

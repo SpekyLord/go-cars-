@@ -50,11 +50,6 @@ func _ready() -> void:
 		print("Panel modulate: ", hover_panel.modulate, " visible: ", hover_panel.visible)
 	print("=========================")
 	
-	# Initialize hover panel - start hidden with correct alpha
-	if hover_panel:
-		hover_panel.modulate.a = 1.0  # Set to full opacity (labels will inherit this)
-		hover_panel.visible = false  # But keep hidden until hover
-	
 	# Connect play button in hover panel
 	if hover_play_button:
 		hover_play_button.pressed.connect(_on_hover_play_pressed)
@@ -139,10 +134,11 @@ func _on_marker_hover_start(marker_index: int) -> void:
 	# Update panel content
 	if hover_title:
 		hover_title.text = "• LEVEL %d" % (marker_index + 1)
+		hover_title.queue_redraw()
 		print("  Set title to: %s" % hover_title.text)
 	else:
 		print("  ERROR: hover_title is null!")
-	
+
 	if hover_difficulty:
 		# Show difficulty with stars and best time if available
 		var num_stars = min(marker_index + 1, 5)
@@ -157,7 +153,7 @@ func _on_marker_hover_start(marker_index: int) -> void:
 		print("  Set difficulty to: %s" % hover_difficulty.text)
 	else:
 		print("  ERROR: hover_difficulty is null!")
-	
+
 	if hover_objective:
 		# Show level name and best time
 		var obj_text = data["display_name"]
@@ -170,18 +166,34 @@ func _on_marker_hover_start(marker_index: int) -> void:
 		print("  Set objective to: %s" % hover_objective.text)
 	else:
 		print("  ERROR: hover_objective is null!")
-	
+
 	if hover_description:
 		hover_description.text = "Navigate your car through the roads and reach the goal. Use Python code to control your vehicle."
 		print("  Set description to: %s" % hover_description.text)
 	else:
 		print("  ERROR: hover_description is null!")
 	
-	# Show panel with fade-in
+	# Show panel with fade-in - MUST tween each label individually
 	if hover_panel:
 		hover_panel.visible = true
+
+		# Create tween for panel and all labels
 		var tween = create_tween()
+		tween.set_parallel(true)  # Animate all at once
+
+		# Tween panel background
 		tween.tween_property(hover_panel, "modulate:a", 1.0, 0.2)
+
+		# Tween each label individually (this is what Level_1 does!)
+		if hover_title:
+			tween.tween_property(hover_title, "modulate:a", 1.0, 0.2)
+		if hover_difficulty:
+			tween.tween_property(hover_difficulty, "modulate:a", 1.0, 0.2)
+		if hover_objective:
+			tween.tween_property(hover_objective, "modulate:a", 1.0, 0.2)
+		if hover_description:
+			tween.tween_property(hover_description, "modulate:a", 1.0, 0.2)
+
 		print("  Panel shown")
 	else:
 		print("  ERROR: hover_panel is null!")
@@ -191,7 +203,21 @@ func _on_marker_hover_start(marker_index: int) -> void:
 func _on_marker_hover_end() -> void:
 	if hover_panel:
 		var tween = create_tween()
+		tween.set_parallel(true)
+
+		# Fade out panel
 		tween.tween_property(hover_panel, "modulate:a", 0.0, 0.15)
+
+		# Fade out labels
+		if hover_title:
+			tween.tween_property(hover_title, "modulate:a", 0.0, 0.15)
+		if hover_difficulty:
+			tween.tween_property(hover_difficulty, "modulate:a", 0.0, 0.15)
+		if hover_objective:
+			tween.tween_property(hover_objective, "modulate:a", 0.0, 0.15)
+		if hover_description:
+			tween.tween_property(hover_description, "modulate:a", 0.0, 0.15)
+
 		tween.tween_callback(func(): hover_panel.visible = false)
 
 

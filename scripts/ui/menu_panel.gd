@@ -3,7 +3,7 @@
 ## Author: Claude Code
 ## Date: January 2026
 
-extends Panel
+extends CanvasLayer
 
 ## Signals
 signal back_to_levels_pressed()
@@ -11,9 +11,10 @@ signal reset_windows_pressed()
 signal close_pressed()
 
 ## Node references
-@onready var back_button: Button = $VBoxContainer/BackToLevelsButton
-@onready var reset_button: Button = $VBoxContainer/ResetWindowsButton
-@onready var close_button: Button = $VBoxContainer/CloseButton
+@onready var panel: Panel = $Panel
+@onready var back_button: Button = $Panel/VBoxContainer/BackToLevelsButton
+@onready var reset_button: Button = $Panel/VBoxContainer/ResetWindowsButton
+@onready var close_button: Button = $Panel/VBoxContainer/CloseButton
 
 func _ready() -> void:
 	# Connect button signals
@@ -23,15 +24,15 @@ func _ready() -> void:
 
 ## Toggle panel visibility
 func toggle() -> void:
-	visible = !visible
+	panel.visible = !panel.visible
 
 ## Show the panel
 func show_panel() -> void:
-	visible = true
+	panel.visible = true
 
 ## Hide the panel
 func hide_panel() -> void:
-	visible = false
+	panel.visible = false
 
 ## Button callbacks
 func _on_back_to_levels_pressed() -> void:
