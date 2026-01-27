@@ -43,7 +43,7 @@ var _current_command_index: int = 0
 
 # Step-based execution (execute one statement per interval)
 var _current_code: String = ""
-var _execution_interval: float = 0.016  # Execute one step every 16ms (~60fps) for smooth movement
+var _execution_interval: float = 0.001  # Execute one step every 1ms for very fast code execution
 var _execution_timer: float = 0.0
 var _is_executing: bool = false
 var _current_ast: Dictionary = {}

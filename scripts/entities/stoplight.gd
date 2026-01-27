@@ -58,29 +58,29 @@ var _wait_duration: float = 0.0  # Total wait duration (for progress display)
 # Preset codes for quick setup
 const PRESET_STANDARD_4WAY = """
 while True:
-    stoplight.green("north", "south")
-    stoplight.red("east", "west")
+	stoplight.green("north", "south")
+	stoplight.red("east", "west")
     wait(5)
-    stoplight.yellow("north", "south")
+	stoplight.yellow("north", "south")
     wait(2)
-    stoplight.red("north", "south")
-    stoplight.green("east", "west")
+	stoplight.red("north", "south")
+	stoplight.green("east", "west")
     wait(5)
-    stoplight.yellow("east", "west")
+	stoplight.yellow("east", "west")
     wait(2)
 """
 
 const PRESET_FAST_CYCLE = """
 while True:
-    stoplight.green("north", "south")
-    stoplight.red("east", "west")
+	stoplight.green("north", "south")
+	stoplight.red("east", "west")
     wait(3)
-    stoplight.yellow("north", "south")
+	stoplight.yellow("north", "south")
     wait(1)
-    stoplight.red("north", "south")
-    stoplight.green("east", "west")
+	stoplight.red("north", "south")
+	stoplight.green("east", "west")
     wait(3)
-    stoplight.yellow("east", "west")
+	stoplight.yellow("east", "west")
     wait(1)
 """
 
@@ -136,12 +136,9 @@ func _process(delta: float) -> void:
 			_wait_timer -= delta
 			if _wait_timer <= 0:
 				_wait_timer = 0
-				# Wait finished, continue execution
-				_continue_code_execution()
-		else:
-			# No wait active, keep executing steps
+		# Always continue code execution if not waiting
+		if _wait_timer <= 0:
 			_continue_code_execution()
-	
 	# Redraw direction indicators
 	queue_redraw()
 
@@ -225,14 +222,20 @@ func _continue_code_execution() -> void:
 	if not _is_running_code or not _interpreter:
 		return
 	
-	# Execute one step
-	var has_more = _interpreter.step()
-	_current_line = _interpreter.get_current_line() if _interpreter.has_method("get_current_line") else 0
-	
-	if not has_more:
-		# Code completed, restart (infinite loop)
-		print("Stoplight code loop completed, restarting...")
-		_start_code_execution()
+	# Execute steps until we hit a wait() or the code completes
+	while _wait_timer <= 0:
+		var has_more = _interpreter.step()
+		_current_line = _interpreter.get_current_line() if _interpreter.has_method("get_current_line") else 0
+		
+		if not has_more:
+			# Code completed, restart (infinite loop)
+			print("Stoplight code loop completed, restarting...")
+			_start_code_execution()
+			return
+		
+		# If wait() was called, _wait_timer will be > 0, so break
+		if _wait_timer > 0:
+			break
 
 
 ## Called by interpreter: wait(seconds)

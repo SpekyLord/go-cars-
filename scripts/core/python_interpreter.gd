@@ -938,9 +938,11 @@ func _is_car_near_stoplight(stoplight: Variant) -> bool:
 
 
 func _call_method(obj: Variant, obj_name: String, method: String, args: Array) -> Variant:
-	# Debug output for stoplight method calls
+	# Debug output for stoplight and car method calls
 	if obj_name == "stoplight":
 		print("[INTERPRETER] Calling stoplight.", method, "() with args: ", args)
+	elif obj_name == "car":
+		print("[INTERPRETER] Calling car.", method, "() with args: ", args)
 	
 	# Emit command signal for the simulation engine
 	command_executed.emit(obj_name, method, args)
