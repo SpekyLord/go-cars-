@@ -12,37 +12,13 @@ signal readme_requested()
 signal skill_tree_requested()
 
 ## Child nodes
-var code_editor_button: Button
-var readme_button: Button
-var skill_tree_button: Button
+@onready var code_editor_button: Button = $CodeEditorButton
+@onready var readme_button: Button = $ReadmeButton
+@onready var skill_tree_button: Button = $SkillTreeButton
 
 func _ready() -> void:
 	# Setup toolbar appearance
 	alignment = ALIGNMENT_END
-
-	# Create Code Editor button [+]
-	code_editor_button = Button.new()
-	code_editor_button.name = "CodeEditorButton"
-	code_editor_button.text = "[+]"
-	code_editor_button.tooltip_text = "Open Code Editor (Ctrl+1)"
-	code_editor_button.custom_minimum_size = Vector2(40, 32)
-	add_child(code_editor_button)
-
-	# Create README button [i]
-	readme_button = Button.new()
-	readme_button.name = "ReadmeButton"
-	readme_button.text = "[i]"
-	readme_button.tooltip_text = "Open Documentation (Ctrl+2)"
-	readme_button.custom_minimum_size = Vector2(40, 32)
-	add_child(readme_button)
-
-	# Create Skill Tree button [🌳]
-	skill_tree_button = Button.new()
-	skill_tree_button.name = "SkillTreeButton"
-	skill_tree_button.text = "[🌳]"
-	skill_tree_button.tooltip_text = "Open Skill Tree (Ctrl+3)"
-	skill_tree_button.custom_minimum_size = Vector2(40, 32)
-	add_child(skill_tree_button)
 
 	# Connect signals
 	code_editor_button.pressed.connect(_on_code_editor_pressed)
