@@ -512,28 +512,15 @@ func get_guideline_path(grid_pos: Vector2i, entry_dir: String, exit_dir: String)
 
 ## Calculate waypoint path from entry to exit direction
 ## Waypoints are in world coordinates
+## SIMPLIFIED: Only 1 waypoint per tile at the exit edge center (turning point)
 func _calculate_path_waypoints(grid_pos: Vector2i, entry_dir: String, exit_dir: String) -> Array:
 	var points: Array = []
 	var tile_center = Vector2(map_to_local(grid_pos))
 
-	# Check if this is a straight path or a turn
-	var is_straight = _get_axis(entry_dir) == _get_axis(exit_dir)
-
-	if is_straight:
-		# Straight path - both points have SAME lane offset
-		var lane_offset = _get_straight_lane_offset(entry_dir, exit_dir)
-		var entry_point = _get_edge_center(entry_dir, tile_center) + lane_offset
-		var exit_point = _get_edge_center(exit_dir, tile_center) + lane_offset
-		points.append(entry_point)
-		points.append(exit_point)
-	else:
-		# Turn - need different lane offsets and a corner point
-		var entry_point = _get_turn_edge_point(entry_dir, exit_dir, tile_center, true)
-		var corner = _get_corner_point(entry_dir, exit_dir, tile_center)
-		var exit_point = _get_turn_edge_point(entry_dir, exit_dir, tile_center, false)
-		points.append(entry_point)
-		points.append(corner)
-		points.append(exit_point)
+	# Only add the exit waypoint - positioned at the center of the exit edge
+	# This is the "turning point" where the car should be when moving to the next tile
+	var exit_point = _get_edge_center(exit_dir, tile_center)
+	points.append(exit_point)
 
 	return points
 
