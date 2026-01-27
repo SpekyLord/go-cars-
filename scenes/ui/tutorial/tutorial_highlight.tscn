@@ -4,6 +4,7 @@
 [ext_resource type="FontFile" uid="uid://bg6pof5832ljm" path="res://assets/fonts/pixel.ttf" id="2_font"]
 
 [node name="TutorialHighlight" type="CanvasLayer"]
+layer = 50
 script = ExtResource("1_script")
 
 [node name="DarkOverlay" type="ColorRect" parent="."]
