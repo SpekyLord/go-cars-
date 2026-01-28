@@ -1121,7 +1121,7 @@ tile_size = Vector2i(144, 144)
 sources/0 = SubResource("TileSetAtlasSource_1su6t")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mqj1q"]
-size = Vector2(11708.5, 8594.5)
+size = Vector2(6199.5, 4431.5)
 
 [node name="Level02" type="Node2D"]
 
@@ -1208,6 +1208,5 @@ metadata/_edit_use_custom_anchors = true
 position = Vector2(7378, 5821)
 
 [node name="Camera Border" type="CollisionShape2D" parent="."]
-visible = false
-position = Vector2(6627.25, 5203.25)
+position = Vector2(9381.75, 7284.75)
 shape = SubResource("RectangleShape2D_mqj1q")
