@@ -16,6 +16,10 @@ extends Control
 @export var levels_base_path: String = "res://scenes/levelmaps/"
 @export var game_scene_path: String = "res://scenes/main_tilemap.tscn"
 
+@export_group("LevelList Style")
+@export var level_list_font_path: String = "res://assets/fonts/pixel.ttf"
+@export var level_list_item_bg_hex: String = "361107c8"
+
 # Map folder names (must match folder names in levelmaps/)
 const MAP_FOLDERS: Array[String] = [
 	"01Tutorial",
@@ -80,10 +84,15 @@ var map_levels_cache: Dictionary = {}  # map_folder -> Array of level data
 var current_selected_level: Dictionary = {}
 var level_buttons: Array[Button] = []
 
+var _level_list_font: Font = null
+var _level_list_item_bg_color: Color = Color.TRANSPARENT
+
 func _ready() -> void:
 	# Lower music volume for campaign menu
 	if MusicManager:
 		MusicManager.lower_volume()
+
+	_init_level_list_style()
 
 	_collect_map_pins()
 	_setup_map_pins()
@@ -92,7 +101,11 @@ func _ready() -> void:
 
 	# Connect level selector back button
 	if level_selector_back:
-		level_selector_back.pressed.connect(_on_level_selector_back)
+		# Trigger on click (mouse-down), not only on release.
+		if level_selector_back.pressed.is_connected(_on_level_selector_back):
+			level_selector_back.pressed.disconnect(_on_level_selector_back)
+		if not level_selector_back.button_down.is_connected(_on_level_selector_back):
+			level_selector_back.button_down.connect(_on_level_selector_back)
 
 	# Connect hover panel play button
 	if hover_play_button:
@@ -101,6 +114,56 @@ func _ready() -> void:
 	# Connect level hover play button
 	if level_hover_play:
 		level_hover_play.pressed.connect(_on_level_hover_play_pressed)
+
+
+func _init_level_list_style() -> void:
+	# Font (applied to the buttons created inside LevelList)
+	var font_res: Resource = load(level_list_font_path)
+	if font_res != null and font_res is Font:
+		_level_list_font = font_res as Font
+	else:
+		_level_list_font = null
+
+	# Background color for level items (hex RGBA, e.g. "361107c8")
+	_level_list_item_bg_color = Color(level_list_item_bg_hex)
+
+
+func _make_colored_stylebox_from(base: StyleBox, bg: Color) -> StyleBox:
+	# Preserve margins if possible, but force the background color.
+	if base == null:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = bg
+		return sb
+
+	if base is StyleBoxFlat:
+		var sb_flat: StyleBoxFlat = (base as StyleBoxFlat).duplicate()
+		sb_flat.bg_color = bg
+		return sb_flat
+
+	# Fallback: create a flat stylebox but keep the original content margins.
+	var sb2 := StyleBoxFlat.new()
+	sb2.bg_color = bg
+	sb2.content_margin_left = base.content_margin_left
+	sb2.content_margin_top = base.content_margin_top
+	sb2.content_margin_right = base.content_margin_right
+	sb2.content_margin_bottom = base.content_margin_bottom
+	return sb2
+
+
+func _apply_level_item_style_to_button(btn: Button) -> void:
+	if btn == null:
+		return
+
+	# Font
+	if _level_list_font != null:
+		btn.add_theme_font_override("font", _level_list_font)
+
+	# Background (normal/hover/pressed/disabled) for a consistent item look
+	var bg := _level_list_item_bg_color
+	btn.add_theme_stylebox_override("normal", _make_colored_stylebox_from(btn.get_theme_stylebox("normal"), bg))
+	btn.add_theme_stylebox_override("hover", _make_colored_stylebox_from(btn.get_theme_stylebox("hover"), bg))
+	btn.add_theme_stylebox_override("pressed", _make_colored_stylebox_from(btn.get_theme_stylebox("pressed"), bg))
+	btn.add_theme_stylebox_override("disabled", _make_colored_stylebox_from(btn.get_theme_stylebox("disabled"), bg))
 
 
 ## Collect map pin nodes (MapPin_1 to MapPin_5)
@@ -400,6 +463,7 @@ func _create_level_button(level_data: Dictionary, index: int, map_folder: String
 
 	# Style the button
 	btn.disabled = not is_unlocked
+	_apply_level_item_style_to_button(btn)
 
 	# Connect signals
 	btn.pressed.connect(_on_level_button_pressed.bind(level_data))

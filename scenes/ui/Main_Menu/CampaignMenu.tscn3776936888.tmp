@@ -398,6 +398,7 @@ texture = ExtResource("1_fk1gg")
 expand_mode = 1
 
 [node name="HoverPanel" type="TextureRect" parent="."]
+visible = false
 z_index = 3
 layout_mode = 1
 anchors_preset = -1
@@ -525,7 +526,7 @@ rotation = 0.08726646
 texture = ExtResource("6_r0spa")
 expand_mode = 1
 
-[node name="PlayButton" type="TextureButton" parent="HoverPanel" node_paths=PackedStringArray("level_selector_panel")]
+[node name="PlayButton" type="TextureButton" parent="HoverPanel"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.52
@@ -539,7 +540,6 @@ offset_bottom = 19.432
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("10_8gbxi")
-level_selector_panel = NodePath("../../LevelSelectorPanel")
 
 [node name="Button" type="TextureRect" parent="HoverPanel/PlayButton"]
 modulate = Color(1.63721, 1.63721, 1.63721, 1)
@@ -657,7 +657,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 10
 
-[node name="BackButton" type="TextureButton" parent="LevelSelectorPanel/PanelBG" node_paths=PackedStringArray("level_selector_panel", "level_hover_panel")]
+[node name="BackButton" type="TextureButton" parent="LevelSelectorPanel/PanelBG"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -671,8 +671,6 @@ offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("10_8gbxi")
-level_selector_panel = NodePath("../..")
-level_hover_panel = NodePath("../../../LevelHoverPanel")
 
 [node name="Button" type="TextureRect" parent="LevelSelectorPanel/PanelBG/BackButton"]
 modulate = Color(1.63721, 1.63721, 1.63721, 1)

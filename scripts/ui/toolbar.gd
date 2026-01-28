@@ -14,7 +14,6 @@ signal skill_tree_requested()
 ## Child nodes
 @onready var code_editor_button: Button = $CodeEditorButton
 @onready var readme_button: Button = $ReadmeButton
-@onready var skill_tree_button: Button = $SkillTreeButton
 
 func _ready() -> void:
 	# Setup toolbar appearance
