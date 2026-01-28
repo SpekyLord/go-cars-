@@ -1090,11 +1090,11 @@ z_index = -10
 texture_filter = 1
 tile_set = SubResource("TileSet_v8t8k")
 
-[node name="Layer4" type="TileMapLayer" parent="BackgroundLayer"]
-z_index = -10
+[node name="BigRoads" type="TileMapLayer" parent="."]
+z_index = 1
 texture_filter = 1
-scale = Vector2(2, 2)
-tile_map_data = PackedByteArray("AAABADEAAQAFAA0AAAD//zEAAQAEAA0AAAAAADEAAQAFAA0AAAACADEAAQAFAA0AAAA=")
+position = Vector2(150, 150)
+tile_map_data = PackedByteArray("AAABADEAAQAFAA0AAAD//zEAAQAEAA0AAAAAADEAAQAFAA0AAAACADEAAQAFAA0AAAD//xUAAQAEAA0AAAAAABUAAQAFAA0AAAABABUAAQAFAA0AAAACABUAAQAFAA0AAAADABUAAQAFAA0AAAAEABUAAQAFAA0AAAAFABUAAQAFAA0AAAA=")
 tile_set = SubResource("TileSet_v8t8k")
 
 [node name="RoadLayer" type="TileMapLayer" parent="." groups=["Road"]]
