@@ -8,6 +8,9 @@ extends Control
 ## - Levels load dynamically from levelmaps subfolder
 ## - Level unlock system (previous level must be beaten)
 
+# Preload LevelManifest for exported builds (DirAccess doesn't work with packed resources)
+const LevelManifestClass = preload("res://scripts/core/level_manifest.gd")
+
 # ============================================
 # Configuration
 # ============================================
@@ -242,7 +245,7 @@ func _scan_folder_for_levels(folder_path: String) -> Array:
 	# Fallback to LevelManifest for exported builds
 	# Extract folder name from path (e.g., "res://scenes/levelmaps/01Tutorial/" -> "01Tutorial")
 	var folder_name = folder_path.trim_suffix("/").get_file()
-	var manifest_levels = LevelManifest.get_levels_for_map(folder_name)
+	var manifest_levels = LevelManifestClass.get_levels_for_map(folder_name)
 
 	for level_path in manifest_levels:
 		var level_id = level_path.get_file().get_basename()

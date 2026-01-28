@@ -6,6 +6,9 @@ class_name LevelLoader
 ## Now supports subfolders (01Tutorial, 02Iloilo, etc.)
 ## Level order is determined by full path (alphabetical/numerical)
 
+# Preload LevelManifest for exported builds (DirAccess doesn't work with packed resources)
+const LevelManifestClass = preload("res://scripts/core/level_manifest.gd")
+
 const LEVELS_PATH: String = "res://scenes/levelmaps/"
 
 # Cached list of level paths
@@ -167,8 +170,8 @@ func _scan_folder_recursive(folder_path: String) -> void:
 	# Fallback to LevelManifest for exported builds
 	if folder_path == LEVELS_PATH:
 		# Root folder - get all levels from manifest
-		var all_levels = LevelManifest.get_all_levels()
-		var root_levels = LevelManifest.get_root_levels()
+		var all_levels = LevelManifestClass.get_all_levels()
+		var root_levels = LevelManifestClass.get_root_levels()
 		for level_path in all_levels:
 			_level_paths.append(level_path)
 		for level_path in root_levels:
