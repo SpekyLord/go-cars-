@@ -498,7 +498,20 @@ func _on_text_changed() -> void:
 
 	# Notify tutorial manager (player is typing code)
 	if TutorialManager and TutorialManager.is_active():
-		TutorialManager.notify_action("type_code")
+		var expected = TutorialManager.get_expected_code()
+		var current = get_code()
+
+		# If no expected code is set, allow any change (for non-typing steps)
+		if expected.is_empty():
+			TutorialManager.notify_action("type_code")
+		else:
+			# Validate that the expected code exists in the editor
+			var normalized_expected = expected.strip_edges().replace(" ", "").replace("\t", "").replace("\n", "").replace("'", "").replace('"', "").to_lower()
+			var normalized_current = current.strip_edges().replace(" ", "").replace("\t", "").replace("\n", "").replace("'", "").replace('"', "").to_lower()
+
+			# Only advance if the expected code is present
+			if normalized_current.contains(normalized_expected):
+				TutorialManager.notify_action("type_code")
 
 	# Trigger IntelliSense
 	if intellisense:

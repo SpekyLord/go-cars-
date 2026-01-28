@@ -48,6 +48,7 @@ var is_waiting_for_action: bool = false
 var is_awaiting_forced_crash: bool = false # NEW FLAG
 var _is_forced_failure: bool = false # Track if the current failure is a forced tutorial event
 var _allow_failure_panel_display: bool = true # Guard flag to prevent panel during dialogue sequence
+var _in_forced_failure_sequence: bool = false # Track when in forced failure dialogue sequence
 var pending_wait_action: String = ""
 
 ## Code validation tracking
@@ -87,6 +88,11 @@ func start_tutorial(level_name: String, parent_node: Node) -> bool:
 	if not current_tutorial:
 		print("TutorialManager: No tutorial found for level %s" % level_name)
 		return false
+
+	# Reset tutorial state flags
+	_was_code_editor_prompt_shown = false
+	_expected_code = ""
+	_in_forced_failure_sequence = false
 
 	# Check if already completed and should skip
 	if GameData.has_completed_tutorial(level_name):
@@ -333,6 +339,11 @@ func _show_dialogue(step) -> void:
 
 ## Continue to next dialogue line or step
 func continue_dialogue() -> void:
+	# If in forced failure sequence, don't auto-advance
+	# Let _run_forced_failure_sequence() control the flow
+	if _in_forced_failure_sequence:
+		return
+
 	if not is_tutorial_active or not current_tutorial:
 		return
 
@@ -356,22 +367,16 @@ func notify_action(action_type: String) -> void:
 	if not is_waiting_for_action:
 		return
 
-	# If this is a type_code action and we're expecting specific code, validate first
-	if action_type == "type_code" and not _expected_code.is_empty():
-		if not _validate_typed_code():
-			print("TutorialManager: Code validation failed, still waiting")
-			return
-	
 	# Check if action matches what we're waiting for
 	if _action_matches(action_type, pending_wait_action):
 		print("TutorialManager: Action '%s' completed" % action_type)
 		is_waiting_for_action = false
 		pending_wait_action = ""
 		_expected_code = ""
-		
+
 		# Clear any highlight from previous step
 		_clear_highlight()
-		
+
 		advance_step()
 
 ## Check if performed action matches waited action
@@ -521,32 +526,43 @@ func handle_scripted_failure(reason: String) -> void:
 
 ## The full sequence for a scripted, forced failure
 func _run_forced_failure_sequence(reason: String) -> void:
-	_debug_list_failure_popup_nodes()
-	print("[Tutorial] Starting _run_forced_failure_sequence with reason: %s" % reason)
+	print("[Tutorial] Starting forced failure sequence")
 
-	# Prevent automatic failure panel display - we'll show it after dialogue plays out
-	_allow_failure_panel_display = false
+	# Set flag to prevent continue_dialogue() from auto-advancing
+	_in_forced_failure_sequence = true
 
-	# Wait for the crash explanation dialogue to complete
-	# The tutorial system auto-advances through STEP 8B and STEP 9
-	# 3 seconds gives enough time for both dialogue steps to display and be read
-	print("[Tutorial] Waiting 3 seconds for dialogue to finish...")
-	await get_tree().create_timer(3.0).timeout
-	print("[Tutorial] 3 second wait complete, showing failure panel now")
+	# 1. Advance to STEP 8B (crash explanation)
+	print("[Tutorial] Advancing to STEP 8B")
+	advance_step()
 
-	# Now show the failure panel (after both explanations have played)
-	print("[Tutorial] _main_scene exists: %s, has method: %s" % [str(_main_scene != null), str(_main_scene and _main_scene.has_method("show_failure_popup"))])
+	# 2. Wait for player to click through STEP 8B dialogue
+	print("[Tutorial] Waiting for STEP 8B continue...")
+	if dialogue_box and dialogue_box.has_signal("continue_pressed"):
+		await dialogue_box.continue_pressed
+		print("[Tutorial] STEP 8B continue clicked")
+
+	# 3. Advance to STEP 9 (obstacles explanation)
+	print("[Tutorial] Advancing to STEP 9")
+	advance_step()
+
+	# 4. Wait for player to click through STEP 9 dialogue
+	print("[Tutorial] Waiting for STEP 9 continue...")
+	if dialogue_box and dialogue_box.has_signal("continue_pressed"):
+		await dialogue_box.continue_pressed
+		print("[Tutorial] STEP 9 continue clicked")
+
+	# 5. Clear the flag - forced sequence is done
+	_in_forced_failure_sequence = false
+
+	# 6. NOW show the failure panel (after both explanations)
+	print("[Tutorial] Showing failure panel")
 	var failure_scene = _get_failure_popup_scene()
-	if failure_scene:
-		print("[Tutorial] failure_scene Script path: %s, Instance ID: %s" % [failure_scene.get_script(), failure_scene.get_instance_id()])
-		print("[Tutorial] failure_scene method list: %s" % failure_scene.get_method_list())
-		if failure_scene.has_method("show_failure_popup"):
-			print("[Tutorial] Calling failure_scene.show_failure_popup()")
-			failure_scene.show_failure_popup(reason)
-		print("[Tutorial] Calling _prompt_for_reset()")
-		_prompt_for_reset()
-	else:
-		print("[Tutorial] ERROR: Cannot call show_failure_popup - failure_scene invalid or method missing")
+	if failure_scene and failure_scene.has_method("show_failure_popup"):
+		failure_scene.show_failure_popup(reason)
+
+	# 7. Show the "Click Reset" prompt
+	print("[Tutorial] Showing reset prompt")
+	_prompt_for_reset()
 
 ## Shows the final prompt to reset the level
 func _prompt_for_reset() -> void:
@@ -589,6 +605,10 @@ func _get_action_hint(wait_type: String) -> String:
 	
 	# Fallback: clean up the wait type
 	return "Complete the action: " + wait_type.capitalize()
+
+## Get the expected code for validation (public API)
+func get_expected_code() -> String:
+	return _expected_code
 
 ## Highlight a target UI element
 func _highlight_target(target_name: String, hint: String = "") -> void:
