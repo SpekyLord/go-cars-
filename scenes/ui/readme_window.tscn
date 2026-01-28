@@ -1,10 +1,68 @@
-[gd_scene load_steps=2 format=3 uid="uid://coesssjwd8y2o"]
+[gd_scene load_steps=24 format=3 uid="uid://coesssjwd8y2o"]
 
+[ext_resource type="Texture2D" uid="uid://dqpggh8hda0kx" path="res://assets/UI/Sprite sheets/Setting menu.png" id="1_qw064"]
 [ext_resource type="Script" uid="uid://cxrdfxsg6tboh" path="res://scripts/ui/readme_window.gd" id="1_xxxxx"]
+[ext_resource type="FontFile" uid="uid://dcwhex08vx2qh" path="res://assets/fonts/pixelFont-7-8x14-sproutLands.ttf" id="3_o48ap"]
+[ext_resource type="Texture2D" uid="uid://cj1kjs52xbb4s" path="res://assets/UI/Sprite sheets/buttons/Normal Minimize.png" id="4_hirhf"]
+[ext_resource type="Texture2D" uid="uid://b1as05u3w5eaj" path="res://assets/UI/Sprite sheets/buttons/Minimize Button.png" id="5_36xwl"]
+[ext_resource type="Texture2D" uid="uid://bpqhh0b4t8ipb" path="res://assets/UI/Sprite sheets/buttons/Normal Maximize.png" id="6_ky1be"]
+[ext_resource type="Texture2D" uid="uid://cpl8yxbmdcyc4" path="res://assets/UI/Sprite sheets/buttons/Maximize Button.png" id="7_6f3b6"]
+[ext_resource type="Texture2D" uid="uid://dl33j1x5drn4f" path="res://assets/UI/Sprite sheets/buttons/Close Button.png" id="8_17dik"]
+[ext_resource type="Texture2D" uid="uid://bq576j3kdot3g" path="res://assets/UI/Sprite sheets/buttons/Hover Close.png" id="9_nkjgx"]
+[ext_resource type="FontFile" uid="uid://by2afd2myjmcg" path="res://assets/fonts/Game Paused DEMO.otf" id="10_4j8t3"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_riai6"]
+texture = ExtResource("1_qw064")
+expand_margin_left = 25.0
+expand_margin_top = 20.0
+expand_margin_right = 25.0
+expand_margin_bottom = 20.0
+region_rect = Rect2(138.99388, 11.418617, 106.87529, 123.20821)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_c8pro"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ktkjb"]
+texture = ExtResource("4_hirhf")
+region_rect = Rect2(2.6945229, 0, 26.488289, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_2dxhb"]
+texture = ExtResource("5_36xwl")
+region_rect = Rect2(1.8556671, -1.9460835, 28.286877, 34.188023)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g6dup"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gdgnf"]
+texture = ExtResource("6_ky1be")
+region_rect = Rect2(2.8860264, 0.030063868, 26.111956, 32.06279)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3a1mk"]
+texture = ExtResource("7_6f3b6")
+region_rect = Rect2(1.87883, -2.1078532, 28.10715, 34.107853)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8y0pk"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qo0w8"]
+texture = ExtResource("8_17dik")
+region_rect = Rect2(2.8247433, 0, 26.350452, 31.579647)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_biyw1"]
+texture = ExtResource("9_nkjgx")
+region_rect = Rect2(1.87883, -2.2429838, 28.242281, 34.242985)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cj1kn"]
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_0fl5u"]
+color = Color(0.9098039, 0.8117647, 0.6509804, 1)
+grow_end = -9.0
+thickness = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qw064"]
 
 [node name="ReadmeWindow" type="Panel"]
+texture_filter = 3
 offset_right = 600.0
 offset_bottom = 500.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_riai6")
 script = ExtResource("1_xxxxx")
 min_size = Vector2(500, 400)
 default_size = Vector2(600, 500)
@@ -22,17 +80,16 @@ grow_vertical = 2
 [node name="TitleBar" type="PanelContainer" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_c8pro")
 
 [node name="TitleHBox" type="HBoxContainer" parent="VBoxContainer/TitleBar"]
-layout_mode = 2
-
-[node name="SpacerLeft" type="Control" parent="VBoxContainer/TitleBar/TitleHBox"]
-custom_minimum_size = Vector2(8, 0)
 layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="VBoxContainer/TitleBar/TitleHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_o48ap")
+theme_override_font_sizes/font_size = 31
 text = "Documentation"
 vertical_alignment = 1
 
@@ -40,26 +97,36 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 tooltip_text = "Minimize"
-text = "−"
-flat = true
+theme_override_styles/normal = SubResource("StyleBoxTexture_ktkjb")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_2dxhb")
+theme_override_styles/hover = SubResource("StyleBoxTexture_2dxhb")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_g6dup")
 
 [node name="MaximizeButton" type="Button" parent="VBoxContainer/TitleBar/TitleHBox"]
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 tooltip_text = "Maximize"
-text = "□"
-flat = true
+theme_override_styles/normal = SubResource("StyleBoxTexture_gdgnf")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3a1mk")
+theme_override_styles/hover = SubResource("StyleBoxTexture_3a1mk")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_8y0pk")
 
 [node name="CloseButton" type="Button" parent="VBoxContainer/TitleBar/TitleHBox"]
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 tooltip_text = "Close"
-text = "×"
-flat = true
+theme_override_styles/normal = SubResource("StyleBoxTexture_qo0w8")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_biyw1")
+theme_override_styles/hover = SubResource("StyleBoxTexture_biyw1")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_cj1kn")
 
 [node name="SpacerRight" type="Control" parent="VBoxContainer/TitleBar/TitleHBox"]
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_0fl5u")
 
 [node name="ContentContainer" type="MarginContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -69,279 +136,124 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_styles/focus = SubResource("StyleBoxEmpty_qw064")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="VBoxContainer/ContentContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/normal_font = ExtResource("10_4j8t3")
+theme_override_fonts/bold_font = ExtResource("10_4j8t3")
+theme_override_fonts/bold_italics_font = ExtResource("10_4j8t3")
+theme_override_fonts/italics_font = ExtResource("10_4j8t3")
+theme_override_fonts/mono_font = ExtResource("10_4j8t3")
+theme_override_font_sizes/normal_font_size = 20
+theme_override_font_sizes/bold_font_size = 26
 bbcode_enabled = true
-text = "[b][color=cyan]GoCars - Complete Python Programming Guide[/color][/b]
+text = "[b][color=3C1006]GoCars - Python Programming Guide[/color][/b]
 
 [b]Welcome![/b]
 Write Python code to control vehicles and complete levels. Your code runs on all spawned cars automatically!
 
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-[b][color=yellow]CAR CONTROL METHODS[/color][/b]
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
+[b][color=8c6245]═══ Car Commands ═══[/color][/b]
 
-[b][color=orange]Movement Commands:[/color][/b]
-  [color=lightgreen]car.go()[/color]
-    → Start moving forward
-    → Car continues until stopped or obstacle
-    
-  [color=lightgreen]car.stop()[/color]
-    → Stop immediately
-    → Halts all movement
-    
-  [color=lightgreen]car.turn(\"left\")[/color]
-    → Turn 90° counterclockwise
-    → Only valid directions: \"left\", \"right\"
-    
-  [color=lightgreen]car.turn(\"right\")[/color]
-    → Turn 90° clockwise
+[b]Movement:[/b]
+  [color=aa7959]car.go()[/color]           - Start moving forward
+  [color=aa7959]car.stop()[/color]         - Stop immediately
+  [color=aa7959]car.turn(\"left\")[/color]   - Turn 90° left
+  [color=aa7959]car.turn(\"right\")[/color]  - Turn 90° right
 
-[b][color=orange]Road Detection (Boolean):[/color][/b]
-  [color=lightgreen]car.front_road()[/color]
-    → Returns: True if road ahead, False otherwise
-    
-  [color=lightgreen]car.left_road()[/color]
-    → Returns: True if road to left, False otherwise
-    
-  [color=lightgreen]car.right_road()[/color]
-    → Returns: True if road to right, False otherwise
+[b]Road Detection:[/b]
+  [color=aa7959]car.front_road()[/color]   - Road ahead? → True/False
+  [color=aa7959]car.left_road()[/color]    - Road to left? → True/False
+  [color=aa7959]car.right_road()[/color]   - Road to right? → True/False
 
-[b][color=orange]Obstacle Detection (Boolean):[/color][/b]
-  [color=lightgreen]car.front_car()[/color]
-    → Returns: True if any car ahead, False otherwise
-    → Detects both moving and crashed cars
-    
-  [color=lightgreen]car.front_crash()[/color]
-    → Returns: True if crashed car ahead, False otherwise
-    → Use to navigate around accidents
+[b]Obstacle Detection:[/b]
+  [color=aa7959]car.front_car()[/color]    - Any car ahead? → True/False
+  [color=aa7959]car.front_crash()[/color]  - Crashed car ahead? → True/False
 
-[b][color=orange]State Queries (Boolean):[/color][/b]
-  [color=lightgreen]car.at_end()[/color]
-    → Returns: True if at destination, False otherwise
-    → Use in loops: while not car.at_end()
-    
-  [color=lightgreen]car.at_cross()[/color]
-    → Returns: True if at intersection, False otherwise
-    → Useful for decision-making at junctions
-    
-  [color=lightgreen]car.at_red()[/color]
-    → Returns: True if near red stoplight, False otherwise
-    → Range: 100 units proximity
-
-[b][color=orange]Additional Car Methods:[/color][/b]
-  [color=lightgreen]car.dead_end()[/color]
-    → Returns: True if at dead end (no roads), False otherwise
-    
-  [color=lightgreen]car.moving()[/color]
-    → Returns: True if currently in motion, False otherwise
+[b]State Queries:[/b]
+  [color=aa7959]car.at_end()[/color]       - At destination? → True/False
+  [color=aa7959]car.at_cross()[/color]     - At intersection? → True/False
+  [color=aa7959]car.at_red()[/color]       - Near red light? → True/False
 
 
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-[b][color=yellow]STOPLIGHT CONTROL METHODS[/color][/b]
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
+[b][color=8c6245]═══ Stoplight Commands ═══[/color][/b]
 
-[b][color=orange]Control Commands:[/color][/b]
-  [color=lightgreen]stoplight.red()[/color]
-    → Change light to red
-    → Blocks traffic (if cars check)
-    
-  [color=lightgreen]stoplight.green()[/color]
-    → Change light to green
-    → Allows traffic flow
+[b]Control:[/b]
+  [color=aa7959]stoplight.red()[/color]    - Set to red
+  [color=aa7959]stoplight.green()[/color]  - Set to green
 
-[b][color=orange]State Queries (Boolean):[/color][/b]
-  [color=lightgreen]stoplight.is_red()[/color]
-    → Returns: True if red, False otherwise
-    → Only affects cars within 100 units
-    
-  [color=lightgreen]stoplight.is_green()[/color]
-    → Returns: True if green, False otherwise
-    
-  [color=lightgreen]stoplight.is_yellow()[/color]
-    → Returns: True if yellow, False otherwise
-
-[b][color=red]⚠ Important:[/color][/b] Stoplights don't auto-stop cars!
-You must check stoplight.is_red() and call car.stop()
+[b]State:[/b]
+  [color=aa7959]stoplight.is_red()[/color]    - Is red? → True/False
+  [color=aa7959]stoplight.is_green()[/color]  - Is green? → True/False
 
 
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-[b][color=yellow]PYTHON SYNTAX & FEATURES[/color][/b]
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
+[b][color=8c6245]═══ Python Syntax ═══[/color][/b]
 
-[b][color=orange]Variables:[/color][/b]
-  [color=gray]speed = 10
-  name = \\\"MyCar\\\"
-  is_moving = True
-  count = 0[/color]
-
-[b][color=orange]If/Elif/Else Statements:[/color][/b]
-  [color=gray]if car.front_road():
+[b][color=8c6245]If Statements:[/color][/b]
+  if car.front_road():
       car.go()
   elif car.left_road():
       car.turn(\\\"left\\\")
       car.go()
   else:
-      car.stop()[/color]
+      car.stop()
 
-[b][color=orange]While Loops:[/color][/b]
-  [color=gray]while not car.at_end():
+[b]While Loops:[/b]
+  while not car.at_end():
       if car.front_road():
           car.go()
-      else:
-          car.turn(\\\"right\\\")[/color]
 
-[b][color=orange]For Loops:[/color][/b]
-  [color=gray]for i in range(5):
+[b]Functions:[/b]
+  def smart_turn(direction):
+      car.turn(direction)
       car.go()
-      car.turn(\\\"right\\\")[/color]
 
-[b][color=orange]Break Statement:[/color][/b]
-  [color=gray]while True:
-      if car.at_end():
-          break
-      car.go()[/color]
+  smart_turn(\"left\")
 
-[b][color=orange]Boolean Operators:[/color][/b]
-  [color=gray]and  → Both conditions true
-  or   → Either condition true
-  not  → Inverts boolean[/color]
+
+[b][color=8c6245]═══ Import System ═══[/color][/b]
+Create helper modules to organize your code:
+
+[b][color=8c6245]1. Create a module file (helpers.py):[/color][/b]
   
-  Example:
-  [color=gray]if car.front_road() and not car.front_car():
-      car.go()[/color]
-
-[b][color=orange]Comparison Operators:[/color][/b]
-  [color=gray]==  → Equal to
-  !=  → Not equal to
-  <   → Less than
-  >   → Greater than
-  <=  → Less than or equal
-  >=  → Greater than or equal[/color]
-
-[b][color=orange]Arithmetic Operators:[/color][/b]
-  [color=gray]+   → Addition
-  -   → Subtraction
-  *   → Multiplication
-  /   → Division[/color]
-
-
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-[b][color=yellow]FUNCTIONS & CODE ORGANIZATION[/color][/b]
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-
-[b][color=orange]Defining Functions:[/color][/b]
-  [color=gray]def navigate_safely():
+def avoid_crash():
       if car.front_crash():
-          car.turn(\\\"left\\\")
-      elif car.front_road():
+          if car.left_road():
+			  car.turn(\"left\")
+          elif car.right_road()
+			  car.turn(\"right\")
+
+  def navigate():
+      if car.front_road():
           car.go()
       else:
           car.stop()
 
-  # Call the function
-  navigate_safely()[/color]
-
-[b][color=orange]Functions with Parameters:[/color][/b]
-  [color=gray]def turn_and_go(direction):
-      car.turn(direction)
-      car.go()
-
-  turn_and_go(\\\"left\\\")[/color]
-
-[b][color=orange]Functions with Return Values:[/color][/b]
-  [color=gray]def check_safe():
-      if car.front_crash():
-          return False
-      if car.front_car():
-          return False
-      return True
-
-  if check_safe():
-      car.go()[/color]
-
-[b][color=orange]Multiple Parameters:[/color][/b]
-  [color=gray]def move_steps(direction, count):
-      for i in range(count):
-          car.turn(direction)
-          car.go()
-
-  move_steps(\\\"right\\\", 3)[/color]
-
-
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-[b][color=yellow]MODULE SYSTEM (Import)[/color][/b]
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-
-[b][color=orange]Creating a Module:[/color][/b]
-Create a file named [color=cyan]helpers.py[/color]:
-  [color=gray]def avoid_crash():
-      if car.front_crash():
-          if car.left_road():
-              car.turn(\\\"left\\\")
-          elif car.right_road():
-              car.turn(\\\"right\\\")
-          else:
-              car.stop()
-
-  def smart_navigate():
-      if car.front_road():
-          car.go()
-      elif car.left_road():
-          car.turn(\\\"left\\\")
-      else:
-          car.turn(\\\"right\\\")[/color]
-
-[b][color=orange]Importing Functions:[/color][/b]
-In your [color=cyan]main.py[/color]:
-  [color=gray]from helpers import avoid_crash, smart_navigate
+[b][color=8c6245]2. Import functions in main.py:[/color][/b]
+  from helpers import avoid_crash, navigate
 
   while not car.at_end():
       avoid_crash()
       smart_navigate()[/color]
 
-[b][color=orange]Nested Modules:[/color][/b]
-  [color=gray]from navigation.pathfinding import find_path
-  from utils.helpers import debug_print[/color]
+[b][color=8c6245]3. Nested modules:[/color][/b]
+  from modules.navigation import find_path
 
 
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-[b][color=yellow]BUILT-IN FUNCTIONS[/color][/b]
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
+[b][color=8c6245]═══ Tips & Tricks ═══[/color][/b]
 
-[b][color=orange]Print Function:[/color][/b]
-  [color=gray]print(\\\"Hello, World!\\\")
-  print(\\\"Speed:\\\", speed)
-  print(car.at_end())[/color]
-  → Outputs to terminal/console
-
-[b][color=orange]Range Function:[/color][/b]
-  [color=gray]range(5)        → 0, 1, 2, 3, 4
-  range(2, 7)     → 2, 3, 4, 5, 6
-  range(0, 10, 2) → 0, 2, 4, 6, 8[/color]
+• [color=8c6245]Red lights don't auto-stop![/color] You must check stoplight state
+• [color=8c6245]Crashed cars stay on map[/color] as obstacles - navigate around them
+• [color=8c6245]Your code runs on ALL cars[/color] - make it handle multiple scenarios
+• [color=8c6245]Use functions[/color] to break complex logic into reusable pieces
+• [color=8c6245]Organize with modules[/color] for cleaner, more maintainable code
+• [color=8c6245]Test edge cases:[/color] dead ends, multiple obstacles, timing
 
 
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-[b][color=yellow]COMPLETE EXAMPLES[/color][/b]
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
+[b][color=8c6245]═══ Example: Complete Solution ═══[/color][/b]
 
-[b][color=orange]Example 1: Basic Navigation[/color][/b]
-[color=gray]while not car.at_end():
-    if car.front_road():
-        car.go()
-    elif car.left_road():
-        car.turn(\\\"left\\\")
-        car.go()
-    elif car.right_road():
-        car.turn(\\\"right\\\")
-        car.go()
-    else:
-        car.stop()[/color]
-
-[b][color=orange]Example 2: Stoplight Handling[/color][/b]
-[color=gray]def check_stoplight():
+def check_stoplight():
     if stoplight.is_red():
         car.stop()
         return False
@@ -367,52 +279,9 @@ while not car.at_end():
     return False
 
 while not car.at_end():
-    if not avoid_obstacles():
-        if car.front_road():
-            car.go()
-        else:
-            car.stop()[/color]
-
-[b][color=orange]Example 4: Dead End Detection[/color][/b]
-[color=gray]while not car.at_end():
-    if car.dead_end():
-        print(\\\"Reached dead end!\\\")
-        break
-    if car.front_road():
-        car.go()
-    else:
-        car.turn(\\\"right\\\")[/color]
+    navigate_safely()
 
 
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-[b][color=yellow]TIPS & BEST PRACTICES[/color][/b]
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-
-[b][color=cyan]✓[/color][/b] Check [color=lightgreen]car.at_end()[/color] in loops to avoid infinite execution
-[b][color=cyan]✓[/color][/b] Use [color=lightgreen]car.dead_end()[/color] to detect navigation limits
-[b][color=cyan]✓[/color][/b] Always check stoplight states - they don't auto-stop cars!
-[b][color=cyan]✓[/color][/b] Crashed cars remain as obstacles - navigate around them
-[b][color=cyan]✓[/color][/b] Your code runs on ALL spawned cars simultaneously
-[b][color=cyan]✓[/color][/b] Use functions to organize complex logic
-[b][color=cyan]✓[/color][/b] Create modules for reusable code across levels
-[b][color=cyan]✓[/color][/b] Test edge cases: dead ends, multiple obstacles, timing
-[b][color=cyan]✓[/color][/b] Use [color=lightgreen]print()[/color] to debug your code
-
-[b][color=red]✗[/color][/b] Don't forget to call [color=lightgreen]car.go()[/color] after turning
-[b][color=red]✗[/color][/b] Don't assume stoplights stop cars automatically
-[b][color=red]✗[/color][/b] Don't create infinite loops without exit conditions
-
-
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-[b][color=yellow]KEYBOARD SHORTCUTS[/color][/b]
-[b][color=yellow]═══════════════════════════════════════[/color][/b]
-
-[b]Ctrl+1[/b] - Toggle Code Editor
-[b]Ctrl+2[/b] - Toggle This Documentation
-[b]Ctrl+3[/b] - Toggle Skill Tree
-[b]F11[/b] - Maximize/Restore Window
-[b]R[/b] - Reset Level
-
-
-[center][b][color=cyan]Happy Coding! 🚗💨[/color][/b][/center]"
+[b][color=3C1006]Press Ctrl+2 to toggle this window[/color][/b]
+"
 fit_content = true

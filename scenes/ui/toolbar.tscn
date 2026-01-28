@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://c5n8m2lap4j1x"]
+[gd_scene load_steps=13 format=3 uid="uid://c5n8m2lap4j1x"]
 
 [ext_resource type="Script" uid="uid://d1k72kyxu4km6" path="res://scripts/ui/toolbar.gd" id="1_toolbar"]
 [ext_resource type="FontFile" uid="uid://dcwhex08vx2qh" path="res://assets/fonts/pixelFont-7-8x14-sproutLands.ttf" id="2_j4jut"]
@@ -13,11 +13,15 @@ texture = ExtResource("3_7r4a7")
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lcige"]
 texture = ExtResource("4_7r4a7")
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7r4a7"]
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ne8ky"]
 texture = ExtResource("5_ne8ky")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_cicof"]
 texture = ExtResource("6_pr1jq")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pr1jq"]
 
 [node name="Toolbar" type="HBoxContainer"]
 anchors_preset = 1
@@ -39,7 +43,7 @@ theme_override_font_sizes/font_size = 36
 theme_override_styles/normal = SubResource("StyleBoxTexture_pr1jq")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_lcige")
 theme_override_styles/hover = SubResource("StyleBoxTexture_lcige")
-theme_override_styles/focus = SubResource("StyleBoxTexture_pr1jq")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_7r4a7")
 
 [node name="ReadmeButton" type="Button" parent="."]
 custom_minimum_size = Vector2(40, 32)
@@ -48,4 +52,4 @@ tooltip_text = "Open Documentation (Ctrl+2)"
 theme_override_styles/normal = SubResource("StyleBoxTexture_ne8ky")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_cicof")
 theme_override_styles/hover = SubResource("StyleBoxTexture_cicof")
-theme_override_styles/focus = SubResource("StyleBoxTexture_ne8ky")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_pr1jq")

@@ -35,14 +35,6 @@ border_color = Color(0.9098039, 0.8117647, 0.6509804, 1)
 corner_radius_top_left = 25
 corner_radius_top_right = 25
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0v0sx"]
-texture = ExtResource("3_0v0sx")
-region_rect = Rect2(2.9182997, 1.6270111, 26.289063, 28.435822)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_36amu"]
-texture = ExtResource("4_uo274")
-region_rect = Rect2(1.8666077, 1.036691, 28.13176, 28.991682)
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_uo274"]
 texture = ExtResource("5_0v0sx")
 region_rect = Rect2(2.8599129, 1.4818164, 26.313362, 28.525938)
@@ -50,6 +42,14 @@ region_rect = Rect2(2.8599129, 1.4818164, 26.313362, 28.525938)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qly7m"]
 texture = ExtResource("6_uo274")
 region_rect = Rect2(1.8316536, -0.07172012, 28.509449, 30.032856)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0v0sx"]
+texture = ExtResource("3_0v0sx")
+region_rect = Rect2(2.9182997, 1.6270111, 26.289063, 28.435822)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_36amu"]
+texture = ExtResource("4_uo274")
+region_rect = Rect2(1.8666077, 1.036691, 28.13176, 28.991682)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_c4xln"]
 texture = ExtResource("6_0ejjt")
@@ -138,6 +138,15 @@ theme_override_fonts/font = ExtResource("2_qtohr")
 theme_override_font_sizes/font_size = 20
 text = "Code Editor"
 
+[node name="MinimizeButton" type="Button" parent="VBoxContainer/TitleBar/TitleHBox"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+tooltip_text = "Minimize"
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxTexture_uo274")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_qly7m")
+theme_override_styles/hover = SubResource("StyleBoxTexture_qly7m")
+
 [node name="MaximizeButton" type="Button" parent="VBoxContainer/TitleBar/TitleHBox"]
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
@@ -147,15 +156,6 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_0v0sx")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_36amu")
 theme_override_styles/hover = SubResource("StyleBoxTexture_36amu")
 theme_override_styles/focus = SubResource("StyleBoxTexture_36amu")
-
-[node name="MinimizeButton" type="Button" parent="VBoxContainer/TitleBar/TitleHBox"]
-custom_minimum_size = Vector2(28, 28)
-layout_mode = 2
-tooltip_text = "Minimize"
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxTexture_uo274")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_qly7m")
-theme_override_styles/hover = SubResource("StyleBoxTexture_qly7m")
 
 [node name="CloseButton" type="Button" parent="VBoxContainer/TitleBar/TitleHBox"]
 custom_minimum_size = Vector2(28, 28)
