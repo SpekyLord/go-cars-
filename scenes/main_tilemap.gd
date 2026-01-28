@@ -2261,6 +2261,7 @@ func _on_menu_close() -> void:
 ## Load hearts configuration from level's HeartsUI node
 func _load_level_hearts() -> void:
 	if current_level_node == null:
+		print("[Main] _load_level_hearts: current_level_node is null")
 		return
 
 	# HeartsUI is now in the main scene, get reference if not already set
@@ -2272,15 +2273,24 @@ func _load_level_hearts() -> void:
 		var level_hearts_ui = current_level_node.get_node_or_null("HeartsUI")
 		var heart_count = 3  # Default fallback
 
+		print("[Main] Level: %s" % current_level_node.name)
+		print("[Main] Level HeartsUI found: %s" % (level_hearts_ui != null))
+
 		if level_hearts_ui:
 			# Read the HeartCount label from the level's HeartsUI
 			var heart_count_label = level_hearts_ui.get_node_or_null("HeartCount")
+			print("[Main] HeartCount label found: %s" % (heart_count_label != null))
+
 			if heart_count_label and heart_count_label is Label:
 				var heart_text = heart_count_label.text.strip_edges()
+				print("[Main] HeartCount text: '%s'" % heart_text)
+
 				if heart_text.is_valid_int():
 					heart_count = int(heart_text)
+					print("[Main] Parsed heart count: %d" % heart_count)
 
 		# Configure the main scene's HeartsUI with the level's heart count
+		print("[Main] Setting hearts to: %d" % heart_count)
 		if hearts_ui.has_method("set_max_hearts"):
 			hearts_ui.set_max_hearts(heart_count)
 			initial_hearts = heart_count
@@ -2294,6 +2304,7 @@ func _load_level_hearts() -> void:
 			hearts_label.visible = false
 	else:
 		# No HeartsUI found - use default
+		print("[Main] Main scene HeartsUI not found!")
 		initial_hearts = 10
 		hearts = initial_hearts
 		if hearts_label:

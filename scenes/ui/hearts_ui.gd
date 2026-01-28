@@ -51,14 +51,8 @@ func _ready() -> void:
 	# Find pre-created heart sprites
 	_find_heart_sprites()
 
-	# Read HeartCount label to set initial heart count for this level
-	var heart_count_label = get_node_or_null("HeartCount")
-	if heart_count_label and heart_count_label is Label:
-		var heart_text = heart_count_label.text.strip_edges()
-		if heart_text.is_valid_int():
-			var heart_count = int(heart_text)
-			if heart_count > 0:
-				set_max_hearts(heart_count)
+	# Heart count is set by main_tilemap.gd via set_max_hearts()
+	# Do NOT read HeartCount label here - let main_tilemap.gd handle it
 
 
 func _process(delta: float) -> void:
