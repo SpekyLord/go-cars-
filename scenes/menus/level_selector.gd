@@ -4,6 +4,9 @@ extends Control
 ## Full-screen menu for selecting which level to play
 ## Dynamically loads levels from the levelmaps folder
 
+# Preload LevelManifest for exported builds (DirAccess doesn't work with packed resources)
+const LevelManifestClass = preload("res://scripts/core/level_manifest.gd")
+
 # ============================================
 # Configuration (exported for easy editing)
 # ============================================
@@ -94,7 +97,7 @@ func _scan_levels_folder() -> Array[String]:
 
 	# Fallback to LevelManifest for exported builds
 	push_warning("DirAccess failed, using LevelManifest fallback for: %s" % levels_path)
-	var root_levels = LevelManifest.get_root_levels()
+	var root_levels = LevelManifestClass.get_root_levels()
 	for level_path in root_levels:
 		level_paths.append(level_path)
 	level_paths.sort()
