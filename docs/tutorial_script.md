@@ -159,7 +159,8 @@ STEP 8A: TRIGGER CRASH
 STEP 8B: EXPLAIN CRASH
 "See that? When a car leaves the road, it CRASHES!"
 [Arrow points to hearts/lives display]
-"That cost you your only LIFE! When you run out of lives, the level ends."
+"That crash cost you 1 LIFE! When you run out of lives, the level ends."
+"You started with as many lives as there are cars on the map."
 
 STEP 9: Crashed Cars Stay
 [Point at crashed car]

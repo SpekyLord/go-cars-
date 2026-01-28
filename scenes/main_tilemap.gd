@@ -865,6 +865,11 @@ func _on_level_failed(reason: String) -> void:
 	if TutorialManager and TutorialManager.is_active():
 		# The TutorialManager will be responsible for showing the failure popup after its own dialogue.
 		TutorialManager.handle_scripted_failure(reason)
+
+		# If this is a forced crash demo, notify the tutorial manager that the crash was detected
+		if TutorialManager.is_awaiting_forced_crash:
+			TutorialManager.emit_signal("forced_crash_completed")
+
 		return
 
 	_update_status("Level Failed: %s" % reason)
@@ -2457,11 +2462,8 @@ func _force_spawn_crashing_car() -> void:
 
 	# Directly command the car to go, which will cause it to crash
 	player_car.go()
-
-	# Wait for the crash to happen
-	await get_tree().create_timer(2.0).timeout
-	if TutorialManager:
-		TutorialManager.emit_signal("forced_crash_completed")
+	# The level_failed signal will be emitted when the crash is detected,
+	# and _on_level_failed() will notify the tutorial manager
 
 ## Force player car to run without checking stoplight (Tutorial 4)
 func _force_auto_run_player_car() -> void:
