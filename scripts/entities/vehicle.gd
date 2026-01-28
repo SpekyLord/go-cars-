@@ -1545,14 +1545,25 @@ func set_all_destinations(destinations: Array) -> void:
 			if dest.has("position"):
 				_all_destinations.append(dest["position"])
 			# Store group-specific destinations
+			# Compare as integers since RoadTileMapLayer.SpawnGroup and Vehicle.SpawnGroup are different enums
 			if dest.has("group") and spawn_group != SpawnGroup.NONE:
-				if dest["group"] == spawn_group:
+				var dest_group_int = int(dest["group"])
+				var spawn_group_int = int(spawn_group)
+				if dest_group_int == spawn_group_int:
 					_group_destinations.append(dest)
 
 
 ## Set spawn group and filter destinations
-func set_spawn_group(group: SpawnGroup) -> void:
-	spawn_group = group
+## Accepts Vehicle.SpawnGroup or RoadTileMapLayer.SpawnGroup (converts via int)
+func set_spawn_group(group) -> void:
+	# Convert to int first to handle different enum types
+	var group_int = int(group)
+	match group_int:
+		0: spawn_group = SpawnGroup.A
+		1: spawn_group = SpawnGroup.B
+		2: spawn_group = SpawnGroup.C
+		3: spawn_group = SpawnGroup.D
+		_: spawn_group = SpawnGroup.NONE
 	_update_stats_group()  # Update group label
 
 
