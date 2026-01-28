@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://c7lgfwy3a3yly"]
+[gd_scene load_steps=17 format=3 uid="uid://c7lgfwy3a3yly"]
 
 [ext_resource type="Script" uid="uid://ctywxj6p4q3rq" path="res://scripts/ui/tutorial_dialogue_box.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://7c8l1bvff785" path="res://assets/sprites/Maki_Normal.png" id="2_maki"]
@@ -89,6 +89,8 @@ animations = [{
 "name": &"default",
 "speed": 5.0
 }]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6cb7t"]
 
 [node name="TutorialDialogueBox" type="CanvasLayer"]
 layer = 100
@@ -188,5 +190,6 @@ theme_override_colors/font_outline_color = Color(0.5568628, 0.3882353, 0.3647059
 theme_override_constants/outline_size = 10
 theme_override_fonts/font = ExtResource("5_uyhkw")
 theme_override_font_sizes/font_size = 31
+theme_override_styles/focus = SubResource("StyleBoxEmpty_6cb7t")
 text = "Skip Tutorial"
 flat = true
