@@ -2211,7 +2211,7 @@ terrain_set_4/terrain_0/name = "Road"
 terrain_set_4/terrain_0/color = Color(0.16, 0.16, 0.16, 1)
 sources/1 = SubResource("TileSetAtlasSource_i4n5k")
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_fxwwg"]
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_vx3ke"]
 texture = ExtResource("4_dqnmf")
 texture_region_size = Vector2i(144, 144)
 0:0/0 = 0
@@ -2220,10 +2220,10 @@ texture_region_size = Vector2i(144, 144)
 
 [sub_resource type="TileSet" id="TileSet_hbpaq"]
 tile_size = Vector2i(144, 144)
-sources/0 = SubResource("TileSetAtlasSource_fxwwg")
+sources/0 = SubResource("TileSetAtlasSource_vx3ke")
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_1su6t"]
-size = Vector2(10613, 6111)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_i4n5k"]
+size = Vector2(11708.5, 8594.5)
 
 [node name="Level05" type="Node2D"]
 
@@ -2306,10 +2306,10 @@ layout_mode = 3
 anchors_preset = 0
 metadata/_edit_use_custom_anchors = true
 
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2(4486, 2318)
+
 [node name="Camera Border" type="CollisionShape2D" parent="."]
 visible = false
-position = Vector2(945.5, 320.5)
-shape = SubResource("RectangleShape2D_1su6t")
-
-[node name="Camera" type="Camera2D" parent="."]
-position = Vector2(795, 343)
+position = Vector2(6627.25, 5203.25)
+shape = SubResource("RectangleShape2D_i4n5k")

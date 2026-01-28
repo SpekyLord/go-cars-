@@ -2222,8 +2222,8 @@ texture_region_size = Vector2i(144, 144)
 tile_size = Vector2i(144, 144)
 sources/0 = SubResource("TileSetAtlasSource_1su6t")
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_1su6t"]
-size = Vector2(10613, 6111)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_obwya"]
+size = Vector2(11708.5, 8594.5)
 
 [node name="Level04" type="Node2D"]
 
@@ -2306,10 +2306,10 @@ layout_mode = 3
 anchors_preset = 0
 metadata/_edit_use_custom_anchors = true
 
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2(9893, 3229)
+
 [node name="Camera Border" type="CollisionShape2D" parent="."]
 visible = false
-position = Vector2(945.5, 320.5)
-shape = SubResource("RectangleShape2D_1su6t")
-
-[node name="Camera" type="Camera2D" parent="."]
-position = Vector2(795, 343)
+position = Vector2(6627.25, 5203.25)
+shape = SubResource("RectangleShape2D_obwya")
