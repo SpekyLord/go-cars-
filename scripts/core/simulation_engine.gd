@@ -261,11 +261,12 @@ func _register_game_objects() -> void:
 
 ## Execute code for a specific vehicle (used for spawned cars)
 func execute_code_for_vehicle(code: String, vehicle: Vehicle) -> void:
+	print("SimulationEngine: DEBUG - execute_code_for_vehicle called for car: " + str(vehicle.vehicle_id))
 	# Create a temporary interpreter for this vehicle
 	var temp_interpreter = PythonInterpreter.new()
 	temp_interpreter.register_object("car", vehicle)
 
-	# Register stoplights too
+	# Register a read-only proxy for the stoplight
 	if _stoplights.size() > 0:
 		var first_stoplight_id = _stoplights.keys()[0]
 		var real_stoplight = _stoplights[first_stoplight_id]
@@ -278,8 +279,10 @@ func execute_code_for_vehicle(code: String, vehicle: Vehicle) -> void:
 	# Parse and start execution
 	var ast = _python_parser.parse(code)
 	if ast["errors"].size() > 0:
+		print("SimulationEngine: DEBUG - Parse error for vehicle-specific code.")
 		return
 
+	print("SimulationEngine: DEBUG - Starting new interpreter for vehicle.")
 	temp_interpreter.start_execution(ast)
 
 	# Store the interpreter for this vehicle

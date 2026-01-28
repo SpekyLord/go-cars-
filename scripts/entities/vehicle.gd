@@ -1783,9 +1783,8 @@ func _check_red_light_violation() -> void:
 	for stoplight in _nearby_stoplights:
 		var distance = global_position.distance_to(stoplight.global_position)
 
-		# Determine which side of the stoplight the car is on to check the correct arrow
-		var direction_to_stoplight = (stoplight.global_position - global_position).normalized()
-		var direction_name = _vector_to_direction_name(direction_to_stoplight)
+		# Use the car's FACING direction to check the correct arrow
+		var direction_name = _vector_to_direction_name(direction)
 
 		# If we're very close (passing through) and light is red for our direction
 		if distance < 30.0 and stoplight.is_red(direction_name):
@@ -1816,8 +1815,8 @@ func _vector_to_direction_name(vec: Vector2) -> String:
 func at_red() -> bool:
 	for stoplight in _nearby_stoplights:
 		if global_position.distance_to(stoplight.global_position) < STOPLIGHT_STOP_DISTANCE:
-			var direction_to_stoplight = (stoplight.global_position - global_position).normalized()
-			var direction_name = _vector_to_direction_name(direction_to_stoplight)
+			# Use the car's FACING direction, not the direction to the stoplight
+			var direction_name = _vector_to_direction_name(direction)
 			if stoplight.is_red(direction_name):
 				return true
 	return false
@@ -1827,8 +1826,8 @@ func at_red() -> bool:
 func at_green() -> bool:
 	for stoplight in _nearby_stoplights:
 		if global_position.distance_to(stoplight.global_position) < STOPLIGHT_STOP_DISTANCE:
-			var direction_to_stoplight = (stoplight.global_position - global_position).normalized()
-			var direction_name = _vector_to_direction_name(direction_to_stoplight)
+			# Use the car's FACING direction, not the direction to the stoplight
+			var direction_name = _vector_to_direction_name(direction)
 			if stoplight.is_green(direction_name):
 				return true
 	return false
@@ -1838,8 +1837,8 @@ func at_green() -> bool:
 func at_yellow() -> bool:
 	for stoplight in _nearby_stoplights:
 		if global_position.distance_to(stoplight.global_position) < STOPLIGHT_STOP_DISTANCE:
-			var direction_to_stoplight = (stoplight.global_position - global_position).normalized()
-			var direction_name = _vector_to_direction_name(direction_to_stoplight)
+			# Use the car's FACING direction, not the direction to the stoplight
+			var direction_name = _vector_to_direction_name(direction)
 			if stoplight.is_yellow(direction_name):
 				return true
 	return false

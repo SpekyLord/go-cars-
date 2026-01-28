@@ -152,11 +152,14 @@ STEP 7: Continue Navigation
 STEP 8: Demonstrate Crash (FORCED)
 [Before player runs code, force a crash scenario]
 "Wait! Before you run that, let me show you something important."
-[Spawn a second car that crashes off-road]
+
+STEP 8A: TRIGGER CRASH
+[FORCE: spawn_crashing_car]
+
+STEP 8B: EXPLAIN CRASH
 "See that? When a car leaves the road, it CRASHES!"
 [Arrow points to hearts/lives display]
-"You lost 1 LIFE! You have 3 lives total."
-"Lose all 3 and it's GAME OVER!"
+"That cost you your only LIFE! When you run out of lives, the level ends."
 
 STEP 9: Crashed Cars Stay
 [Point at crashed car]
@@ -280,7 +283,11 @@ STEP 2: Show the Stoplight
 
 STEP 3: FORCED RED LIGHT VIOLATION
 "First, let me show you what happens if you ignore it..."
-[Auto-run: car.go() without checking stoplight]
+
+STEP 3A: TRIGGER VIOLATION
+[FORCE: auto_run_player_car]
+
+STEP 3B: EXPLAIN VIOLATION
 [Car runs the red light]
 [Arrow points to hearts display]
 "VIOLATION! Running a red light costs you 1 LIFE!"
