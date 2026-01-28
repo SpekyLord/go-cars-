@@ -151,7 +151,7 @@ theme_override_font_sizes/bold_font_size = 26
 bbcode_enabled = true
 text = "[b][color=3C1006]GoCars - Python Programming Guide[/color][/b]
 
-[b]How to Play:[/b]
+[b]Welcome![/b]
 Write Python code to control vehicles and complete levels. Your code runs on all spawned cars automatically!
 
 [b][color=8c6245]═══ Car Commands ═══[/color][/b]
@@ -194,7 +194,8 @@ Write Python code to control vehicles and complete levels. Your code runs on all
   if car.front_road():
       car.go()
   elif car.left_road():
-	  car.turn(\"left\")
+      car.turn(\\\"left\\\")
+      car.go()
   else:
       car.stop()
 
@@ -234,7 +235,7 @@ def avoid_crash():
 
   while not car.at_end():
       avoid_crash()
-      navigate()[/color]
+      smart_navigate()[/color]
 
 [b][color=8c6245]3. Nested modules:[/color][/b]
   from modules.navigation import find_path
@@ -258,22 +259,24 @@ def check_stoplight():
         return False
     return True
 
-def navigate_safely():
-    if car.front_crash():
+while not car.at_end():
+    if check_stoplight():
+        if car.front_road():
+            car.go()[/color]
+
+[b][color=orange]Example 3: Crash Avoidance[/color][/b]
+[color=gray]def avoid_obstacles():
+    if car.front_crash() or car.front_car():
         if car.left_road():
-			car.turn(\"left\")
+            car.turn(\\\"left\\\")
+            car.go()
         elif car.right_road():
-			car.turn(\"right\")
+            car.turn(\\\"right\\\")
+            car.go()
         else:
             car.stop()
-    elif car.front_road() and check_stoplight():
-        car.go()
-    elif car.left_road():
-		car.turn(\"left\")
-    elif car.right_road():
-		car.turn(\"right\")
-    else:
-        car.stop()
+        return True
+    return False
 
 while not car.at_end():
     navigate_safely()
