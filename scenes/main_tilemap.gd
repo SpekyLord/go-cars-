@@ -310,14 +310,14 @@ func _setup_audio() -> void:
 	# Background engine sound
 	background_audio = AudioStreamPlayer.new()
 	background_audio.stream = load("res://assets/audio/car-engine-running.mp3")
-	background_audio.volume_db = -15.0
+	background_audio.volume_db = 1.0
 	add_child(background_audio)
 	background_audio.play(1.0)
 
 	# Car engine sound
 	engine_audio = AudioStreamPlayer.new()
 	engine_audio.stream = load("res://assets/audio/engine-6000.mp3")
-	engine_audio.volume_db = -20.0
+	engine_audio.volume_db = -10.0
 	add_child(engine_audio)
 
 	# Crash sound

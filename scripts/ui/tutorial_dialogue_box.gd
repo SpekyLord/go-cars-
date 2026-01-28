@@ -31,12 +31,25 @@ var _full_text: String = ""
 var _chars_per_second: float = 40.0
 var _is_typing: bool = false
 
-## Continue indicator animation
+
+## Dialogue typewriter sound
+var _typewriter_audio: AudioStreamPlayer = null
 var _continue_tween: Tween = null
 
 func _ready() -> void:
 	# Load Maki sprites
 	_load_sprites()
+
+	# Create and configure typewriter audio
+	_typewriter_audio = AudioStreamPlayer.new()
+	_typewriter_audio.stream = load("res://assets/audio/Toon_Woman_Gabble.mp3")
+	_typewriter_audio.volume_db = -8.0
+	# Assign to SFX bus if it exists, else Master
+	if AudioServer.get_bus_index("SFX") >= 0:
+		_typewriter_audio.bus = "SFX"
+	else:
+		_typewriter_audio.bus = "Master"
+	add_child(_typewriter_audio)
 
 	# Connect signals
 	skip_button.pressed.connect(_on_skip_pressed)
@@ -158,6 +171,10 @@ func _start_typewriter(text: String) -> void:
 	if _typewriter_tween and _typewriter_tween.is_valid():
 		_typewriter_tween.kill()
 
+	# Play typewriter sound
+	if _typewriter_audio:
+		_typewriter_audio.play()
+
 	# Calculate duration
 	var duration = text.length() / _chars_per_second
 
@@ -181,6 +198,10 @@ func _skip_typewriter() -> void:
 func _on_typewriter_complete() -> void:
 	_is_typing = false
 	continue_indicator.visible = true
+
+	# Stop typewriter sound
+	if _typewriter_audio:
+		_typewriter_audio.stop()
 
 ## Animate continue indicator (bouncing)
 func _animate_continue_indicator() -> void:
