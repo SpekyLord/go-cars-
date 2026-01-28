@@ -2268,13 +2268,25 @@ func _load_level_hearts() -> void:
 		hearts_ui = get_node_or_null("UI/HeartsUI")
 
 	if hearts_ui:
-		# HeartsUI self-initializes from HeartCount label in _ready()
-		# Just sync our tracking variables with the UI
-		if hearts_ui.has_method("get_max_hearts"):
-			initial_hearts = hearts_ui.get_max_hearts()
-			hearts = hearts_ui.get_hearts()
+		# Read the heart count from the loaded level's HeartsUI configuration
+		var level_hearts_ui = current_level_node.get_node_or_null("HeartsUI")
+		var heart_count = 3  # Default fallback
+
+		if level_hearts_ui:
+			# Read the HeartCount label from the level's HeartsUI
+			var heart_count_label = level_hearts_ui.get_node_or_null("HeartCount")
+			if heart_count_label and heart_count_label is Label:
+				var heart_text = heart_count_label.text.strip_edges()
+				if heart_text.is_valid_int():
+					heart_count = int(heart_text)
+
+		# Configure the main scene's HeartsUI with the level's heart count
+		if hearts_ui.has_method("set_max_hearts"):
+			hearts_ui.set_max_hearts(heart_count)
+			initial_hearts = heart_count
+			hearts = heart_count
 		else:
-			initial_hearts = 10
+			initial_hearts = heart_count
 			hearts = initial_hearts
 
 		# Hide old hearts label since we're using the animated HeartsUI

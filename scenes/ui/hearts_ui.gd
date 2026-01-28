@@ -23,7 +23,7 @@ signal hearts_depleted
 
 # Internal state
 var max_hearts: int = 3
-var current_hearts: int = 3
+var current_hearts: int = 1
 var heart_sprites: Array = []  # Array of heart nodes (AnimatedSprite2D)
 var heart_container: HBoxContainer = null
 var heart_texture: Texture2D = null
