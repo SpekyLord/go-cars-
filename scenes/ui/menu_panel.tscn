@@ -47,10 +47,10 @@ region_rect = Rect2(98.69833, 3.780607, 90.41525, 25.324188)
 
 [node name="MenuPanel" type="CanvasLayer"]
 layer = 200
+visible = false
 script = ExtResource("1_script")
 
 [node name="Panel" type="Panel" parent="."]
-visible = false
 custom_minimum_size = Vector2(0, 1.04)
 anchors_preset = 8
 anchor_left = 0.5
