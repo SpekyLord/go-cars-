@@ -32,6 +32,7 @@ var is_tutorial_active: bool = false
 var is_waiting_for_action: bool = false
 var is_awaiting_forced_crash: bool = false # NEW FLAG
 var _is_forced_failure: bool = false # Track if the current failure is a forced tutorial event
+var _allow_failure_panel_display: bool = true # Guard flag to prevent panel during dialogue sequence
 var pending_wait_action: String = ""
 
 ## Code validation tracking
@@ -487,14 +488,11 @@ func handle_scripted_failure(reason: String) -> void:
 	if not is_tutorial_active:
 		return
 
-	# Determine if the failure was forced, which dictates the flow
-	var step = get_current_step()
-	if step and step.title.to_lower().contains("forced"):
-		_is_forced_failure = true
+	# Check if this is a forced failure scenario (flag is set during crash sequence)
+	if _is_forced_failure:
 		# This is a forced failure, so execute the full sequence with commentary
-		_run_forced_failure_sequence(reason)
+		await _run_forced_failure_sequence(reason)
 	else:
-		_is_forced_failure = false
 		# This is a genuine player failure, just show the reset prompt immediately.
 		if _main_scene and _main_scene.has_method("_show_failure_popup"):
 			_main_scene._show_failure_popup(reason)
@@ -502,18 +500,54 @@ func handle_scripted_failure(reason: String) -> void:
 
 ## The full sequence for a scripted, forced failure
 func _run_forced_failure_sequence(reason: String) -> void:
-	# 1. Advance to the next step to show Maki's commentary on the crash
+	print("[Tutorial] Starting forced failure sequence")
+
+	# Prevent any automatic failure panel display during this sequence
+	_allow_failure_panel_display = false
+
+	# 1. Advance to STEP 8B (crash explanation)
+	print("[Tutorial] Advancing to STEP 8B")
 	advance_step()
 
-	# 2. Wait for the user to click "Continue" on that commentary
-	if dialogue_box and dialogue_box.has_signal("continue_pressed"):
-		await dialogue_box.continue_pressed
+	# Give dialogue box time to show
+	await get_tree().process_frame
 
-	# 3. Now, show the actual failure panel
+	# 2. Wait for the user to click "Continue" on STEP 8B
+	print("[Tutorial] Waiting for STEP 8B dialogue continue, box exists: %s" % (dialogue_box != null))
+	if dialogue_box:
+		print("[Tutorial] Checking for signal, has it: %s" % dialogue_box.has_signal("continue_pressed"))
+		if dialogue_box.has_signal("continue_pressed"):
+			print("[Tutorial] Awaiting continue_pressed...")
+			await dialogue_box.continue_pressed
+			print("[Tutorial] Continue pressed signal received!")
+		else:
+			print("[Tutorial] ERROR: No continue_pressed signal on dialogue_box")
+	else:
+		print("[Tutorial] ERROR: dialogue_box is null")
+
+	# 3. Advance to STEP 9 (obstacles explanation)
+	print("[Tutorial] Advancing to STEP 9")
+	advance_step()
+
+	# Give dialogue box time to show
+	await get_tree().process_frame
+
+	# 4. Wait for the user to click "Continue" on STEP 9
+	print("[Tutorial] Waiting for STEP 9 dialogue continue")
+	if dialogue_box and dialogue_box.has_signal("continue_pressed"):
+		print("[Tutorial] Awaiting continue_pressed for STEP 9...")
+		await dialogue_box.continue_pressed
+		print("[Tutorial] Continue pressed signal received for STEP 9!")
+	else:
+		print("[Tutorial] ERROR: dialogue_box not ready for STEP 9")
+
+	# 5. NOW allow failure panel and show it (after both explanations)
+	print("[Tutorial] Now showing failure panel")
+	_allow_failure_panel_display = true
 	if _main_scene and _main_scene.has_method("_show_failure_popup"):
 		_main_scene._show_failure_popup(reason)
 
-	# 4. Finally, show the "Click Reset" prompt and highlight
+	# 6. Show the "Click Reset" prompt and highlight
 	_prompt_for_reset()
 
 ## Shows the final prompt to reset the level

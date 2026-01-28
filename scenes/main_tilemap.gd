@@ -12,9 +12,9 @@ const RoadTileProxy = preload("res://scripts/map_editor/road_tile_proxy.gd")
 @onready var code_editor: TextEdit = $UI/CodeEditor
 @onready var run_button: Button = $UI/RunButton
 @onready var status_label: Label = $UI/StatusLabel
-@onready var speed_label: Label = $UI/SpeedLabel
-@onready var hearts_label: Label = $UI/HeartsLabel
-@onready var road_cards_label: Label = $UI/RoadCardsLabel
+@onready var speed_label: Label = $UI/HBoxContainer/SpeedLabel
+@onready var hearts_label: Label = $UI/HBoxContainer/HeartsLabel
+@onready var road_cards_label: Label = $UI/HBoxContainer/RoadCardsLabel
 # Stoplights are now spawned from stoplight tiles in levels
 # Use _spawned_stoplights array to access them
 
@@ -863,12 +863,16 @@ func _on_level_completed(stars: int) -> void:
 func _on_level_failed(reason: String) -> void:
 	# If a tutorial is active, let it handle the failure sequence
 	if TutorialManager and TutorialManager.is_active():
-		# The TutorialManager will be responsible for showing the failure popup after its own dialogue.
-		TutorialManager.handle_scripted_failure(reason)
-
-		# If this is a forced crash demo, notify the tutorial manager that the crash was detected
+		print("[Main] Level failed during tutorial: %s" % reason)
+		# Notify the tutorial manager that the crash was detected
 		if TutorialManager.is_awaiting_forced_crash:
+			print("[Main] Forced crash detected, emitting signal")
 			TutorialManager.emit_signal("forced_crash_completed")
+
+		# The TutorialManager will be responsible for showing the failure popup after its own dialogue.
+		print("[Main] Calling handle_scripted_failure")
+		await TutorialManager.handle_scripted_failure(reason)
+		print("[Main] handle_scripted_failure completed")
 
 		return
 
