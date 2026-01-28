@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cg1se462juwds"
-path="res://.godot/imported/Untitled25_20260121002907.png-0c1062ab05fd994d507441e68d46ffb6.ctex"
+uid="uid://blfp2ulh8v3c5"
+path="res://.godot/imported/Plus Hover.png-e1ecacd0c9a7a4b221112a7b1c7694f5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://scenes/ui/code_editor/Untitled25_20260121002907.png"
-dest_files=["res://.godot/imported/Untitled25_20260121002907.png-0c1062ab05fd994d507441e68d46ffb6.ctex"]
+source_file="res://assets/UI/Sprite sheets/buttons/Plus Hover.png"
+dest_files=["res://.godot/imported/Plus Hover.png-e1ecacd0c9a7a4b221112a7b1c7694f5.ctex"]
 
 [params]
 

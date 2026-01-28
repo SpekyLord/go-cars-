@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dc2my8dekkscf"
-path="res://.godot/imported/Untitled22.png-44a00e5328425df6f4d580046347926d.ctex"
+uid="uid://qpjk74nnrjkq"
+path="res://.godot/imported/Plus Normal.png-9312b0d62435fe4ff7b9165edd9a29d7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://scenes/ui/code_editor/Untitled22.png"
-dest_files=["res://.godot/imported/Untitled22.png-44a00e5328425df6f4d580046347926d.ctex"]
+source_file="res://assets/UI/Sprite sheets/buttons/Plus Normal.png"
+dest_files=["res://.godot/imported/Plus Normal.png-9312b0d62435fe4ff7b9165edd9a29d7.ctex"]
 
 [params]
 
