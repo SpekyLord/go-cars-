@@ -502,18 +502,25 @@ func handle_scripted_failure(reason: String) -> void:
 
 ## The full sequence for a scripted, forced failure
 func _run_forced_failure_sequence(reason: String) -> void:
-	# 1. Advance to the next step to show Maki's commentary on the crash
+	# 1. Advance to STEP 8B (crash explanation)
 	advance_step()
 
-	# 2. Wait for the user to click "Continue" on that commentary
+	# 2. Wait for the user to click "Continue" on STEP 8B
 	if dialogue_box and dialogue_box.has_signal("continue_pressed"):
 		await dialogue_box.continue_pressed
 
-	# 3. Now, show the actual failure panel
+	# 3. Advance to STEP 9 (obstacles explanation)
+	advance_step()
+
+	# 4. Wait for the user to click "Continue" on STEP 9
+	if dialogue_box and dialogue_box.has_signal("continue_pressed"):
+		await dialogue_box.continue_pressed
+
+	# 5. NOW show the failure panel (after both explanations)
 	if _main_scene and _main_scene.has_method("_show_failure_popup"):
 		_main_scene._show_failure_popup(reason)
 
-	# 4. Finally, show the "Click Reset" prompt and highlight
+	# 6. Show the "Click Reset" prompt and highlight
 	_prompt_for_reset()
 
 ## Shows the final prompt to reset the level

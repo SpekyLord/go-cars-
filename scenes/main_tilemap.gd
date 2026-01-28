@@ -12,9 +12,9 @@ const RoadTileProxy = preload("res://scripts/map_editor/road_tile_proxy.gd")
 @onready var code_editor: TextEdit = $UI/CodeEditor
 @onready var run_button: Button = $UI/RunButton
 @onready var status_label: Label = $UI/StatusLabel
-@onready var speed_label: Label = $UI/SpeedLabel
-@onready var hearts_label: Label = $UI/HeartsLabel
-@onready var road_cards_label: Label = $UI/RoadCardsLabel
+@onready var speed_label: Label = $UI/HBoxContainer/SpeedLabel
+@onready var hearts_label: Label = $UI/HBoxContainer/HeartsLabel
+@onready var road_cards_label: Label = $UI/HBoxContainer/RoadCardsLabel
 # Stoplights are now spawned from stoplight tiles in levels
 # Use _spawned_stoplights array to access them
 
